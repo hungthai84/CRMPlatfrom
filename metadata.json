@@ -1,0 +1,8 @@
+{
+  "name": "Remix: CRM Platfrom [Đang làm]",
+  "description": "CRM Platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

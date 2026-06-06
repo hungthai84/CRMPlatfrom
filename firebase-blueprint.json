@@ -1,0 +1,118 @@
+{
+  "entities": {
+    "Customer": {
+      "title": "Customer",
+      "description": "A customer profile in the CRM.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Customer name" },
+        "email": { "type": "string", "description": "Primary email" },
+        "phone": { "type": "string", "description": "Mobile phone" },
+        "segment": { "type": "string", "description": "Customer segment" },
+        "tier": { "type": "string", "description": "Loyalty tier" },
+        "loyaltyPoints": { "type": "number", "description": "Points" },
+        "lifetimeValue": { "type": "number", "description": "LTV in VND" },
+        "avatar": { "type": "string", "description": "Avatar URL" },
+        "createdAt": { "type": "number", "description": "Timestamp" },
+        "updatedAt": { "type": "number", "description": "Timestamp" },
+        "ownerId": { "type": "string", "description": "ID of the user managing this" }
+      },
+      "required": ["name", "email", "createdAt", "updatedAt", "ownerId"]
+    },
+    "Ticket": {
+      "title": "Support Ticket",
+      "description": "A support request from a customer.",
+      "type": "object",
+      "properties": {
+        "ticketId": { "type": "string", "description": "Auto-generated ID (YT-2026-XXXXX)" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["technical", "billing", "product", "complaint", "consultancy", "other"] },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
+        "status": { "type": "string", "enum": ["new", "processing", "pending", "resolved", "closed"] },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "agentId": { "type": "string" },
+        "agentName": { "type": "string" },
+        "source": { "type": "string", "enum": ["portal", "agent", "email", "chat", "zalo", "fanpage"] },
+        "slaDeadline": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["ticketId", "title", "category", "priority", "status", "customerId", "createdAt", "updatedAt"]
+    },
+    "TicketComment": {
+      "title": "Ticket Comment",
+      "description": "A communication message within a ticket.",
+      "type": "object",
+      "properties": {
+        "ticketId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userRole": { "type": "string", "enum": ["customer", "agent"] },
+        "content": { "type": "string" },
+        "isPrivate": { "type": "boolean" },
+        "attachments": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["ticketId", "userId", "content", "createdAt"]
+    },
+    "Campaign": {
+      "title": "Marketing Campaign",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Email", "Social", "SMS", "Call"] },
+        "status": { "type": "string", "enum": ["Draft", "Active", "Paused", "Completed"] },
+        "budget": { "type": "number" },
+        "spent": { "type": "number" },
+        "leads": { "type": "number" },
+        "conversion": { "type": "number" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" }
+      },
+      "required": ["name", "type", "status", "startDate"]
+    },
+    "AIInsight": {
+      "title": "AI Insight",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["churn_risk", "upsell_opportunity", "sentiment_alert", "revenue_forecast"] },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetName": { "type": "string" },
+        "recommendation": { "type": "string" },
+        "createdAt": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/customers/{customerId}": {
+      "schema": { "$ref": "#/entities/Customer" },
+      "description": "Collection of CRM customers."
+    },
+    "/tickets/{ticketId}": {
+      "schema": { "$ref": "#/entities/Ticket" },
+      "description": "Collection of support tickets."
+    },
+    "/tickets/{ticketId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/TicketComment" },
+      "description": "Sub-collection of comments for a ticket."
+    },
+    "/marketing/campaigns/{campaignId}": {
+      "schema": { "$ref": "#/entities/Campaign" },
+      "description": "Collection of marketing campaigns."
+    },
+    "/campaigns/{campaignId}": {
+      "schema": { "$ref": "#/entities/Campaign" },
+      "description": "Collection of marketing campaigns."
+    },
+    "/ai/insights/{insightId}": {
+      "schema": { "$ref": "#/entities/AIInsight" },
+      "description": "Collection of AI-generated insights."
+    }
+  }
+}

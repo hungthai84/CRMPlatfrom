@@ -1,0 +1,129 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. Reusable Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isCustomerValid(data) {
+      return data.keys().hasAll(['name', 'email', 'createdAt', 'updatedAt', 'ownerId']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.email is string && data.email.size() > 0 && data.email.size() <= 100 &&
+             data.ownerId == request.auth.uid &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 20)) &&
+             (!('segment' in data) || (data.segment is string && data.segment.size() <= 50)) &&
+             (!('tier' in data) || (data.tier is string && data.tier.size() <= 50)) &&
+             (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 500)) &&
+             (!('loyaltyPoints' in data) || data.loyaltyPoints is number) &&
+             (!('lifetimeValue' in data) || data.lifetimeValue is number);
+    }
+
+    function isTicketValid(data) {
+      return data.keys().hasAll(['ticketId', 'title', 'category', 'priority', 'status', 'customerId', 'ownerId', 'createdAt', 'updatedAt']) &&
+             data.ticketId is string && data.ticketId.size() <= 20 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.category in ['technical', 'billing', 'product', 'complaint', 'consultancy', 'other'] &&
+             data.priority in ['low', 'medium', 'high', 'urgent'] &&
+             data.status in ['new', 'processing', 'pending', 'resolved', 'closed'] &&
+             data.customerId is string && data.customerId.size() <= 128 &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isCommentValid(data) {
+      return data.keys().hasAll(['ticketId', 'userId', 'content', 'ticketOwnerId', 'createdAt']) &&
+             data.ticketId is string && data.ticketId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.ticketOwnerId is string && data.ticketOwnerId.size() <= 128 &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 5000;
+    }
+
+    function isCampaignValid(data) {
+      return data.keys().hasAll(['name', 'type', 'status', 'startDate']) &&
+             data.name is string && data.name.size() <= 200 &&
+             data.type is string &&
+             data.status is string &&
+             data.startDate is string;
+    }
+
+    match /customers/{customerId} {
+      allow get: if isSignedIn() && isValidId(customerId) && (existing().ownerId == request.auth.uid);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(customerId) && 
+                    isCustomerValid(incoming()) &&
+                    incoming().createdAt == request.time &&
+                    incoming().updatedAt == request.time;
+      allow update: if isSignedIn() && isValidId(customerId) && 
+                    existing().ownerId == request.auth.uid &&
+                    isCustomerValid(incoming()) &&
+                    incoming().ownerId == existing().ownerId &&
+                    incoming().createdAt == existing().createdAt &&
+                    incoming().updatedAt == request.time;
+      allow delete: if isSignedIn() && isValidId(customerId) && existing().ownerId == request.auth.uid;
+    }
+
+    match /tickets/{ticketId} {
+      allow get: if isSignedIn() && isValidId(ticketId) && (existing().ownerId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid);
+      
+      allow create: if isSignedIn() && isValidId(ticketId) && 
+                    isTicketValid(incoming()) &&
+                    incoming().createdAt == request.time &&
+                    incoming().updatedAt == request.time;
+                    
+      allow update: if isSignedIn() && isValidId(ticketId) && 
+                    isTicketValid(incoming()) &&
+                    existing().ownerId == request.auth.uid &&
+                    incoming().ownerId == existing().ownerId &&
+                    incoming().customerId == existing().customerId &&
+                    incoming().createdAt == existing().createdAt &&
+                    incoming().updatedAt == request.time;
+                    
+      allow delete: if isSignedIn() && isValidId(ticketId) && existing().ownerId == request.auth.uid;
+
+      match /comments/{commentId} {
+        allow get: if isSignedIn() && isValidId(commentId) && (existing().ticketOwnerId == request.auth.uid);
+        allow list: if isSignedIn() && (resource.data.ticketOwnerId == request.auth.uid);
+        
+        allow create: if isSignedIn() && isValidId(commentId) && 
+                      isCommentValid(incoming()) &&
+                      incoming().ticketId == ticketId &&
+                      incoming().ticketOwnerId == request.auth.uid &&
+                      incoming().createdAt == request.time;
+      }
+    }
+
+    match /marketing/campaigns/{campaignId} {
+      allow get, list: if isSignedIn();
+      allow write: if false; // Assuming marketing data is managed via AI/Backend or Admins not implementing client write yet
+    }
+
+    match /campaigns/{campaignId} {
+      allow get, list: if isSignedIn();
+      allow write: if isSignedIn() && isCampaignValid(incoming());
+    }
+
+    match /ai/insights/{insightId} {
+      allow get, list: if isSignedIn();
+      allow write: if false; // System only
+    }
+  }
+}
