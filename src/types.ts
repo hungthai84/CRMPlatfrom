@@ -52,6 +52,12 @@ export interface Ticket {
   metadata?: any;
 }
 
+export interface TicketCommentAttachment {
+  url: string;
+  type: string;
+  name: string;
+}
+
 export interface TicketComment {
   id: string;
   ticketId: string;
@@ -61,7 +67,7 @@ export interface TicketComment {
   ticketOwnerId: string; // The user who owns the parent ticket
   content: string;
   isPrivate: boolean;
-  attachments: string[];
+  attachments: TicketCommentAttachment[] | string[];
   createdAt: number;
 }
 

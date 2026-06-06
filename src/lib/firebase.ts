@@ -11,17 +11,40 @@ export const db = (firebaseConfig as any).firestoreDatabaseId
   : getFirestore(app);
 export const auth = getAuth(app);
 
+// In-memory token cache
+export let cachedAccessToken: string | null = null;
+export let isSigningIn = false;
+
 // Use popup for AI Studio compatibility
-export const loginWithGoogle = () => {
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({
-    prompt: 'select_account'
-  });
-  return signInWithPopup(auth, provider);
+export const loginWithGoogle = async () => {
+  try {
+    isSigningIn = true;
+    const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
+    const result = await signInWithPopup(auth, provider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (!credential?.accessToken) {
+      console.warn('Failed to get access token from Firebase Auth');
+    } else {
+      cachedAccessToken = credential.accessToken;
+    }
+    return result;
+  } finally {
+    isSigningIn = false;
+  }
 };
 
-export const logout = () => {
+export const logout = async () => {
+  cachedAccessToken = null;
   return signOut(auth);
+};
+
+export const getAccessToken = () => {
+  return cachedAccessToken;
 };
 
 // Validate Connection

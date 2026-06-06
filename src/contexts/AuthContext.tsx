@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth, loginWithGoogle, logout } from '../lib/firebase';
+import { auth, loginWithGoogle, logout, cachedAccessToken, isSigningIn } from '../lib/firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -21,7 +21,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+      if (u) {
+        if (!cachedAccessToken && !isSigningIn) {
+          // Force re-login if we have a user but no access token
+          logout().then(() => {
+            setUser(null);
+            setLoading(false);
+          });
+          return;
+        }
+        setUser(u);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();

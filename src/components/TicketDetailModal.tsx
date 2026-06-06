@@ -11,13 +11,24 @@ import {
   Clock, 
   AlertTriangle,
   Loader2,
-  MessageSquare
+  MessageSquare,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Ticket, TicketComment, TicketStatus, TicketPriority } from '../types';
 import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, updateDoc, doc, setDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { DrivePickerModal } from './DrivePickerModal';
+
+interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  thumbnailLink?: string;
+  iconLink?: string;
+  webViewLink?: string;
+}
 
 interface TicketDetailModalProps {
   ticket: Ticket;
@@ -32,6 +43,9 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
   const [loadingComments, setLoadingComments] = useState(true);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  
+  const [isDrivePickerOpen, setIsDrivePickerOpen] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<DriveFile[]>([]);
 
   const formatDate = (date: any) => {
     if (!date) return '-';
@@ -56,7 +70,7 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
   }, [ticket.id]);
 
   const handleSend = async () => {
-    if (!comment.trim() || !user || !ticket.id) return;
+    if ((!comment.trim() && attachedFiles.length === 0) || !user || !ticket.id) return;
     
     setSubmittingComment(true);
     try {
@@ -68,7 +82,7 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
         ticketOwnerId: ticket.ownerId || user.uid, // Ensuring it matches the parent ticket owner
         content: comment,
         isPrivate: isPrivate,
-        attachments: [],
+        attachments: attachedFiles.map(f => ({ url: f.webViewLink || f.iconLink || '', type: f.mimeType, name: f.name })),
         createdAt: serverTimestamp(),
       };
 
@@ -81,6 +95,7 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
       });
 
       setComment('');
+      setAttachedFiles([]);
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, `tickets/${ticket.id}/comments`);
     } finally {
@@ -193,6 +208,16 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
                       <p className={`text-sm text-slate-700 leading-relaxed ${c.isPrivate ? 'italic' : ''}`}>
                         {c.content}
                       </p>
+                      {c.attachments && c.attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {c.attachments.map((att, i) => (
+                            <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-blue-600 hover:bg-blue-50 transition-colors">
+                              <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="truncate max-w-[150px]">{att.name}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -215,21 +240,40 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
                   <Lock className="w-3.5 h-3.5" /> Note nội bộ
                 </button>
               </div>
+
+              {attachedFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2 p-2 bg-slate-50 rounded-lg">
+                  {attachedFiles.map(f => (
+                    <div key={f.id} className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-700">
+                      <FileText className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                      <span className="truncate max-w-[120px]">{f.name}</span>
+                      <button onClick={() => setAttachedFiles(prev => prev.filter(a => a.id !== f.id))} className="text-slate-400 hover:text-rose-500 ml-1">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="relative">
                 <textarea 
                   disabled={submittingComment}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder={isPrivate ? "Ghi chú nội bộ (Khách hàng không thấy)..." : "Nhập nội dung phản hồi khách hàng..."}
-                  className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm resize-none h-24 disabled:opacity-50"
+                  className="w-full pl-4 pr-24 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm resize-none h-24 disabled:opacity-50"
                 />
                 <div className="absolute right-3 bottom-3 flex items-center gap-2">
-                  <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                  <button 
+                    onClick={() => setIsDrivePickerOpen(true)}
+                    className="p-2 text-slate-400 hover:text-blue-600 bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
+                    title="Đính kèm từ Google Drive"
+                  >
                     <Paperclip className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={handleSend}
-                    disabled={!comment.trim() || submittingComment}
+                    disabled={(!comment.trim() && attachedFiles.length === 0) || submittingComment}
                     className="p-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -320,6 +364,12 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
           </div>
         </div>
       </motion.div>
+      <DrivePickerModal 
+        isOpen={isDrivePickerOpen} 
+        onClose={() => setIsDrivePickerOpen(false)} 
+        multiple={true}
+        onSelectFiles={(files) => setAttachedFiles(prev => [...prev, ...files])}
+      />
     </div>
   );
 };
