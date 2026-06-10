@@ -23,7 +23,7 @@ import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 const StatusBadge = ({ status }: { status: TicketStatus }) => {
-  const styles = {
+  const styles: Record<string, string> = {
     new: 'bg-blue-100 text-blue-700 border-blue-200',
     processing: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     pending: 'bg-amber-100 text-amber-700 border-amber-200',
@@ -31,7 +31,7 @@ const StatusBadge = ({ status }: { status: TicketStatus }) => {
     closed: 'bg-slate-100 text-slate-700 border-slate-200',
   };
 
-  const labels = {
+  const labels: Record<string, string> = {
     new: 'Mới',
     processing: 'Đang xử lý',
     pending: 'Chờ phản hồi',
@@ -39,9 +39,12 @@ const StatusBadge = ({ status }: { status: TicketStatus }) => {
     closed: 'Đã đóng',
   };
 
+  const badgeStyle = styles[status as string] || 'bg-purple-100 text-purple-700 border-purple-200';
+  const badgeLabel = labels[status as string] || status;
+
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[status]}`}>
-      {labels[status]}
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeStyle}`}>
+      {badgeLabel}
     </span>
   );
 };
@@ -77,7 +80,7 @@ const PriorityBadge = ({ priority }: { priority: TicketPriority }) => {
 };
 
 export const SupportTickets = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -87,18 +90,11 @@ export const SupportTickets = () => {
   useEffect(() => {
     if (!user) return;
 
-    // To follow security rules, we first need to know which customers belong to the user
-    // However, our rules for tickets use get(/.../customers/$(custId)).data.ownerId == request.auth.uid
-    // So we can query tickets and Firestore will check each one's customer.
-    // NOTE: This might be expensive/slow if many tickets exist.
-    // A better way is to query tickets WHERE customerId IN [...ownedCustomerIds]
-    
     const fetchTickets = async () => {
       try {
-        const qTickets = query(
-          collection(db, 'tickets'), 
-          where('ownerId', '==', user.uid)
-        );
+        const qTickets = isAdmin 
+          ? collection(db, 'tickets')
+          : query(collection(db, 'tickets'), where('ownerId', '==', user.uid));
 
         const unsubscribe = onSnapshot(qTickets, (snapshot) => {
           let data = snapshot.docs.map(doc => ({
@@ -125,7 +121,7 @@ export const SupportTickets = () => {
     let unsubscribe: any;
     fetchTickets().then(unsub => unsubscribe = unsub);
     return () => unsubscribe && unsubscribe();
-  }, [user]);
+  }, [user, isAdmin]);
 
   const filteredTickets = tickets.filter(t => 
     t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

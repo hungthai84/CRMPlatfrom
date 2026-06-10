@@ -39,11 +39,12 @@ service cloud.firestore {
 
     function isTicketValid(data) {
       return data.keys().hasAll(['ticketId', 'title', 'category', 'priority', 'status', 'customerId', 'ownerId', 'createdAt', 'updatedAt']) &&
-             data.ticketId is string && data.ticketId.size() <= 20 &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
-             data.category in ['technical', 'billing', 'product', 'complaint', 'consultancy', 'other'] &&
+             data.ticketId is string && data.ticketId.size() <= 64 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 500 &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 10000)) &&
+             data.category is string &&
              data.priority in ['low', 'medium', 'high', 'urgent'] &&
-             data.status in ['new', 'processing', 'pending', 'resolved', 'closed'] &&
+             data.status is string &&
              data.customerId is string && data.customerId.size() <= 128 &&
              data.ownerId == request.auth.uid;
     }
@@ -57,51 +58,86 @@ service cloud.firestore {
     }
 
     function isCampaignValid(data) {
-      return data.keys().hasAll(['name', 'type', 'status', 'startDate']) &&
+      return data.keys().hasAll(['name', 'type', 'status', 'startDate', 'ownerId']) &&
              data.name is string && data.name.size() <= 200 &&
              data.type is string &&
              data.status is string &&
-             data.startDate is string;
+             data.startDate is string &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isThreadValid(data) {
+      return data.keys().hasAll(['channel', 'customerName', 'timestamp', 'ownerId']) &&
+             data.channel is string &&
+             data.customerName is string &&
+             data.timestamp is number &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isNotificationValid(data) {
+      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'category', 'read', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.title is string &&
+             data.message is string &&
+             data.type in ['info', 'success', 'warning', 'error'] &&
+             data.category in ['crm', 'ticket', 'task', 'system'] &&
+             data.read is bool &&
+             data.createdAt is number;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'hungthai84@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
     }
 
     match /customers/{customerId} {
-      allow get: if isSignedIn() && isValidId(customerId) && (existing().ownerId == request.auth.uid);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if (isSignedIn() && isValidId(customerId) && existing().ownerId == request.auth.uid) || isAdmin();
+      allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
       allow create: if isSignedIn() && isValidId(customerId) && 
                     isCustomerValid(incoming()) &&
                     incoming().createdAt == request.time &&
                     incoming().updatedAt == request.time;
-      allow update: if isSignedIn() && isValidId(customerId) && 
+      allow update: if (isSignedIn() && isValidId(customerId) && 
                     existing().ownerId == request.auth.uid &&
                     isCustomerValid(incoming()) &&
                     incoming().ownerId == existing().ownerId &&
                     incoming().createdAt == existing().createdAt &&
-                    incoming().updatedAt == request.time;
-      allow delete: if isSignedIn() && isValidId(customerId) && existing().ownerId == request.auth.uid;
+                    incoming().updatedAt == request.time) || isAdmin();
+      allow delete: if (isSignedIn() && isValidId(customerId) && existing().ownerId == request.auth.uid) || isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isNotificationValid(incoming());
+      allow update: if isSignedIn() && existing().userId == request.auth.uid && isNotificationValid(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
     }
 
     match /tickets/{ticketId} {
-      allow get: if isSignedIn() && isValidId(ticketId) && (existing().ownerId == request.auth.uid);
-      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid);
+      allow get: if (isSignedIn() && isValidId(ticketId) && existing().ownerId == request.auth.uid) || isAdmin();
+      allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
       
       allow create: if isSignedIn() && isValidId(ticketId) && 
                     isTicketValid(incoming()) &&
                     incoming().createdAt == request.time &&
                     incoming().updatedAt == request.time;
                     
-      allow update: if isSignedIn() && isValidId(ticketId) && 
+      allow update: if (isSignedIn() && isValidId(ticketId) && 
                     isTicketValid(incoming()) &&
-                    existing().ownerId == request.auth.uid &&
+                    (existing().ownerId == request.auth.uid || isAdmin()) &&
                     incoming().ownerId == existing().ownerId &&
                     incoming().customerId == existing().customerId &&
                     incoming().createdAt == existing().createdAt &&
-                    incoming().updatedAt == request.time;
+                    incoming().updatedAt == request.time) || isAdmin();
                     
-      allow delete: if isSignedIn() && isValidId(ticketId) && existing().ownerId == request.auth.uid;
+      allow delete: if (isSignedIn() && isValidId(ticketId) && (existing().ownerId == request.auth.uid)) || isAdmin();
 
       match /comments/{commentId} {
-        allow get: if isSignedIn() && isValidId(commentId) && (existing().ticketOwnerId == request.auth.uid);
-        allow list: if isSignedIn() && (resource.data.ticketOwnerId == request.auth.uid);
+        allow get: if (isSignedIn() && isValidId(commentId) && existing().ticketOwnerId == request.auth.uid) || isAdmin();
+        allow list: if (isSignedIn() && resource.data.ticketOwnerId == request.auth.uid) || isAdmin();
         
         allow create: if isSignedIn() && isValidId(commentId) && 
                       isCommentValid(incoming()) &&
@@ -111,19 +147,25 @@ service cloud.firestore {
       }
     }
 
-    match /marketing/campaigns/{campaignId} {
-      allow get, list: if isSignedIn();
-      allow write: if false; // Assuming marketing data is managed via AI/Backend or Admins not implementing client write yet
-    }
-
     match /campaigns/{campaignId} {
-      allow get, list: if isSignedIn();
-      allow write: if isSignedIn() && isCampaignValid(incoming());
+      allow get: if (isSignedIn() && (!('ownerId' in existing()) || existing().ownerId == request.auth.uid)) || isAdmin();
+      allow list: if (isSignedIn() && (!('ownerId' in resource.data) || resource.data.ownerId == request.auth.uid)) || isAdmin();
+      allow create: if isSignedIn() && isValidId(campaignId) && isCampaignValid(incoming());
+      allow update: if (isSignedIn() && isValidId(campaignId) && existing().ownerId == request.auth.uid && isCampaignValid(incoming())) || isAdmin();
+      allow delete: if (isSignedIn() && isValidId(campaignId) && existing().ownerId == request.auth.uid) || isAdmin();
     }
 
-    match /ai/insights/{insightId} {
+    match /threads/{threadId} {
+      allow get: if (isSignedIn() && existing().ownerId == request.auth.uid) || isAdmin();
+      allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
+      allow create: if isSignedIn() && isThreadValid(incoming());
+      allow update: if (isSignedIn() && existing().ownerId == request.auth.uid && isThreadValid(incoming())) || isAdmin();
+      allow delete: if (isSignedIn() && existing().ownerId == request.auth.uid) || isAdmin();
+    }
+
+    match /ai_insights/{insightId} {
       allow get, list: if isSignedIn();
-      allow write: if false; // System only
+      allow write: if isAdmin();
     }
   }
 }

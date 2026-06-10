@@ -1,26 +1,35 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, getDocFromServer, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 
 // Note: Ensure firebase-applet-config.json exists
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig as any);
-export const db = (firebaseConfig as any).firestoreDatabaseId 
-  ? getFirestore(app, (firebaseConfig as any).firestoreDatabaseId)
-  : getFirestore(app);
+export const db = initializeFirestore(app, {
+  databaseId: (firebaseConfig as any).firestoreDatabaseId || undefined,
+  localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+} as any);
 export const auth = getAuth(app);
 
-// In-memory token cache
-export let cachedAccessToken: string | null = null;
+// In-memory token cache with local/session storage restore for persistent sessions
+export let cachedAccessToken: string | null = typeof window !== 'undefined'
+  ? (localStorage.getItem('google_access_token') || sessionStorage.getItem('google_access_token'))
+  : null;
 export let isSigningIn = false;
 
 // Use popup for AI Studio compatibility
-export const loginWithGoogle = async () => {
+export const loginWithGoogle = async (remember = true) => {
+  if (isSigningIn) {
+    console.warn('Sign in already in progress.');
+    return;
+  }
   try {
     isSigningIn = true;
     const provider = new GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+    provider.addScope('https://www.googleapis.com/auth/calendar.events');
+    provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
     provider.setCustomParameters({
       prompt: 'select_account'
     });
@@ -31,6 +40,11 @@ export const loginWithGoogle = async () => {
       console.warn('Failed to get access token from Firebase Auth');
     } else {
       cachedAccessToken = credential.accessToken;
+      if (remember) {
+        localStorage.setItem('google_access_token', credential.accessToken);
+      } else {
+        sessionStorage.setItem('google_access_token', credential.accessToken);
+      }
     }
     return result;
   } finally {
@@ -40,6 +54,10 @@ export const loginWithGoogle = async () => {
 
 export const logout = async () => {
   cachedAccessToken = null;
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('google_access_token');
+    sessionStorage.removeItem('google_access_token');
+  }
   return signOut(auth);
 };
 

@@ -2,6 +2,7 @@ export type NavItem = {
   name: string;
   icon: string;
   id: string;
+  adminOnly?: boolean;
 };
 
 export interface Customer {
@@ -9,13 +10,30 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
-  avatar: string;
-  tier: 'Member' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
-  loyaltyPoints: number;
-  segment: string;
-  lifetimeValue: number;
-  lastInteraction: string;
-  churnRisk: 'Low' | 'Medium' | 'High';
+  avatar?: string;
+  tier?: 'Member' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
+  loyaltyPoints?: number;
+  segment?: string;
+  lifetimeValue?: number;
+  lastInteraction?: string;
+  churnRisk?: 'Low' | 'Medium' | 'High';
+  status?: string;
+  type?: string;
+  tags?: string[];
+  noteText?: string;
+  ownerId?: string;
+  journeyStage?: 'Awareness' | 'Consideration' | 'Purchase' | 'Retention' | 'Loyalty';
+  journeySentiment?: 'Happy' | 'Neutral' | 'Frustrated';
+}
+
+export interface Touchpoint {
+  id: string;
+  customerId: string;
+  title: string;
+  description: string;
+  channel: 'email' | 'phone' | 'meeting' | 'chat' | 'website' | 'system' | 'zalo' | 'ticket';
+  sentiment: 'Happy' | 'Neutral' | 'Frustrated';
+  timestamp: number;
 }
 
 export interface Opportunity {
@@ -28,9 +46,9 @@ export interface Opportunity {
   expectedClose: string;
 }
 
-export type TicketCategory = 'technical' | 'billing' | 'product' | 'complaint' | 'consultancy' | 'other';
+export type TicketCategory = 'technical' | 'billing' | 'product' | 'complaint' | 'consultancy' | 'other' | (string & {});
 export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
-export type TicketStatus = 'new' | 'processing' | 'pending' | 'resolved' | 'closed';
+export type TicketStatus = 'new' | 'processing' | 'pending' | 'resolved' | 'closed' | (string & {});
 
 export interface Ticket {
   id: string; // Firestore doc ID
@@ -93,5 +111,17 @@ export interface AIInsight {
   targetId: string; // CustomerId or OpportunityId
   targetName: string;
   recommendation: string;
+  createdAt: number;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  category: 'crm' | 'ticket' | 'task' | 'system';
+  read: boolean;
+  link?: string;
   createdAt: number;
 }

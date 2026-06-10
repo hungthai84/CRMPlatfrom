@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { X, Loader2, Sparkles } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AddCampaignModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface AddCampaignModalProps {
 }
 
 export function AddCampaignModal({ isOpen, onClose, onSuccess }: AddCampaignModalProps) {
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +59,8 @@ export function AddCampaignModal({ isOpen, onClose, onSuccess }: AddCampaignModa
     setError(null);
 
     try {
+      if (!user) throw new Error("Vui lòng đăng nhập để thực hiện tác vụ này.");
+      
       // Must exactly have fields accepted by isCampaignValid in firestore.rules
       await addDoc(collection(db, 'campaigns'), {
         name: formData.name,
@@ -67,7 +71,8 @@ export function AddCampaignModal({ isOpen, onClose, onSuccess }: AddCampaignModa
         leads: formData.leads,
         conversion: formData.conversion,
         startDate: formData.startDate,
-        endDate: formData.endDate
+        endDate: formData.endDate,
+        ownerId: user.uid
       });
       
       if (onSuccess) {
@@ -87,8 +92,7 @@ export function AddCampaignModal({ isOpen, onClose, onSuccess }: AddCampaignModa
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       });
     } catch (err: any) {
-      console.error("Error adding campaign:", err);
-      setError(err.message || 'Thêm chiến dịch thất bại. Vui lòng thử lại.');
+      handleFirestoreError(err, OperationType.CREATE, 'campaigns');
     } finally {
       setIsSubmitting(false);
     }

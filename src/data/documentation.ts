@@ -54,19 +54,143 @@ Hệ thống được chia làm 5 phân hệ lớn:
 
 ---
 
-# 6. Database Schema (PostgreSQL)
-Mô phỏng lược đồ cho bảng Opportunity:
+# 6. Database Schema (Complete Relational Structure - PostgreSQL)
+To meet the enterprise requirement, here is the complete relational logical schema for all modules:
+
 \`\`\`sql
+-- USER MANAGEMENT & RBAC
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL, -- 'Super Admin', 'CRM Admin', 'Sales Staff', etc.
+    description TEXT
+);
+
+CREATE TABLE permissions (
+    id SERIAL PRIMARY KEY,
+    resource VARCHAR(100), -- 'Tickets', 'Customers'
+    action VARCHAR(50) -- 'Read', 'Write', 'Delete'
+);
+
+CREATE TABLE role_permissions (
+    role_id INT REFERENCES roles(id),
+    permission_id INT REFERENCES permissions(id),
+    PRIMARY KEY (role_id, permission_id)
+);
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(150),
+    role_id INT REFERENCES roles(id),
+    department VARCHAR(100),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CUSTOMERS & LEADS
+CREATE TABLE customers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    phone VARCHAR(50),
+    company VARCHAR(150),
+    address TEXT,
+    loyalty_tier VARCHAR(50), -- 'Silver', 'Gold', etc.
+    tags TEXT[],
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assigned_to UUID REFERENCES users(id)
+);
+
+CREATE TABLE leads (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    company VARCHAR(150),
+    source VARCHAR(100), -- 'Facebook', 'Website', 'Event'
+    status VARCHAR(50), -- 'New', 'Qualified', 'Lost'
+    lead_score INT DEFAULT 0,
+    assigned_to UUID REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- SALES CRM
 CREATE TABLE opportunities (
    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
    title VARCHAR(255) NOT NULL,
-   contact_id UUID REFERENCES contacts(id),
+   customer_id UUID REFERENCES customers(id),
    owner_id UUID REFERENCES users(id),
-   stage VARCHAR(50) NOT NULL, -- 'Lead', 'Proposal', v.v.
+   stage VARCHAR(50) NOT NULL, -- 'Proposal', 'Negotiation', 'Won'
    amount DECIMAL(15,2),
    probability INT CHECK (probability >= 0 AND probability <= 100),
    expected_close_date DATE,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CUSTOMER SERVICE
+CREATE TABLE tickets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id UUID REFERENCES customers(id),
+    assigned_to UUID REFERENCES users(id),
+    type VARCHAR(100), -- 'Complaint', 'Warranty', 'Technical Support'
+    priority VARCHAR(50), -- 'Low', 'High', 'Urgent'
+    status VARCHAR(50), -- 'Open', 'InProgress', 'Closed'
+    subject VARCHAR(255),
+    description TEXT,
+    sla_breach_time TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- LOYALTY MANAGEMENT
+CREATE TABLE loyalty_accounts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id UUID REFERENCES customers(id),
+    current_tier VARCHAR(50),
+    total_points INT DEFAULT 0,
+    redeemable_points INT DEFAULT 0,
+    joined_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TASK MANAGEMENT
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    due_date TIMESTAMP,
+    status VARCHAR(50), -- 'Pending', 'Completed'
+    owner_id UUID REFERENCES users(id),
+    related_to_type VARCHAR(50), -- 'Lead', 'Customer', 'Opportunity'
+    related_to_id UUID,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- EXECUTIONS & SURVEYS
+CREATE TABLE surveys (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    type VARCHAR(50), -- 'NPS', 'CSAT'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE survey_responses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    survey_id UUID REFERENCES surveys(id),
+    customer_id UUID REFERENCES customers(id),
+    score INT,
+    feedback TEXT,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- MARKETING
+CREATE TABLE campaigns (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50), -- 'Email', 'SMS', 'Zalo'
+    status VARCHAR(50),
+    budget DECIMAL(15,2),
+    start_date DATE,
+    end_date DATE
 );
 \`\`\`
 

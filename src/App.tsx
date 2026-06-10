@@ -3,81 +3,117 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { Dashboard } from './pages/Dashboard';
 import { Customer360 } from './pages/Customer360';
+import { Customers } from './pages/Customers';
 import { SupportTickets } from './pages/SupportModule';
 import { MarketingAI } from './pages/MarketingAI';
 import { SalesPipeline } from './pages/SalesPipeline';
 import { ArchitectureDocs } from './pages/ArchitectureDocs';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { AuthScreen } from './pages/Auth';
+
+import { AIChatWidget } from './components/AIChatWidget';
+
+import { Tasks } from './pages/Tasks';
+import { AuditLogs } from './pages/Users';
+
+import { Documents } from './pages/Documents';
+import { LoyaltyManagement } from './pages/Loyalty';
+import { KnowledgeBase } from './pages/KnowledgeBase';
+import { Journey } from './pages/Journey';
+import { Omnichannel } from './pages/Omnichannel';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
 function AppContent() {
   const [currentTab, setCurrentTab] = useState('dashboard');
-  const { user, loading, login, error: authError } = useAuth();
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+K or Ctrl+K for search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        // A simple quick way to focus the main search input
+        const searchInput = document.querySelector('input[placeholder="Search..."]') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+      // Cmd+N or Ctrl+N for new record (e.g., Quick Add User)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        setCurrentTab('customers');
+        // This will navigate to customers where the 'New Customer' button can be focused or a modal could open
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F69FF]"></div>
       </div>
     );
   }
 
   if (!user) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-slate-50 p-4 relative overflow-hidden font-sans">
-        <div className="absolute top-[-10%] left-[10%] w-[40rem] h-[40rem] bg-indigo-300/60 rounded-full mix-blend-multiply blur-[128px] opacity-70 animate-blob pointer-events-none"></div>
-        <div className="absolute bottom-[-20%] right-[10%] w-[40rem] h-[40rem] bg-rose-300/50 rounded-full mix-blend-multiply blur-[128px] opacity-70 animate-blob animation-delay-4000 pointer-events-none"></div>
-        <div className="relative z-10 p-12 bg-white/40 backdrop-blur-xl rounded-[10px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/60 text-center space-y-6 max-w-md w-full">
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Chào mừng đến với CRM</h1>
-          <p className="text-slate-600 font-medium">Vui lòng đăng nhập để truy cập bảng điều khiển của bạn.</p>
-          
-          {authError && (
-            <div className="p-3 bg-rose-50/80 border border-rose-200 text-rose-700 rounded-xl text-sm font-semibold">
-              {authError}
-            </div>
-          )}
-
-          <button 
-            onClick={login}
-            className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-md hover:opacity-90 transition-opacity"
-          >
-            Đăng nhập bằng Google
-          </button>
-        </div>
-      </div>
-    );
+    return <AuthScreen />;
   }
 
   const renderContent = () => {
     switch (currentTab) {
       case 'dashboard':
         return <Dashboard />;
+      case 'customers':
+        return <Customers onSelect={(id) => { setSelectedCustomerId(id); setCurrentTab('customer360'); }} />;
       case 'customer360':
-        return <Customer360 />;
+        return <Customer360 customerId={selectedCustomerId} onBack={() => { setCurrentTab('customers'); setSelectedCustomerId(null); }} />;
       case 'tickets':
         return <SupportTickets />;
+      case 'omnichannel':
+        return <Omnichannel />;
       case 'marketing':
         return <MarketingAI />;
       case 'sales':
         return <SalesPipeline />;
+      case 'tasks':
+        return <Tasks />;
+      case 'users':
+        return <AuditLogs />;
+      case 'documents':
+        return <Documents />;
+      case 'loyalty':
+        return <LoyaltyManagement />;
+      case 'journey':
+        return <Journey />;
+      case 'knowledge':
+        return <KnowledgeBase />;
       case 'docs':
         return <ArchitectureDocs />;
       default:
         return (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center bg-white/40 backdrop-blur-lg border border-white/50 p-10 rounded-3xl shadow-xl">
+            <div className="text-center bg-white/40 backdrop-blur-lg border border-white/50 p-10 rounded-[10px] shadow-xl">
               <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Module đang trong quá trình phát triển</h2>
               <p className="text-slate-600 mt-2 font-medium">Tính năng này dự kiến triển khai trong Giai đoạn 2.</p>
             </div>
@@ -87,24 +123,31 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-slate-50 overflow-hidden font-sans relative p-4 lg:p-6">
-      {/* Dynamic ambient background blobs for Glassmorphism effect */}
-      <div className="absolute top-[-10%] left-[10%] w-[40rem] h-[40rem] bg-indigo-300/60 rounded-full mix-blend-multiply blur-[128px] opacity-70 animate-blob pointer-events-none"></div>
-      <div className="absolute top-[10%] right-[10%] w-[40rem] h-[40rem] bg-teal-300/50 rounded-full mix-blend-multiply blur-[128px] opacity-70 animate-blob animation-delay-2000 pointer-events-none"></div>
-      <div className="absolute bottom-[-20%] left-[30%] w-[40rem] h-[40rem] bg-rose-300/50 rounded-full mix-blend-multiply blur-[128px] opacity-70 animate-blob animation-delay-4000 pointer-events-none"></div>
-
-      {/* Main Container framed and rounded 10px */}
-      <div className="relative z-10 flex h-full w-full rounded-[10px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/60 bg-white/20 backdrop-blur-3xl">
-        <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} />
+    <div className="flex h-screen w-screen bg-black overflow-hidden font-sans relative p-[5px]">
+      {/* Main Container framed with 10px rounded corners and 5px outer website padding */}
+      <div className="relative z-10 flex h-full w-full rounded-[10px] overflow-hidden shadow-[0_24px_70px_rgba(8,15,30,0.08)] border border-white dark:border-slate-800 bg-[#F4F5F9] dark:bg-slate-950 p-4 gap-6 no-scrollbar">
+        <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} isMobileOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-hidden flex flex-col p-4 pr-6 pb-6 pt-2">
-            <div className="flex-1 overflow-hidden flex flex-col bg-white/40 backdrop-blur-xl rounded-3xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.05)] relative">
-              {renderContent()}
+          <Header currentTab={currentTab} onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
+          <main className="flex-1 overflow-hidden flex flex-col pt-2 pb-1 relative">
+            <div className="flex-1 overflow-hidden flex flex-col relative rounded-[10px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentTab}
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.15 } }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex-1 h-full w-full overflow-auto no-scrollbar"
+                >
+                  {renderContent()}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </main>
         </div>
       </div>
+      <AIChatWidget />
     </div>
   );
 }

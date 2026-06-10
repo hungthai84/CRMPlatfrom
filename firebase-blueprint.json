@@ -87,9 +87,48 @@
         "recommendation": { "type": "string" },
         "createdAt": { "type": "number" }
       }
+    },
+    "Thread": {
+      "title": "Omnichannel Thread",
+      "description": "A conversation thread from various channels.",
+      "type": "object",
+      "properties": {
+        "channel": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerAvatar": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "unread": { "type": "boolean" },
+        "status": { "type": "string" },
+        "sentiment": { "type": "string" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["channel", "customerName", "timestamp", "ownerId"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "A centralized notification for CRM updates, task deadlines, etc.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "enum": ["info", "success", "warning", "error"] },
+        "category": { "enum": ["crm", "ticket", "task", "system"] },
+        "read": { "type": "boolean" },
+        "link": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "title", "message", "type", "category", "read", "createdAt"]
     }
   },
   "firestore": {
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "User notifications."
+    },
     "/customers/{customerId}": {
       "schema": { "$ref": "#/entities/Customer" },
       "description": "Collection of CRM customers."
@@ -102,17 +141,17 @@
       "schema": { "$ref": "#/entities/TicketComment" },
       "description": "Sub-collection of comments for a ticket."
     },
-    "/marketing/campaigns/{campaignId}": {
-      "schema": { "$ref": "#/entities/Campaign" },
-      "description": "Collection of marketing campaigns."
-    },
     "/campaigns/{campaignId}": {
       "schema": { "$ref": "#/entities/Campaign" },
       "description": "Collection of marketing campaigns."
     },
-    "/ai/insights/{insightId}": {
+    "/ai_insights/{insightId}": {
       "schema": { "$ref": "#/entities/AIInsight" },
       "description": "Collection of AI-generated insights."
+    },
+    "/threads/{threadId}": {
+      "schema": { "$ref": "#/entities/Thread" },
+      "description": "Omnichannel conversation threads."
     }
   }
 }

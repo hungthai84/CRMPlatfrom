@@ -15,8 +15,9 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Campaign, AIInsight } from '../types';
-import { collection, onSnapshot, addDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { collection, onSnapshot, addDoc, query, where } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { useAuth } from '../contexts/AuthContext';
 import { AddCampaignModal } from '../components/AddCampaignModal';
 import { 
   BarChart, 
@@ -117,54 +118,67 @@ const REVENUE_DATA = [
 ];
 
 export const MarketingAI = () => {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [showAddCampaignModal, setShowAddCampaignModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { user, isAdmin } = useAuth();
+  const [insights, setInsights] = useState<AIInsight[]>([]);
+  const [loadingInsights, setLoadingInsights] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
+    
+    // Fetch Campaigns
     const campaignsCol = collection(db, 'campaigns');
-    const unsubscribe = onSnapshot(campaignsCol, (snapshot) => {
+    const qCampaigns = isAdmin 
+      ? campaignsCol 
+      : query(campaignsCol, where('ownerId', '==', user.uid));
+      
+    const unsubscribeCampaigns = onSnapshot(qCampaigns, (snapshot) => {
       if (snapshot.empty) {
-        // Seed database if empty
         MOCK_CAMPAIGNS.forEach(async (campaign) => {
           try {
-            await addDoc(campaignsCol, {
-              name: campaign.name,
-              type: campaign.type,
-              status: campaign.status,
-              budget: campaign.budget,
-              spent: campaign.spent,
-              leads: campaign.leads,
-              conversion: campaign.conversion,
-              startDate: campaign.startDate,
-              endDate: campaign.endDate
-            });
+            await addDoc(campaignsCol, { ...campaign, ownerId: user.uid });
           } catch (e) {
             console.error("Failed to seed campaign: ", e);
           }
         });
       } else {
-        const campaignList: Campaign[] = [];
-        snapshot.forEach((doc) => {
-          campaignList.push({
-            id: doc.id,
-            ...doc.data()
-          } as Campaign);
-        });
-        // Sort campaigns by start date descending
+        const campaignList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign));
         campaignList.sort((a, b) => b.startDate.localeCompare(a.startDate));
         setCampaigns(campaignList);
       }
       setLoading(false);
     }, (error) => {
-      console.error("Error reading campaigns:", error);
-      // Fallback to mock campaigns if permissions fail or offline
+      handleFirestoreError(error, OperationType.LIST, 'campaigns');
       setCampaigns(MOCK_CAMPAIGNS);
       setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, []);
+    // Fetch Insights
+    const insightsCol = collection(db, 'ai_insights');
+    const unsubscribeInsights = onSnapshot(insightsCol, (snapshot) => {
+      if (snapshot.empty && isAdmin) {
+        MOCK_INSIGHTS.forEach(async (insight) => {
+          try {
+            await addDoc(insightsCol, insight);
+          } catch (e) {
+            console.error("Failed to seed insight: ", e);
+          }
+        });
+      } else {
+        const insightList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AIInsight));
+        setInsights(insightList.length > 0 ? insightList : MOCK_INSIGHTS);
+      }
+      setLoadingInsights(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'ai_insights');
+      setInsights(MOCK_INSIGHTS);
+      setLoadingInsights(false);
+    });
+
+    return () => {
+      unsubscribeCampaigns();
+      unsubscribeInsights();
+    };
+  }, [user, isAdmin]);
 
   return (
     <div className="flex flex-col h-full bg-slate-50/50">
@@ -210,7 +224,7 @@ export const MarketingAI = () => {
                   <span className="text-xs font-bold text-slate-400 uppercase">3 Cập nhật mới</span>
                 </div>
                 <div className="space-y-4">
-                  {MOCK_INSIGHTS.map((insight) => (
+                  {insights.map((insight) => (
                     <motion.div 
                       key={insight.id}
                       initial={{ opacity: 0, y: 10 }}

@@ -16,10 +16,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Ticket, TicketComment, TicketStatus, TicketPriority } from '../types';
-import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, updateDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, updateDoc, doc, setDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { DrivePickerModal } from './DrivePickerModal';
 
 interface DriveFile {
   id: string;
@@ -44,8 +43,30 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
   const [submittingComment, setSubmittingComment] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   
-  const [isDrivePickerOpen, setIsDrivePickerOpen] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [attachedFiles, setAttachedFiles] = useState<DriveFile[]>([]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const filesArray = Array.from(e.target.files);
+    
+    filesArray.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        const newFile: DriveFile = {
+          id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: file.name,
+          mimeType: file.type,
+          webViewLink: base64data
+        };
+        setAttachedFiles(prev => [...prev, newFile]);
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    e.target.value = '';
+  };
 
   const formatDate = (date: any) => {
     if (!date) return '-';
@@ -264,10 +285,18 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
                   className="w-full pl-4 pr-24 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm resize-none h-24 disabled:opacity-50"
                 />
                 <div className="absolute right-3 bottom-3 flex items-center gap-2">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    multiple 
+                    className="hidden" 
+                  />
                   <button 
-                    onClick={() => setIsDrivePickerOpen(true)}
+                    onClick={() => fileInputRef.current?.click()}
+                    type="button"
                     className="p-2 text-slate-400 hover:text-blue-600 bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
-                    title="Đính kèm từ Google Drive"
+                    title="Đính kèm tập tin"
                   >
                     <Paperclip className="w-4 h-4" />
                   </button>
@@ -293,18 +322,53 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Trạng thái</label>
-                  <select 
-                    disabled={updatingStatus}
-                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                    value={ticket.status}
-                    onChange={(e) => handleStatusChange(e.target.value as TicketStatus)}
-                  >
-                    <option value="new">Mới</option>
-                    <option value="processing">Đang xử lý</option>
-                    <option value="pending">Chờ phản hồi</option>
-                    <option value="resolved">Đã giải quyết</option>
-                    <option value="closed">Đóng</option>
-                  </select>
+                  <div className="space-y-2">
+                    <select 
+                      disabled={updatingStatus}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
+                      value={['new', 'processing', 'pending', 'resolved', 'closed'].includes(ticket.status) ? ticket.status : 'other'}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value !== 'other') {
+                          handleStatusChange(value as TicketStatus);
+                        }
+                      }}
+                    >
+                      <option value="new">Mới</option>
+                      <option value="processing">Đang xử lý</option>
+                      <option value="pending">Chờ phản hồi</option>
+                      <option value="resolved">Đã giải quyết</option>
+                      <option value="closed">Đóng</option>
+                      <option value="other">Tùy chỉnh...</option>
+                    </select>
+                    {!['new', 'processing', 'pending', 'resolved', 'closed'].includes(ticket.status) && (
+                      <div className="flex gap-2 relative group">
+                        <input
+                          type="text"
+                          disabled={updatingStatus}
+                          placeholder="Trạng thái tùy chỉnh..."
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
+                          value={ticket.status}
+                          readOnly
+                        />
+                      </div>
+                    )}
+                    {['new', 'processing', 'pending', 'resolved', 'closed'].includes(ticket.status) && (
+                      <div className="mt-2 text-right">
+                        <button
+                          onClick={() => {
+                            const customStatus = window.prompt("Nhập trạng thái tùy chỉnh:");
+                            if (customStatus && customStatus.trim() !== "") {
+                               handleStatusChange(customStatus.trim() as TicketStatus);
+                            }
+                          }}
+                          className="text-[10px] text-blue-600 hover:text-blue-800 transition-colors font-bold"
+                        >
+                          + Thêm trạng thái tùy chỉnh
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Nhân viên phụ trách</label>
@@ -364,12 +428,7 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
           </div>
         </div>
       </motion.div>
-      <DrivePickerModal 
-        isOpen={isDrivePickerOpen} 
-        onClose={() => setIsDrivePickerOpen(false)} 
-        multiple={true}
-        onSelectFiles={(files) => setAttachedFiles(prev => [...prev, ...files])}
-      />
+
     </div>
   );
 };

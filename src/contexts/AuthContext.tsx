@@ -1,13 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { auth, loginWithGoogle, logout, cachedAccessToken, isSigningIn } from '../lib/firebase';
 
 interface AuthContextType {
   user: User | null;
+  isAdmin: boolean;
   loading: boolean;
   error?: string | null;
-  login: () => Promise<void>;
+  login: (remember?: boolean) => Promise<void>;
   logout: () => Promise<void>;
+  loginWithEmail: (email: string, pass: string, remember?: boolean) => Promise<void>;
+  registerWithEmail: (email: string, pass: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -16,42 +19,111 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      setLoading(true);
       if (u) {
-        if (!cachedAccessToken && !isSigningIn) {
-          // Force re-login if we have a user but no access token
+        const expiration = localStorage.getItem('auth_expiration');
+        if (expiration && new Date().getTime() > parseInt(expiration, 10)) {
+          console.warn("Session expired after 30 days");
           logout().then(() => {
+            localStorage.removeItem('auth_expiration');
             setUser(null);
+            setIsAdmin(false);
             setLoading(false);
           });
           return;
         }
+
+        if (!cachedAccessToken && !isSigningIn) {
+          // Force re-login if we have a user but no access token (only for Google Provider)
+          if (u.providerData && u.providerData.some(p => p.providerId === 'google.com')) {
+            logout().then(() => {
+              setUser(null);
+              setIsAdmin(false);
+              setLoading(false);
+            });
+            return;
+          }
+        }
         setUser(u);
+        
+        // Admin check
+        const superAdminEmail = 'hungthai84@gmail.com';
+        if (u.email === superAdminEmail) {
+          setIsAdmin(true);
+        } else {
+          // Option to check a collection in Firestore if needed
+          // But according to user request, we focus on his email
+          setIsAdmin(false);
+        }
       } else {
         setUser(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  const login = async () => {
+  const setPersist = async (remember: boolean) => {
+    if (remember) {
+      const expirationDate = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days
+      localStorage.setItem('auth_expiration', expirationDate.toString());
+    } else {
+      localStorage.removeItem('auth_expiration');
+    }
+    await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+  };
+
+  const login = async (remember = true) => {
     setError(null);
     try {
-      await loginWithGoogle();
+      await setPersist(remember);
+      await loginWithGoogle(remember);
     } catch (err: any) {
       console.error("Login failed", err);
+      const errorMessage = err.message || "";
       if (err.code === 'auth/cancelled-popup-request') {
         setError("Popup đăng nhập đã bị đóng trước khi hoàn tất. Vui lòng thử lại.");
-      } else if (err.code === 'auth/popup-blocked') {
-        setError("Trình duyệt đã chặn popup. Vui lòng cho phép popup để hiển thị.");
+      } else if (err.code === 'auth/popup-blocked' || errorMessage.includes('Pending promise was never set')) {
+        setError("Trình duyệt đã chặn popup hoặc có lỗi môi trường. Vui lòng chạy ứng dụng ở tab mới (Open App / Mở trong thẻ mới) hoặc cho phép popup.");
       } else {
-        setError(err.message || "Đăng nhập thất bại.");
+        setError("Đăng nhập thất bại: " + errorMessage);
       }
+    }
+  };
+
+  const loginWithEmail = async (email: string, pass: string, remember = true) => {
+    setError(null);
+    try {
+      await setPersist(remember);
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err: any) {
+       console.error("Login with email failed", err);
+       if (err.code === 'auth/operation-not-allowed') {
+         setError("Dịch vụ Đăng nhập bằng Email chưa được bật trong Firebase Console. Vui lòng sử dụng Đăng nhập bằng Google hoặc liên hệ quản trị viên.");
+       } else {
+         setError("Đăng nhập thất bại. Kiểm tra email/mật khẩu hoặc sử dụng Đăng nhập bằng Google.");
+       }
+    }
+  };
+
+  const registerWithEmail = async (email: string, pass: string) => {
+    setError(null);
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } catch (err: any) {
+       console.error("Register with email failed", err);
+       if (err.code === 'auth/operation-not-allowed') {
+         setError("Dịch vụ Đăng ký bằng Email chưa được bật trong Firebase Console. Vui lòng sử dụng Đăng nhập bằng Google.");
+       } else {
+         setError("Đăng ký thất bại. Vui lòng sử dụng Đăng nhập bằng Google.");
+       }
     }
   };
 
@@ -64,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout: logoutAction, error } as any}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, login, logout: logoutAction, loginWithEmail, registerWithEmail, error } as any}>
       {children}
     </AuthContext.Provider>
   );
