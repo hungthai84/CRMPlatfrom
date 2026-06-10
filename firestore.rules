@@ -85,6 +85,26 @@ service cloud.firestore {
              data.createdAt is number;
     }
 
+    function isAuditLogValid(data) {
+      return data.keys().hasAll(['userId', 'email', 'action', 'resource', 'timestamp']) &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.email is string && data.email.size() <= 128 &&
+             data.action is string && data.action.size() <= 100 &&
+             data.resource is string && data.resource.size() <= 100 &&
+             data.timestamp is number &&
+             (!('details' in data) || (data.details is string && data.details.size() <= 2000));
+    }
+
+    function isSalesVelocityValid(data) {
+      return data.keys().hasAll(['date', 'leadsCount', 'convertedCount', 'conversionRate', 'ownerId', 'timestamp']) &&
+             data.date is string && data.date.size() <= 20 &&
+             data.leadsCount is number &&
+             data.convertedCount is number &&
+             data.conversionRate is number &&
+             data.ownerId == request.auth.uid &&
+             data.timestamp is number;
+    }
+
     function isAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'hungthai84@gmail.com' ||
@@ -114,6 +134,20 @@ service cloud.firestore {
       allow create: if isSignedIn() && isNotificationValid(incoming());
       allow update: if isSignedIn() && existing().userId == request.auth.uid && isNotificationValid(incoming());
       allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /audit_logs/{logId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isAuditLogValid(incoming());
+      allow update, delete: if isAdmin();
+    }
+
+    match /sales_velocity/{velocityId} {
+      allow get: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isSalesVelocityValid(incoming());
+      allow update, delete: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
     }
 
     match /tickets/{ticketId} {

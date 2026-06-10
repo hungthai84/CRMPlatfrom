@@ -19,6 +19,7 @@ import { Ticket, TicketComment, TicketStatus, TicketPriority } from '../types';
 import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, updateDoc, doc, setDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { logActivity } from '../lib/auditLogger';
 
 interface DriveFile {
   id: string;
@@ -132,6 +133,7 @@ export const TicketDetailModal = ({ ticket, onClose }: TicketDetailModalProps) =
         status: newStatus,
         updatedAt: serverTimestamp()
       });
+      await logActivity('ĐỔI_TRẠNG_THÁI_VÉ', 'SUPPORT_TICKETS', `Đã chuyển đổi trạng thái vé hỗ trợ "${ticket.title}" sang: ${newStatus}`);
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `tickets/${ticket.id}`);
     } finally {

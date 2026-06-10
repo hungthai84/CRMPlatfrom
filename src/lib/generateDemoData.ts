@@ -316,6 +316,28 @@ export const generateDemoCustomers = async (userId: string) => {
       batch.set(newDocRef, log);
     }
 
+    // 5. Seed Sales Velocity over the last 30 days
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      
+      const leadsCount = Math.floor(Math.random() * 21) + 25; // 25 to 45
+      const convertedCount = Math.floor(Math.random() * 10) + 8; // 8 to 17
+      const conversionRate = parseFloat(((convertedCount / leadsCount) * 100).toFixed(1));
+      
+      const velDocRef = doc(collection(db, 'sales_velocity'));
+      batch.set(velDocRef, {
+        date: dateStr,
+        leadsCount,
+        convertedCount,
+        conversionRate,
+        ownerId: userId,
+        timestamp: d.getTime()
+      });
+    }
+
     await batch.commit();
     return true;
   } catch (err) {

@@ -122,12 +122,48 @@
         "createdAt": { "type": "number" }
       },
       "required": ["userId", "title", "message", "type", "category", "read", "createdAt"]
+    },
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "An audit log record representing a user action in the system.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "action": { "type": "string" },
+        "resource": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "details": { "type": "string" }
+      },
+      "required": ["userId", "email", "action", "resource", "timestamp"]
+    },
+    "SalesVelocity": {
+      "title": "Sales Velocity",
+      "description": "Daily lead conversion tracking over the last 30 days.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "leadsCount": { "type": "number" },
+        "convertedCount": { "type": "number" },
+        "conversionRate": { "type": "number" },
+        "ownerId": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["date", "leadsCount", "convertedCount", "conversionRate", "ownerId", "timestamp"]
     }
   },
   "firestore": {
     "/notifications/{notificationId}": {
       "schema": { "$ref": "#/entities/Notification" },
       "description": "User notifications."
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Audit log records."
+    },
+    "/sales_velocity/{velocityId}": {
+      "schema": { "$ref": "#/entities/SalesVelocity" },
+      "description": "Sales velocity metrics."
     },
     "/customers/{customerId}": {
       "schema": { "$ref": "#/entities/Customer" },

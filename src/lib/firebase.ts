@@ -19,7 +19,7 @@ export let cachedAccessToken: string | null = typeof window !== 'undefined'
 export let isSigningIn = false;
 
 // Use popup for AI Studio compatibility
-export const loginWithGoogle = async (remember = true) => {
+export const loginWithGoogle = async (remember = true, withScopes = false) => {
   if (isSigningIn) {
     console.warn('Sign in already in progress.');
     return;
@@ -27,9 +27,11 @@ export const loginWithGoogle = async (remember = true) => {
   try {
     isSigningIn = true;
     const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/drive.readonly');
-    provider.addScope('https://www.googleapis.com/auth/calendar.events');
-    provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+    if (withScopes) {
+      provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+      provider.addScope('https://www.googleapis.com/auth/calendar.events');
+      provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+    }
     provider.setCustomParameters({
       prompt: 'select_account'
     });

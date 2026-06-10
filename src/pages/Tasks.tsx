@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getAccessToken } from '../lib/firebase';
 import { Calendar as CalendarIcon, Clock, Plus, Trash2, ExternalLink } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CalendarEvent {
   id: string;
@@ -13,10 +14,12 @@ interface CalendarEvent {
 }
 
 export function Tasks() {
+  const { login } = useAuth();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authorizing, setAuthorizing] = useState(false);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -48,6 +51,22 @@ export function Tasks() {
     }
   };
 
+  const handleAuthorize = async () => {
+    setAuthorizing(true);
+    try {
+      await login(true, true); // Call Google login requesting integration scopes
+      setShowConfig(false);
+      setTimeout(() => {
+        fetchEvents();
+      }, 500);
+    } catch (e: any) {
+      console.error(e);
+      alert('Không thể kết nối tài khoản hoặc cấp quyền Google API: ' + (e.message || e));
+    } finally {
+      setAuthorizing(false);
+    }
+  };
+
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -73,14 +92,28 @@ export function Tasks() {
       <div className="flex-1 flex items-center justify-center bg-white p-8">
         <div className="max-w-md text-center">
           <CalendarIcon className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Chưa kết nối Google Calendar</h2>
-          <p className="text-slate-600 mb-6">Xin vui lòng đăng nhập lại và phê duyệt quyền "Calendar" hoặc đảm bảo bạn đã cấp quyền để truy cập sự kiện.</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-[#2F69FF] text-white font-bold rounded-xl hover:bg-blue-600"
-          >
-            Tải lại ứng dụng
-          </button>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Đồng bộ Google Calendar</h2>
+          <p className="text-slate-600 mb-6">Liên kết lịch hẹn của hệ thống CRM tự động đồng bộ vào Google Calendar của bạn bằng cách cấp quyền truy cập lịch.</p>
+          <div className="flex flex-col gap-3 justify-center">
+            <button 
+              onClick={handleAuthorize}
+              disabled={authorizing}
+              className="px-6 py-3 bg-[#2F69FF] text-white font-bold rounded-xl hover:bg-blue-600 transition-all flex items-center justify-center gap-2"
+            >
+              {authorizing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Đang xử lý...
+                </>
+              ) : 'Kết nối Google Calendar'}
+            </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="text-xs text-slate-400 hover:text-slate-600 font-semibold"
+            >
+              Hủy hoặc Tải lại trang
+            </button>
+          </div>
         </div>
       </div>
     );

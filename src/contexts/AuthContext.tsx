@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { auth, loginWithGoogle, logout, cachedAccessToken, isSigningIn } from '../lib/firebase';
+import { logActivity } from '../lib/auditLogger';
 
 interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   loading: boolean;
   error?: string | null;
-  login: (remember?: boolean) => Promise<void>;
+  login: (remember?: boolean, withScopes?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   loginWithEmail: (email: string, pass: string, remember?: boolean) => Promise<void>;
   registerWithEmail: (email: string, pass: string) => Promise<void>;
@@ -39,17 +40,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        if (!cachedAccessToken && !isSigningIn) {
-          // Force re-login if we have a user but no access token (only for Google Provider)
-          if (u.providerData && u.providerData.some(p => p.providerId === 'google.com')) {
-            logout().then(() => {
-              setUser(null);
-              setIsAdmin(false);
-              setLoading(false);
-            });
-            return;
-          }
-        }
         setUser(u);
         
         // Admin check
@@ -80,11 +70,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
   };
 
-  const login = async (remember = true) => {
+  const login = async (remember = true, withScopes = false) => {
     setError(null);
     try {
       await setPersist(remember);
-      await loginWithGoogle(remember);
+      const res = await loginWithGoogle(remember, withScopes);
+      if (res?.user) {
+        await logActivity('ĐĂNG_NHẬP', 'AUTHENTICATION', 'Đăng nhập thành công qua Google Auth');
+      }
     } catch (err: any) {
       console.error("Login failed", err);
       const errorMessage = err.message || "";
@@ -102,7 +95,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     try {
       await setPersist(remember);
-      await signInWithEmailAndPassword(auth, email, pass);
+      const res = await signInWithEmailAndPassword(auth, email, pass);
+      if (res.user) {
+        await logActivity('ĐĂNG_NHẬP', 'AUTHENTICATION', `Đăng nhập thành công bằng email: ${email}`);
+      }
     } catch (err: any) {
        console.error("Login with email failed", err);
        if (err.code === 'auth/operation-not-allowed') {
@@ -116,7 +112,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const registerWithEmail = async (email: string, pass: string) => {
     setError(null);
     try {
-      await createUserWithEmailAndPassword(auth, email, pass);
+      const res = await createUserWithEmailAndPassword(auth, email, pass);
+      if (res.user) {
+        await logActivity('ĐĂNG_KÝ', 'AUTHENTICATION', `Đăng ký và khởi tạo tài khoản thành công cho: ${email}`);
+      }
     } catch (err: any) {
        console.error("Register with email failed", err);
        if (err.code === 'auth/operation-not-allowed') {
@@ -129,6 +128,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutAction = async () => {
     try {
+      const email = auth.currentUser?.email || 'N/A';
+      await logActivity('ĐĂNG_XUẤT', 'AUTHENTICATION', `Người dùng đăng xuất hệ thống (${email})`);
       await logout();
     } catch (err: any) {
       console.error("Logout failed", err);

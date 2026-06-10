@@ -3,6 +3,7 @@ import { X, Loader2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { logActivity } from '../lib/auditLogger';
 
 interface AddCustomerModalProps {
   isOpen: boolean;
@@ -56,6 +57,8 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      await logActivity('TẠO_KHÁCH_HÀNG', 'CRM_CUSTOMERS', `Đã thêm khách hàng mới: ${formData.name} (${formData.email})`);
       
       onClose();
       // Reset form

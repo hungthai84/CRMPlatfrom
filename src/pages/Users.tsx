@@ -23,11 +23,31 @@ export function AuditLogs() {
       try {
         const q = query(collection(db, 'audit_logs'), orderBy('timestamp', 'desc'), limit(50));
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate() || new Date()
-        })) as AuditLog[];
+        const data = snapshot.docs.map(doc => {
+          const rawData = doc.data();
+          const tsValue = rawData.timestamp;
+          let calculatedDate = new Date();
+          if (tsValue) {
+            if (typeof tsValue.toDate === 'function') {
+              calculatedDate = tsValue.toDate();
+            } else if (typeof tsValue === 'number') {
+              calculatedDate = new Date(tsValue);
+            } else if (tsValue.seconds) {
+              calculatedDate = new Date(tsValue.seconds * 1000);
+            } else {
+              calculatedDate = new Date(tsValue);
+            }
+          }
+          return {
+            id: doc.id,
+            userId: rawData.userId || 'system',
+            email: rawData.email || rawData.userEmail || 'system@powercrm.vn',
+            action: rawData.action || 'ACTION',
+            resource: rawData.resource || 'SYSTEM',
+            details: rawData.details || rawData.action || '',
+            timestamp: calculatedDate
+          };
+        }) as AuditLog[];
         setLogs(data);
       } catch (error) {
         // If collection doesn't exist or missing permissions, log silently or use mock data for demo

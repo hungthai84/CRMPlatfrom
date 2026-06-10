@@ -121,6 +121,9 @@ export const MarketingAI = () => {
   const { user, isAdmin } = useAuth();
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(true);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddCampaignModal, setShowAddCampaignModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
