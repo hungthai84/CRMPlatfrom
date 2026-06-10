@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { mockOpportunities } from '../data/mockData';
 import { Opportunity } from '../types';
-import { MoreHorizontal, Plus, X, Clock, Mail, Phone, Calendar, ArrowRight, AlertCircle, Building2 } from 'lucide-react';
+import { MoreHorizontal, Plus, X, Clock, Mail, Phone, Calendar, ArrowRight, AlertCircle, Building2, Download } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { 
   DndContext, 
@@ -198,6 +198,36 @@ export function SalesPipeline() {
 
   const activeOp = opportunities.find(op => op.id === activeId);
 
+  const handleExportCsv = () => {
+    if (opportunities.length === 0) return;
+    
+    const headers = ['Mã Deal', 'Tên cơ hội / Deal', 'Công ty / Khách hàng', 'Giai đoạn', 'Giá trị (VND)', 'Xác suất (%)', 'Ngày dự kiến đóng'];
+    
+    const rows = opportunities.map(op => [
+      op.id || '',
+      op.title || '',
+      op.company || '',
+      op.stage || '',
+      op.amount?.toString() || '0',
+      op.probability?.toString() || '0',
+      op.expectedClose || ''
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `sales_pipeline_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Mock timeline events for the drawer
   const timelineEvents = [
     { id: 1, type: 'status', title: 'Deal chuyển sang Đàm phán', date: 'Vừa xong', user: 'Hùng Thái' },
@@ -214,12 +244,21 @@ export function SalesPipeline() {
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Quy trình bán hàng</h1>
             <p className="text-slate-600 text-sm mt-1.5 font-semibold">Kéo và thả thẻ Deal để thay đổi giai đoạn</p>
           </div>
-          <button 
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-500/30 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center gap-2"
-          >
-            <Plus size={18} /> Thêm Deal mới
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleExportCsv}
+              className="bg-white border border-slate-200 text-slate-700 shadow-sm px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2"
+              title="Xuất báo cáo bán hàng dưới dạng CSV"
+            >
+              <Download size={18} className="text-slate-500" /> Xuất báo cáo CSV
+            </button>
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-500/30 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center gap-2"
+            >
+              <Plus size={18} /> Thêm Deal mới
+            </button>
+          </div>
         </div>
 
         <DndContext 

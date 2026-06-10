@@ -16,6 +16,7 @@ import { SalesPipeline } from './pages/SalesPipeline';
 import { ArchitectureDocs } from './pages/ArchitectureDocs';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { AuthScreen } from './pages/Auth';
 
 import { AIChatWidget } from './components/AIChatWidget';
@@ -33,7 +34,9 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   );

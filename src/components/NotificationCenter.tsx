@@ -5,9 +5,11 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Notification } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../contexts/ToastContext';
 
 export function NotificationCenter() {
   const { user } = useAuth();
+  const { simulateCRMEvent } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -106,7 +108,15 @@ export function NotificationCenter() {
           >
             <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
               <h3 className="font-bold text-sm text-slate-900 dark:text-white">Thông báo</h3>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                <button
+                  type="button"
+                  onClick={() => simulateCRMEvent()}
+                  className="bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] px-2 py-1 rounded transition-colors"
+                  title="Mô phỏng ngẫu nhiên các sự kiện hot CRM (Lead Mới, Hạn chót...)"
+                >
+                  Mô phỏng Event
+                </button>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}

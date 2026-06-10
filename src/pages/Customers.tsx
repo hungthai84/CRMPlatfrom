@@ -91,6 +91,30 @@ export function Customers({ onSelect }: CustomersProps) {
     document.body.removeChild(link);
   };
 
+  // Helper function to highlight query matches in table cells
+  const highlightText = (text: string | undefined | null, search: string) => {
+    if (!text) return <span className="text-gray-400">—</span>;
+    if (!search || !search.trim()) return <span>{text}</span>;
+    
+    const index = text.toLowerCase().indexOf(search.toLowerCase());
+    if (index === -1) return <span>{text}</span>;
+    
+    const parts = text.split(new RegExp(`(${search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi'));
+    return (
+      <span>
+        {parts.map((part, i) => 
+          part.toLowerCase() === search.toLowerCase() ? (
+            <mark key={i} className="bg-yellow-200 text-slate-900 font-extrabold px-1.5 py-0.5 rounded shadow-xs">
+              {part}
+            </mark>
+          ) : (
+            part
+          )
+        )}
+      </span>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full bg-white relative p-6 md:p-8 no-scrollbar">
       <div className="flex justify-between items-center mb-8 shrink-0">
@@ -163,13 +187,19 @@ export function Customers({ onSelect }: CustomersProps) {
                         </div>
                       )}
                       <div>
-                        <div className="font-bold text-gray-900 group-hover:text-[#2F69FF] transition-colors">{customer.name}</div>
+                        <div className="font-bold text-gray-900 group-hover:text-[#2F69FF] transition-colors">
+                          {highlightText(customer.name, searchTerm)}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-600 font-medium">{customer.email || '—'}</div>
-                    <div className="text-sm text-gray-500">{customer.phone || '—'}</div>
+                    <div className="text-sm text-gray-600 font-medium">
+                      {customer.email ? highlightText(customer.email, searchTerm) : <span className="text-gray-400">—</span>}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {customer.phone ? highlightText(customer.phone, searchTerm) : <span className="text-gray-400">—</span>}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
@@ -183,7 +213,9 @@ export function Customers({ onSelect }: CustomersProps) {
                     {customer.tags && customer.tags.length > 0 && (
                       <div className="flex gap-1 mt-1.5 flex-wrap">
                         {customer.tags.map(tag => (
-                           <span key={tag} className="text-[10px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded uppercase">{tag}</span>
+                           <span key={tag} className="text-[10px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded uppercase">
+                             {highlightText(tag, searchTerm)}
+                           </span>
                         ))}
                       </div>
                     )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Area, AreaChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ComposedChart, Line, PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis, BarChart } from 'recharts';
-import { ArrowUpRight, TrendingUp, Users, DollarSign, Ticket, Plus, ArrowUp, Briefcase, ChevronRight, Edit2, Trash2, Clock, Calendar, CheckSquare, Bell, X, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, TrendingUp, Users, DollarSign, Ticket, Plus, ArrowUp, Briefcase, ChevronRight, Edit2, Trash2, Clock, Calendar, CheckSquare, Bell, X, AlertCircle, Settings2, Download, Eye, EyeOff, ArrowDown } from 'lucide-react';
 import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType, getAccessToken } from '../lib/firebase';
 import { logActivity } from '../lib/auditLogger';
@@ -139,6 +139,94 @@ export function Dashboard() {
   const [calendarTasks, setCalendarTasks] = useState<any[]>([]);
   const [dismissedTasks, setDismissedTasks] = useState<string[]>([]);
   const [showTasksNotification, setShowTasksNotification] = useState<boolean>(true);
+
+  // States for dashboard customization setting dialog
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [kpiConfigs, setKpiConfigs] = useState(() => {
+    const saved = localStorage.getItem('crm_kpi_configs');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { }
+    }
+    return [
+      { id: 'active_customers', label: 'Active Customers (Khách hàng hoạt động)', visible: true },
+      { id: 'pending_tickets', label: 'Pending Support Tickets (Yêu cầu chưa xử lý)', visible: true },
+      { id: 'sales_growth', label: 'Current Month Sales Growth (Tăng trưởng doanh số)', visible: true }
+    ];
+  });
+
+  const [panelConfigs, setPanelConfigs] = useState(() => {
+    const saved = localStorage.getItem('crm_panel_configs');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { }
+    }
+    return [
+      { id: 'revenue_analytics', label: 'Revenue Analytics (Doanh thu)', visible: true },
+      { id: 'sales_velocity', label: 'Sales Velocity (Tỷ lệ chuyển đổi)', visible: true },
+      { id: 'deals_statistics', label: 'Deals Statistics (Danh sách giao dịch)', visible: true },
+      { id: 'leads_source', label: 'Leads by Source (Nguồn lượng truy cập)', visible: true },
+      { id: 'ai_assistant', label: 'AI Assistant (Trợ lý AI)', visible: true },
+      { id: 'top_deals', label: 'Top Deals (Giao dịch hot nhất)', visible: true }
+    ];
+  });
+
+  // States for the 1-hour urgent task alert notification system
+  const [taskAlerts, setTaskAlerts] = useState<any[]>([]);
+  const [notifiedTaskIds, setNotifiedTaskIds] = useState<string[]>([]);
+
+  const handleToggleKpi = (id: string) => {
+    const next = kpiConfigs.map(c => c.id === id ? { ...c, visible: !c.visible } : c);
+    setKpiConfigs(next);
+    localStorage.setItem('crm_kpi_configs', JSON.stringify(next));
+  };
+
+  const handleMoveKpi = (index: number, direction: 'up' | 'down') => {
+    const nextIndex = direction === 'up' ? index - 1 : index + 1;
+    if (nextIndex < 0 || nextIndex >= kpiConfigs.length) return;
+    const next = [...kpiConfigs];
+    const temp = next[index];
+    next[index] = next[nextIndex];
+    next[nextIndex] = temp;
+    setKpiConfigs(next);
+    localStorage.setItem('crm_kpi_configs', JSON.stringify(next));
+  };
+
+  const handleTogglePanel = (id: string) => {
+    const next = panelConfigs.map(c => c.id === id ? { ...c, visible: !c.visible } : c);
+    setPanelConfigs(next);
+    localStorage.setItem('crm_panel_configs', JSON.stringify(next));
+  };
+
+  const handleMovePanel = (index: number, direction: 'up' | 'down') => {
+    const nextIndex = direction === 'up' ? index - 1 : index + 1;
+    if (nextIndex < 0 || nextIndex >= panelConfigs.length) return;
+    const next = [...panelConfigs];
+    const temp = next[index];
+    next[index] = next[nextIndex];
+    next[nextIndex] = temp;
+    setPanelConfigs(next);
+    localStorage.setItem('crm_panel_configs', JSON.stringify(next));
+  };
+
+  const handleResetDashboard = () => {
+    const defaultKpis = [
+      { id: 'active_customers', label: 'Active Customers (Khách hàng hoạt động)', visible: true },
+      { id: 'pending_tickets', label: 'Pending Support Tickets (Yêu cầu chưa xử lý)', visible: true },
+      { id: 'sales_growth', label: 'Current Month Sales Growth (Tăng trưởng doanh số)', visible: true }
+    ];
+    const defaultPanels = [
+      { id: 'revenue_analytics', label: 'Revenue Analytics (Doanh thu)', visible: true },
+      { id: 'sales_velocity', label: 'Sales Velocity (Tỷ lệ chuyển đổi)', visible: true },
+      { id: 'deals_statistics', label: 'Deals Statistics (Danh sách giao dịch)', visible: true },
+      { id: 'leads_source', label: 'Leads by Source (Nguồn lượng truy cập)', visible: true },
+      { id: 'ai_assistant', label: 'AI Assistant (Trợ lý AI)', visible: true },
+      { id: 'top_deals', label: 'Top Deals (Giao dịch hot nhất)', visible: true }
+    ];
+    setKpiConfigs(defaultKpis);
+    setPanelConfigs(defaultPanels);
+    localStorage.removeItem('crm_kpi_configs');
+    localStorage.removeItem('crm_panel_configs');
+    logActivity('CÀI_ĐẶT_DASHBOARD', 'DASHBOARD_PREFERENCES', 'Đã khôi phục bố cục mặc định Dashboard');
+  };
 
   const triggerSeedData = async () => {
     if (!user) return;
@@ -306,11 +394,20 @@ export function Dashboard() {
   // Helper to construct local impending tasks in next 24h
   const getLocalUpcomingTasks = () => {
     const now = new Date();
+    const tUrgent1 = new Date(now.getTime() + 35 * 60 * 1000); // 35 minutes
     const t1 = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 hours
     const t2 = new Date(now.getTime() + 5.5 * 60 * 60 * 1000); // 5.5 hours
     const t3 = new Date(now.getTime() + 14 * 60 * 60 * 1000); // 14 hours
     
     return [
+      {
+        id: "crm-task-urgent-1",
+        title: "Nhắc nhở VIP: Xử lý bàn giao tài liệu kỹ thuật & API cho Công ty Nguyễn Lâm",
+        dueLabel: "Trong 35 phút nữa",
+        time: tUrgent1,
+        isGoogle: false,
+        priority: "Khẩn cấp"
+      },
       {
         id: "crm-task-1",
         title: "Gọi điện tư vấn Vũ Nhật Tú về nâng cấp hệ thống đào tạo CRM",
@@ -355,6 +452,112 @@ export function Dashboard() {
     return "+24.8%";
   };
 
+  // Checker for urgent tasks within 1 hour
+  useEffect(() => {
+    const checkUrgentTasks = () => {
+      const now = new Date();
+      const allUpcoming = [...calendarTasks, ...getLocalUpcomingTasks()];
+      const urgent = allUpcoming.filter(task => {
+        const timeDiff = task.time.getTime() - now.getTime();
+        const oneHour = 60 * 60 * 1000;
+        // In next 1 hour, or in the past 10 minutes (to avoid dropping it immediately)
+        const isUrgent = timeDiff > -10 * 60 * 1000 && timeDiff <= oneHour;
+        return isUrgent && !notifiedTaskIds.includes(task.id) && !dismissedTasks.includes(task.id);
+      });
+
+      if (urgent.length > 0) {
+        setTaskAlerts(prev => {
+          const existingIds = prev.map(t => t.id);
+          const next = [...prev];
+          urgent.forEach(u => {
+            if (!existingIds.includes(u.id)) {
+              next.push(u);
+            }
+          });
+          return next;
+        });
+
+        setNotifiedTaskIds(prev => {
+          const next = [...prev];
+          urgent.forEach(u => {
+            if (!next.includes(u.id)) {
+              next.push(u.id);
+            }
+          });
+          return next;
+        });
+
+        // Trigger native window notification if permission is granted
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+          urgent.forEach(u => {
+            try {
+              new Notification("CRM Gửi Nhắc Nhở Nhiệm Vụ Gấp", {
+                body: `Nhiệm vụ "${u.title}" đến hạn hôm nay!`,
+                silent: false
+              });
+            } catch (e) {
+              console.warn("Could not fire system notification:", e);
+            }
+          });
+        }
+      }
+    };
+
+    // Prompt for notification permission on mount if supported
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    checkUrgentTasks();
+    const interval = setInterval(checkUrgentTasks, 15000); // Check status every 15 seconds
+    return () => clearInterval(interval);
+  }, [calendarTasks, notifiedTaskIds, dismissedTasks]);
+
+  const handleExportDashboardCsv = () => {
+    let csvContent = "\uFEFF"; // UTF-8 BOM
+    
+    // 1. CRM Indicators
+    csvContent += "=== CHỈ SỐ CRM HIỆN TẠI ===\n";
+    csvContent += "Chỉ số,Giá trị,Mô tả\n";
+    csvContent += `Khách hàng hoạt động,${displayActiveCustomers},Sự đồng bộ hệ thống\n`;
+    csvContent += `Yêu cầu hỗ trợ chờ giải quyết (Pending Tickets),${displayPendingTickets},Phiếu hỗ trợ đang xử lý\n`;
+    csvContent += `Tăng trưởng doanh số tháng hiện tại,${displaySalesGrowth},Tỷ lệ tăng trưởng doanh số thực tế\n\n`;
+    
+    // 2. Revenue Analytics Section
+    csvContent += "=== PHÂN TÍCH DOANH THU (REVENUE ANALYTICS) ===\n";
+    csvContent += "Tháng,Thực tế (Actual Value),Mục tiêu (Goal Target)\n";
+    analyticsData.forEach(item => {
+      csvContent += `${item.name},${item.value},${item.barValue}\n`;
+    });
+    csvContent += "\n";
+    
+    // 3. Sales Velocity Section
+    csvContent += "=== HIỆU SUẤT CHUYỂN ĐỔI (SALES VELOCITY) ===\n";
+    csvContent += "Ngày,Số lượng Leads,Số chuyển đổi,Tỷ lệ chuyển đổi\n";
+    salesVelocityData.forEach(item => {
+      csvContent += `${item.date || ''},${item.leadsCount || 0},${item.convertedCount || 0},${item.conversionRate || 0}%\n`;
+    });
+    csvContent += "\n";
+    
+    // 4. Traffic Channels
+    csvContent += "=== NGUỒN KHÁCH HÀNG (LEADS BY SOURCE) ===\n";
+    csvContent += "Kênh,Số lượng\n";
+    csvContent += "Desktop,1207\n";
+    csvContent += "Laptop,1152\n";
+    csvContent += "Mobile,1624\n";
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `crm_dashboard_data_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    logActivity('XUẤT_BÁO_CÁO', 'DASHBOARD_EXPORTS', 'Đã xuất dữ liệu báo cáo CRM Dashboard sang file CSV');
+  };
+
   // Combine and sort tasks
   const allTasks = [...calendarTasks, ...getLocalUpcomingTasks()].sort((a, b) => a.time.getTime() - b.time.getTime());
   const activeTasks = allTasks.filter(t => !dismissedTasks.includes(t.id));
@@ -374,7 +577,185 @@ export function Dashboard() {
   const displaySalesGrowth = getSalesGrowthMetric();
 
   return (
-    <div className="w-full h-full p-4 lg:p-6 space-y-6 flex-1 overflow-y-auto no-scrollbar">
+    <div className="w-full h-full p-4 lg:p-6 space-y-6 flex-1 overflow-y-auto no-scrollbar relative">
+      {/* 1-Hour Urgent Toast Alerts Container - Fixed Floating Overlay */}
+      <div className="fixed top-6 right-6 z-[100] space-y-3 w-96 max-w-full pointer-events-none">
+        {taskAlerts.map((alert) => (
+          <div 
+            key={alert.id}
+            className="bg-slate-900 border border-slate-800 text-white rounded-2xl p-4 shadow-2xl pointer-events-auto flex gap-3 relative overflow-hidden transition-all hover:scale-[1.02] duration-300"
+          >
+            {/* Red accent ribbon */}
+            <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-red-500"></div>
+            <div className="w-9 h-9 rounded-xl bg-red-500/15 text-red-400 flex items-center justify-center shrink-0">
+              <AlertCircle size={18} className="animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <div className="flex justify-between items-start">
+                <h5 className="text-[10px] font-black text-red-400 uppercase tracking-widest leading-none mb-1">Nhiệm vụ khẩn cấp (Sắp đến hạn)</h5>
+                <button 
+                  onClick={() => setTaskAlerts(prev => prev.filter(t => t.id !== alert.id))}
+                  className="text-slate-400 hover:text-white p-0.5 rounded transition-colors cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <p className="text-xs font-bold text-slate-150 leading-snug mt-1">{alert.title}</p>
+              <p className="text-[10px] text-slate-400 mt-2 font-semibold">
+                Đến hạn lúc {new Date(alert.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({alert.dueLabel || 'trong vòng 1 giờ'})
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Dashboard Customization Modal */}
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-gray-50/50">
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-lg tracking-tight">Cấu hình hiển thị CRM Dashboard</h3>
+                <p className="text-xs text-slate-500 font-semibold mt-0.5">Sắp xếp thứ tự hoặc đóng/mở các báo cáo chỉ số.</p>
+              </div>
+              <button 
+                onClick={() => setIsSettingsModalOpen(false)}
+                className="p-1.5 hover:bg-slate-100 text-slate-700 hover:text-slate-900 rounded-xl transition-all cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[460px] space-y-6 no-scrollbar">
+              {/* KPIs custom list */}
+              <div>
+                <h4 className="text-xs font-black text-[#2F69FF] uppercase tracking-widest mb-3">1. Thẻ chỉ số chính (KPI Cards)</h4>
+                <div className="space-y-2">
+                  {kpiConfigs.map((cfg, idx) => (
+                    <div 
+                      key={cfg.id}
+                      className="flex items-center justify-between p-3.5 bg-slate-50/50 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all"
+                    >
+                      <span className="text-xs font-bold text-slate-800">{cfg.label}</span>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          disabled={idx === 0}
+                          onClick={() => handleMoveKpi(idx, 'up')}
+                          className="p-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
+                          title="Di chuyển lên"
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                        <button 
+                          disabled={idx === kpiConfigs.length - 1}
+                          onClick={() => handleMoveKpi(idx, 'down')}
+                          className="p-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
+                          title="Di chuyển xuống"
+                        >
+                          <ArrowDown size={14} />
+                        </button>
+                        <button 
+                          onClick={() => handleToggleKpi(cfg.id)}
+                          className={`p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                            cfg.visible 
+                              ? 'bg-blue-50 border-blue-205 text-blue-600 hover:bg-blue-100' 
+                              : 'bg-white border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                          }`}
+                          title={cfg.visible ? 'Ẩn thẻ' : 'Hiển thị thẻ'}
+                        >
+                          {cfg.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Panels / Charts config list */}
+              <div>
+                <h4 className="text-xs font-black text-[#2F69FF] uppercase tracking-widest mb-3">2. Biểu đồ bảng biểu chính</h4>
+                <div className="space-y-2">
+                  {panelConfigs.map((cfg, idx) => (
+                    <div 
+                      key={cfg.id}
+                      className="flex items-center justify-between p-3.5 bg-slate-50/50 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all"
+                    >
+                      <span className="text-xs font-bold text-slate-800">{cfg.label}</span>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          disabled={idx === 0}
+                          onClick={() => handleMovePanel(idx, 'up')}
+                          className="p-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
+                          title="Di chuyển lên"
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                        <button 
+                          disabled={idx === panelConfigs.length - 1}
+                          onClick={() => handleMovePanel(idx, 'down')}
+                          className="p-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
+                          title="Di chuyển xuống"
+                        >
+                          <ArrowDown size={14} />
+                        </button>
+                        <button 
+                          onClick={() => handleTogglePanel(cfg.id)}
+                          className={`p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                            cfg.visible 
+                              ? 'bg-blue-50 border-blue-205 text-blue-600 hover:bg-blue-100' 
+                              : 'bg-white border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                          }`}
+                          title={cfg.visible ? 'Ẩn báo cáo' : 'Hiển thị báo cáo'}
+                        >
+                          {cfg.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-100 bg-gray-50 flex items-center justify-between">
+              <button 
+                onClick={handleResetDashboard}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors py-2 cursor-pointer"
+              >
+                Khôi phục mặc định
+              </button>
+              <button 
+                onClick={() => setIsSettingsModalOpen(false)}
+                className="bg-[#2F69FF] text-white px-5 py-2 rounded-xl text-xs font-extrabold hover:bg-opacity-90 shadow-md shadow-[#2F69FF]/15 transition-all cursor-pointer"
+              >
+                Xác nhận & Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Elegant Page Title Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">CRM Dashboard</h1>
+          <p className="text-slate-500 text-sm mt-1.5 font-semibold">Tự động hóa kết quả doanh thu, liên kết hoạt động và quản lý chất lượng hỗ trợ SLA.</p>
+        </div>
+        <div className="flex items-center gap-2.5 shrink-0 self-stretch md:self-auto justify-end">
+          <button 
+            onClick={() => setIsSettingsModalOpen(true)}
+            className="flex items-center gap-2 text-xs font-bold text-gray-700 hover:text-gray-900 border border-gray-300 bg-white px-4 py-2.5 rounded-xl shadow-xs hover:bg-gray-50 transition-all cursor-pointer"
+          >
+            <Settings2 size={14} className="text-gray-500 animate-spin [animation-duration:10s]" /> Tùy chỉnh Dashboard
+          </button>
+          <button 
+            onClick={handleExportDashboardCsv}
+            className="flex items-center gap-2 text-xs font-bold text-[#2F69FF] bg-blue-50 border border-blue-200 px-4 py-2.5 rounded-xl shadow-xs hover:bg-blue-100 transition-all cursor-pointer animate-fadeIn"
+          >
+            <Download size={14} /> Xuất Báo Cáo (CSV)
+          </button>
+        </div>
+      </div>
+
       {/* Premium Demo Data Seeder Banner */}
       <div className="bg-gradient-to-r from-blue-50/60 to-indigo-50/60 border border-blue-100/80 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm backdrop-blur-sm">
         <div className="flex gap-3">
@@ -466,7 +847,7 @@ export function Dashboard() {
                       </span>
                       {task.priority && (
                         <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded ${
-                          task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-500 border border-red-100' : 'bg-slate-100 text-slate-500'
+                          task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-500 border border-red-100 animate-pulse' : 'bg-slate-100 text-slate-500'
                         }`}>
                           {task.priority}
                         </span>
@@ -501,409 +882,447 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Three row stat card grid exactly like mockup */}
+      {/* Dynamic customizable stat card grid based on user preference */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <PremiumStatCard 
-          title="Active Customers" 
-          value={displayActiveCustomers} 
-          change="+12% 28 days" 
-          timeframe={`Đang hoạt động trên tổng số ${customerCount > 0 ? customerCount : "4,562"} TV`} 
-          theme="purple" 
-          icon={Users}
-          miniHeights={[35, 60, 45, 100]}
-          glowIndex={3}
-        />
-        <PremiumStatCard 
-          title="Pending Support Tickets" 
-          value={displayPendingTickets} 
-          change="+19% This month" 
-          timeframe={`Yêu cầu chưa đóng trên tổng số ${ticketCount > 0 ? ticketCount : "2,543"} phiếu`} 
-          theme="orange" 
-          icon={Ticket}
-          miniHeights={[40, 60, 50, 80]}
-        />
-        <PremiumStatCard 
-          title="Current Month Sales Growth" 
-          value={displaySalesGrowth} 
-          change="+24.8% This month" 
-          timeframe="Tỷ lệ tăng trưởng doanh số thực tế" 
-          theme="blue" 
-          icon={TrendingUp}
-          miniHeights={[30, 45, 95, 55]}
-        />
+        {kpiConfigs.map((cfg) => {
+          if (!cfg.visible) return null;
+          if (cfg.id === 'active_customers') {
+            return (
+              <PremiumStatCard 
+                key="active_customers"
+                title="Active Customers" 
+                value={displayActiveCustomers} 
+                change="+12% 28 days" 
+                timeframe={`Đang hoạt động trên tổng số ${customerCount > 0 ? customerCount : "4,562"} TV`} 
+                theme="purple" 
+                icon={Users}
+                miniHeights={[35, 60, 45, 100]}
+                glowIndex={3}
+              />
+            );
+          }
+          if (cfg.id === 'pending_tickets') {
+            return (
+              <PremiumStatCard 
+                key="pending_tickets"
+                title="Pending Support Tickets" 
+                value={displayPendingTickets} 
+                change="+19% This month" 
+                timeframe={`Yêu cầu chưa đóng trên tổng số ${ticketCount > 0 ? ticketCount : "2,543"} phiếu`} 
+                theme="orange" 
+                icon={Ticket}
+                miniHeights={[40, 60, 50, 80]}
+              />
+            );
+          }
+          if (cfg.id === 'sales_growth') {
+            return (
+              <PremiumStatCard 
+                key="sales_growth"
+                title="Current Month Sales Growth" 
+                value={displaySalesGrowth} 
+                change="+24.8% This month" 
+                timeframe="Tỷ lệ tăng trưởng doanh số thực tế" 
+                theme="blue" 
+                icon={TrendingUp}
+                miniHeights={[30, 45, 95, 55]}
+              />
+            );
+          }
+          return null;
+        })}
       </div>
 
-      {/* Main split grid: Revenue & Deals vs Leads and AI Assistant */}
+      {/* Main split grid: Revenue & Deals vs Leads and AI Assistant (Dynamic sorting applied per column) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (Spans 2 columns on large screen) */}
-        <div className="lg:col-span-2 space-y-6 flex flex-col justify-between">
-          
-          {/* Revenue Analytics Card */}
-          <div className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Revenue Analytics</h3>
-                <p className="text-slate-400 text-xs font-semibold">Monthly overview & sales statistics</p>
-              </div>
-              <div>
-                <select className="bg-[#f4f6fa]/70 border border-[#e4e7ec] text-[11px] font-bold text-slate-600 rounded-full py-1.5 px-3.5 focus:outline-none transition-colors hover:bg-[#f0f2f7] cursor-pointer">
-                  <option>Month</option>
-                  <option>Quarter</option>
-                  <option>Year</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Custom Composed Chart representing beautiful rounded pill bars and line over it */}
-            <div className="h-68 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={analyticsData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f7" strokeOpacity={0.8} />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#8c94a5', fontSize: 11, fontWeight: 700 }} 
-                    dy={8}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#8c94a5', fontSize: 11, fontWeight: 700 }} 
-                    dx={-6}
-                    domain={[0, 1000]}
-                    tickCount={6}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(235, 238, 245, 0.4)', radius: 10 }}
-                    contentStyle={{ 
-                      borderRadius: '10px', 
-                      border: '1px solid #f1f3f7', 
-                      background: 'rgba(255,255,255,0.96)', 
-                      backdropFilter: 'blur(8px)', 
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.04)', 
-                      padding: '10px 14px' 
-                    }}
-                    labelStyle={{ fontWeight: 800, color: '#1e293b', fontSize: '11px' }}
-                    itemStyle={{ fontWeight: 700, fontSize: '11px' }}
-                  />
-                  {/* Subtle lower bars for background feel */}
-                  <Bar 
-                    dataKey="barValue" 
-                    fill="#2F69FF" 
-                    fillOpacity={0.15} 
-                    radius={[4, 4, 4, 4]} 
-                    barSize={20} 
-                    name="Goal Target" 
-                  />
-                  {/* Fluid Line layered directly on top of the bars */}
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#2F69FF" 
-                    strokeWidth={2.5} 
-                    dot={{ fill: '#2F69FF', stroke: '#ffffff', strokeWidth: 2, r: 6 }} 
-                    activeDot={{ r: 8 }}
-                    name="Actual Value" 
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Sales Velocity Card */}
-          <div className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6" id="sales-velocity-card">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight flex items-center gap-2">
-                  <TrendingUp className="text-[#2F69FF] h-5 w-5" />
-                  Sales Velocity
-                </h3>
-                <p className="text-slate-400 text-xs font-semibold">Conversion rate of leads over the last 30 days</p>
-              </div>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="flex items-center gap-1.5 font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                  Avg: {salesVelocityData.length > 0 ? (salesVelocityData.reduce((acc, curr) => acc + (curr.conversionRate || 0), 0) / salesVelocityData.length).toFixed(1) : 0}%
-                </span>
-              </div>
-            </div>
-            <div className="h-56 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesVelocityData} margin={{ top: 10, right: 10, bottom: 0, left: -25 }}>
-                  <defs>
-                    <linearGradient id="colorConversion" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2F69FF" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#2F69FF" stopOpacity={0.15}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f7" strokeOpacity={0.8} />
-                  <XAxis 
-                    dataKey="date" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }} 
-                    dy={10} 
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }} 
-                    dx={-10}
-                    domain={[0, 100]}
-                    tickFormatter={(tick) => `${tick}%`}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(47, 105, 255, 0.05)', radius: 6 }}
-                    contentStyle={{ 
-                      borderRadius: '10px', 
-                      border: '1px solid #f1f3f7', 
-                      background: 'rgba(255,255,255,0.96)', 
-                      backdropFilter: 'blur(8px)', 
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.04)', 
-                      padding: '10px 14px' 
-                    }}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        return (
-                          <div className="space-y-1.5">
-                            <p className="text-xs font-black text-slate-800 border-b border-slate-100 pb-1 mb-1">{data.date}</p>
-                            <p className="text-[10px] font-bold text-slate-500">Leads: <span className="font-extrabold text-slate-800">{data.leadsCount}</span></p>
-                            <p className="text-[10px] font-bold text-slate-500">Converted: <span className="font-extrabold text-emerald-600">{data.convertedCount}</span></p>
-                            <p className="text-xs font-black text-[#2F69FF] mt-1 pt-1 border-t border-slate-100">Rate: {data.conversionRate}%</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar 
-                    dataKey="conversionRate" 
-                    fill="url(#colorConversion)" 
-                    radius={[6, 6, 0, 0]} 
-                    barSize={16} 
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Deals Statistics Card */}
-          <div className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6">
-            <div className="flex justify-between items-center mb-5">
-              <div>
-                <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Deals Statistics</h3>
-                <p className="text-slate-400 text-xs font-semibold font-medium">Tracking conversion stages of top prospects</p>
-              </div>
-              <div>
-                <select className="bg-[#f4f6fa]/70 border border-[#e4e7ec] text-[11px] font-bold text-slate-600 rounded-full py-1.5 px-3.5 focus:outline-none transition-colors hover:bg-[#f0f2f7] cursor-pointer">
-                  <option>Sort by</option>
-                  <option>Category</option>
-                  <option>Date</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto no-scrollbar">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-[#f4f6fa] text-[#8c94a5] text-[10px] uppercase font-bold tracking-wider">
-                    <th className="py-3 px-4">Customer</th>
-                    <th className="py-3 px-4">Category</th>
-                    <th className="py-3 px-4">Location</th>
-                    <th className="py-3 px-4">Date</th>
-                    <th className="py-3 px-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#fcfdfd]">
-                  {/* Simon Corel row representing screenshot exactly */}
-                  <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="py-3.5 px-4 flex items-center gap-3">
-                      <img 
-                        src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80" 
-                        alt="Simon Corel" 
-                        className="w-10 h-10 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-slate-100" 
-                      />
-                      <div>
-                        <p className="font-extrabold text-xs text-slate-800 leading-snug">Simon Corel</p>
-                        <p className="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">simoncorel@gmail.com</p>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Service</td>
-                    <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Germany</td>
-                    <td className="py-3.5 px-4 text-xs font-bold text-slate-400">Aug 20, 2026</td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex justify-end gap-1.5">
-                        <button className="p-1.5 hover:bg-[#f0f2f5] text-slate-500 hover:text-[#2F69FF] rounded-lg transition-colors">
-                          <Edit2 size={13} className="stroke-[2.5]" />
-                        </button>
-                        <button className="p-1.5 hover:bg-[#ffebee] text-slate-500 hover:text-red-500 rounded-lg transition-colors">
-                          <Trash2 size={13} className="stroke-[2.5]" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Dynamic Database fallbacks showing real-world clients */}
-                  {mockCustomers.map((cust, i) => (
-                    <tr key={cust.id + i} className="hover:bg-slate-50/40 transition-colors">
-                      <td className="py-3.5 px-4 flex items-center gap-3">
-                        <img 
-                          src={cust.avatar || `https://i.pravatar.cc/150?u=${cust.id}`} 
-                          alt={cust.name} 
-                          className="w-10 h-10 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.055)] border border-slate-100" 
-                        />
-                        <div>
-                          <p className="font-extrabold text-xs text-slate-800 leading-snug">{cust.name}</p>
-                          <p className="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">{cust.email}</p>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 text-xs font-bold text-slate-600">
-                        {cust.tier || 'Member'}
-                      </td>
-                      <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Vietnam</td>
-                      <td className="py-3.5 px-4 text-xs font-bold text-slate-400">
-                        {new Date(cust.lastInteraction || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex justify-end gap-1.5">
-                          <button className="p-1.5 hover:bg-[#f0f2f5] text-slate-500 hover:text-[#2F69FF] rounded-lg transition-colors">
-                            <Edit2 size={13} className="stroke-[2.5]" />
-                          </button>
-                          <button className="p-1.5 hover:bg-[#ffebee] text-slate-500 hover:text-red-500 rounded-lg transition-colors">
-                            <Trash2 size={13} className="stroke-[2.5]" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )).slice(0, 2)}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right Column */}
-        <div className="space-y-6 flex flex-col">
-
-          {/* Leads by Source Card with Doughnut Chart */}
-          <div className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Leads by Source</h3>
-              <button className="text-slate-400 hover:text-slate-600 text-xs font-bold tracking-widest">•••</button>
-            </div>
-
-            {/* Recharts Doughnut with absolute text alignment in center */}
-            <div className="relative h-44 flex items-center justify-center">
-              <ResponsiveContainer width={180} height={180}>
-                <PieChart>
-                  <Pie
-                    data={leadData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={75}
-                    paddingAngle={3}
-                    dataKey="value"
-                    startAngle={90}
-                    endAngle={-270}
-                  >
-                    {leadData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute text-center">
-                <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase leading-none">Total</p>
-                <p className="text-2xl font-black text-slate-800 mt-1 leading-none">4,145</p>
-              </div>
-            </div>
-
-            {/* Custom line status legends underneath exactly layout-similar to mockup */}
-            <div className="grid grid-cols-3 gap-2 mt-4 pt-2 border-t border-[#f8f9fb]">
-              <div className="border-l-2 border-pink-500 pl-3">
-                <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Desktop</p>
-                <p className="text-sm font-extrabold text-slate-800 leading-none">1,207</p>
-              </div>
-              <div className="border-l-2 border-[#2F69FF] pl-3">
-                <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Laptop</p>
-                <p className="text-sm font-extrabold text-slate-800 leading-none">1,152</p>
-              </div>
-              <div className="border-l-2 border-amber-500 pl-3">
-                <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Mobile</p>
-                <p className="text-sm font-extrabold text-slate-800 leading-none">1,624</p>
-              </div>
-            </div>
-          </div>
-
-          {/* AI Assistant Card with moving 3D sphere gradient core */}
-          <div className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 flex flex-col justify-between flex-1 min-h-[300px]">
-            <div className="flex justify-between items-center">
-              <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">AI Assistant</h3>
-              <button className="text-slate-400 hover:text-slate-600 text-xs font-bold tracking-widest">•••</button>
-            </div>
-
-            {/* Stunning Swirling Gradient AI Core representing the spheres in the image */}
-            <div className="relative py-8 flex flex-col items-center justify-center">
-              <div className="relative w-32 h-32 flex items-center justify-center">
-                {/* Layer 1: Ambient base pulsing circle */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#2F69FF] via-[#5b8eff] to-[#1e40af] rounded-full filter blur-[14px] opacity-35 animate-pulse" />
-                
-                {/* Layer 2: Swirling orbit border */}
-                <div className="absolute inset-2 border-2 border-dashed border-[#2F69FF]/40 rounded-full animate-spin [animation-duration:15s]" />
-                
-                {/* Layer 3: Main high fidelity gradient wavy shape */}
-                <div className="w-24 h-24 rounded-[40%] bg-gradient-to-br from-[#2F69FF] via-[#5b8eff] to-[#1e40af] shadow-[0_8px_24px_rgba(47,105,255,0.35)] animate-spin [animation-duration:8s] flex items-center justify-center" />
-                
-                {/* Layer 4: Nested gloss overlay */}
-                <div className="absolute w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm shadow-inner pointer-events-none" />
-              </div>
-              
-              <p className="text-[15px] font-bold text-[#4a5568] tracking-tight text-center mt-5">
-                What Can I Help With?
-              </p>
-            </div>
-
-            {/* Custom rounded pill lavender text input bar */}
-            <div className="mt-2 flex items-center bg-[#ebf0ff]/60 border border-[#d2e0ff] rounded-full px-4 py-2 hover:bg-[#e2eaff]/80 transition-all">
-              <button className="text-[#2F69FF] hover:text-[#1e40af] p-1 bg-white rounded-full h-6 w-6 flex items-center justify-center shadow-sm shrink-0">
-                <Plus size={14} className="stroke-[3]" />
-              </button>
-              <input
-                type="text"
-                placeholder="Ask me anything"
-                className="bg-transparent border-none text-xs text-slate-700 font-bold placeholder-[#9da3bc] focus:outline-none w-full px-3.5"
-              />
-              <button className="bg-[#2F69FF] text-white p-2 rounded-full hover:bg-opacity-90 shadow-sm transition-all flex items-center justify-center shrink-0 w-8 h-8">
-                <ArrowUp size={16} className="stroke-[3]" />
-              </button>
-            </div>
-          </div>
-
-          {/* Top Deals Card partially visible representation in mockup */}
-          <div className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-5">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-xs font-bold text-[#0e0e11] uppercase tracking-wider">Top Deals</h3>
-              <ChevronRight size={16} className="text-slate-400" />
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#2F69FF] font-extrabold text-[10px]">
-                    TC
+        {/* Left Column (Spans 2 columns on large screen, handles left-eligible cards in customized order) */}
+        <div className="lg:col-span-2 space-y-6 flex flex-col">
+          {panelConfigs.map((cfg) => {
+            if (!cfg.visible) return null;
+            
+            // 1. Revenue Analytics Card
+            if (cfg.id === 'revenue_analytics') {
+              return (
+                <div key="revenue_analytics" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 flex flex-col animate-fadeIn">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Revenue Analytics</h3>
+                      <p className="text-slate-400 text-xs font-semibold">Monthly overview & sales statistics</p>
+                    </div>
+                    <div>
+                      <select className="bg-[#f4f6fa]/70 border border-[#e4e7ec] text-[11px] font-bold text-slate-600 rounded-full py-1.5 px-3.5 focus:outline-none transition-colors hover:bg-[#f0f2f7] cursor-pointer">
+                        <option>Month</option>
+                        <option>Quarter</option>
+                        <option>Year</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <h5 className="text-[11px] font-bold text-slate-800">Techcom Corp Contract</h5>
-                    <p className="text-[9px] text-[#2F69FF] font-bold">Proposal Closed</p>
+
+                  {/* Custom Composed Chart representing beautiful rounded pill bars and line over it */}
+                  <div className="h-68 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={analyticsData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f7" strokeOpacity={0.8} />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: '#8c94a5', fontSize: 11, fontWeight: 700 }} 
+                          dy={8}
+                        />
+                        <YAxis 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: '#8c94a5', fontSize: 11, fontWeight: 700 }} 
+                          dx={-6}
+                          domain={[0, 1000]}
+                          tickCount={6}
+                        />
+                        <Tooltip 
+                          cursor={{ fill: 'rgba(235, 238, 245, 0.4)', radius: 10 }}
+                          contentStyle={{ 
+                            borderRadius: '10px', 
+                            border: '1px solid #f1f3f7', 
+                            background: 'rgba(255,255,255,0.96)', 
+                            backdropFilter: 'blur(8px)', 
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.04)', 
+                            padding: '10px 14px' 
+                          }}
+                          labelStyle={{ fontWeight: 800, color: '#1e293b', fontSize: '11px' }}
+                          itemStyle={{ fontWeight: 700, fontSize: '11px' }}
+                        />
+                        {/* Subtle lower bars for background feel */}
+                        <Bar 
+                          dataKey="barValue" 
+                          fill="#2F69FF" 
+                          fillOpacity={0.15} 
+                          radius={[4, 4, 4, 4]} 
+                          barSize={20} 
+                          name="Goal Target" 
+                        />
+                        {/* Fluid Line layered directly on top of the bars */}
+                        <Line 
+                          type="monotone" 
+                          dataKey="value" 
+                          stroke="#2F69FF" 
+                          strokeWidth={2.5} 
+                          dot={{ fill: '#2F69FF', stroke: '#ffffff', strokeWidth: 2, r: 6 }} 
+                          activeDot={{ r: 8 }}
+                          name="Actual Value" 
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
-                <span className="text-xs font-black text-slate-800">$18,200</span>
-              </div>
-            </div>
-          </div>
+              );
+            }
 
+            // 2. Sales Velocity Card
+            if (cfg.id === 'sales_velocity') {
+              return (
+                <div key="sales_velocity" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 animate-fadeIn" id="sales-velocity-card">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight flex items-center gap-2">
+                        <TrendingUp className="text-[#2F69FF] h-5 w-5" />
+                        Sales Velocity
+                      </h3>
+                      <p className="text-slate-400 text-xs font-semibold">Conversion rate of leads over the last 30 days</p>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="flex items-center gap-1.5 font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                        Avg: {salesVelocityData.length > 0 ? (salesVelocityData.reduce((acc, curr) => acc + (curr.conversionRate || 0), 0) / salesVelocityData.length).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="h-56 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={salesVelocityData} margin={{ top: 10, right: 10, bottom: 0, left: -25 }}>
+                        <defs>
+                          <linearGradient id="colorConversion" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2F69FF" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#2F69FF" stopOpacity={0.15}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f7" strokeOpacity={0.8} />
+                        <XAxis 
+                          dataKey="date" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }} 
+                          dy={10} 
+                        />
+                        <YAxis 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }} 
+                          dx={-10}
+                          domain={[0, 100]}
+                          tickFormatter={(tick) => `${tick}%`}
+                        />
+                        <Tooltip 
+                          cursor={{ fill: 'rgba(47, 105, 255, 0.05)', radius: 6 }}
+                          contentStyle={{ 
+                            borderRadius: '10px', 
+                            border: '1px solid #f1f3f7', 
+                            background: 'rgba(255,255,255,0.96)', 
+                            backdropFilter: 'blur(8px)', 
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.04)', 
+                            padding: '10px 14px' 
+                          }}
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="space-y-1.5">
+                                  <p className="text-xs font-black text-slate-800 border-b border-slate-100 pb-1 mb-1">{data.date}</p>
+                                  <p className="text-[10px] font-bold text-slate-500">Leads: <span className="font-extrabold text-slate-800">{data.leadsCount}</span></p>
+                                  <p className="text-[10px] font-bold text-slate-500">Converted: <span className="font-extrabold text-emerald-600">{data.convertedCount}</span></p>
+                                  <p className="text-xs font-black text-[#2F69FF] mt-1 pt-1 border-t border-slate-100">Rate: {data.conversionRate}%</p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar 
+                          dataKey="conversionRate" 
+                          fill="url(#colorConversion)" 
+                          radius={[6, 6, 0, 0]} 
+                          barSize={16} 
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              );
+            }
+
+            // 3. Deals Statistics Card
+            if (cfg.id === 'deals_statistics') {
+              return (
+                <div key="deals_statistics" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 animate-fadeIn">
+                  <div className="flex justify-between items-center mb-5">
+                    <div>
+                      <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Deals Statistics</h3>
+                      <p className="text-slate-400 text-xs font-semibold">Tracking conversion stages of top prospects</p>
+                    </div>
+                    <div>
+                      <select className="bg-[#f4f6fa]/70 border border-[#e4e7ec] text-[11px] font-bold text-slate-600 rounded-full py-1.5 px-3.5 focus:outline-none transition-colors hover:bg-[#f0f2f7] cursor-pointer">
+                        <option>Sort by</option>
+                        <option>Category</option>
+                        <option>Date</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-[#f4f6fa] text-[#8c94a5] text-[10px] uppercase font-bold tracking-wider">
+                          <th className="py-3 px-4">Customer</th>
+                          <th className="py-3 px-4">Category</th>
+                          <th className="py-3 px-4">Location</th>
+                          <th className="py-3 px-4">Date</th>
+                          <th className="py-3 px-4 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#fcfdfd]">
+                        <tr className="hover:bg-slate-50/40 transition-colors">
+                          <td className="py-3.5 px-4 flex items-center gap-3">
+                            <img 
+                              src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80" 
+                              alt="Simon Corel" 
+                              className="w-10 h-10 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-slate-100" 
+                            />
+                            <div>
+                              <p className="font-extrabold text-xs text-slate-800 leading-snug">Simon Corel</p>
+                              <p className="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">simoncorel@gmail.com</p>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Service</td>
+                          <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Germany</td>
+                          <td className="py-3.5 px-4 text-xs font-bold text-slate-400">Aug 20, 2026</td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex justify-end gap-1.5">
+                              <button className="p-1.5 hover:bg-[#f0f2f5] text-slate-500 hover:text-[#2F69FF] rounded-lg transition-colors">
+                                <Edit2 size={13} className="stroke-[2.5]" />
+                              </button>
+                              <button className="p-1.5 hover:bg-[#ffebee] text-slate-500 hover:text-red-500 rounded-lg transition-colors">
+                                <Trash2 size={13} className="stroke-[2.5]" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        
+                        {mockCustomers.map((cust, i) => (
+                          <tr key={cust.id + i} className="hover:bg-slate-50/40 transition-colors">
+                            <td className="py-3.5 px-4 flex items-center gap-3">
+                              <img 
+                                src={cust.avatar || `https://i.pravatar.cc/150?u=${cust.id}`} 
+                                alt={cust.name} 
+                                className="w-10 h-10 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.055)] border border-slate-100" 
+                              />
+                              <div>
+                                <p className="font-extrabold text-xs text-slate-800 leading-snug">{cust.name}</p>
+                                <p className="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">{cust.email}</p>
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 text-xs font-bold text-slate-600">
+                              {cust.tier || 'Member'}
+                            </td>
+                            <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Vietnam</td>
+                            <td className="py-3.5 px-4 text-xs font-bold text-slate-400">
+                              {new Date(cust.lastInteraction || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex justify-end gap-1.5">
+                                <button className="p-1.5 hover:bg-[#f0f2f5] text-slate-500 hover:text-[#2F69FF] rounded-lg transition-colors">
+                                  <Edit2 size={13} className="stroke-[2.5]" />
+                                </button>
+                                <button className="p-1.5 hover:bg-[#ffebee] text-slate-500 hover:text-red-500 rounded-lg transition-colors">
+                                  <Trash2 size={13} className="stroke-[2.5]" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )).slice(0, 2)}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            }
+
+            return null;
+          })}
+        </div>
+
+        {/* Right Column (Handles right-eligible cards in customized order) */}
+        <div className="space-y-6 flex flex-col">
+          {panelConfigs.map((cfg) => {
+            if (!cfg.visible) return null;
+
+            // 1. Leads by Source Card
+            if (cfg.id === 'leads_source') {
+              return (
+                <div key="leads_source" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 animate-fadeIn">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Leads by Source</h3>
+                    <button className="text-slate-400 hover:text-slate-600 text-xs font-bold tracking-widest">•••</button>
+                  </div>
+
+                  <div className="relative h-44 flex items-center justify-center">
+                    <ResponsiveContainer width={180} height={180}>
+                      <PieChart>
+                        <Pie
+                          data={leadData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={75}
+                          paddingAngle={3}
+                          dataKey="value"
+                          startAngle={90}
+                          endAngle={-270}
+                        >
+                          {leadData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute text-center">
+                      <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase leading-none">Total</p>
+                      <p className="text-2xl font-black text-slate-800 mt-1 leading-none">4,145</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 mt-4 pt-2 border-t border-[#f8f9fb]">
+                    <div className="border-l-2 border-pink-500 pl-3">
+                      <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Desktop</p>
+                      <p className="text-sm font-extrabold text-slate-800 leading-none">1,207</p>
+                    </div>
+                    <div className="border-l-2 border-[#2F69FF] pl-3">
+                      <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Laptop</p>
+                      <p className="text-sm font-extrabold text-slate-800 leading-none">1,152</p>
+                    </div>
+                    <div className="border-l-2 border-amber-500 pl-3">
+                      <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Mobile</p>
+                      <p className="text-sm font-extrabold text-slate-800 leading-none">1,624</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // 2. AI Assistant Card
+            if (cfg.id === 'ai_assistant') {
+              return (
+                <div key="ai_assistant" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 flex flex-col justify-between min-h-[300px] animate-fadeIn">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">AI Assistant</h3>
+                    <button className="text-slate-400 hover:text-slate-600 text-xs font-bold tracking-widest">•••</button>
+                  </div>
+
+                  <div className="relative py-8 flex flex-col items-center justify-center">
+                    <div className="relative w-32 h-32 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-[#2F69FF] via-[#5b8eff] to-[#1e40af] rounded-full filter blur-[14px] opacity-35 animate-pulse" />
+                      <div className="absolute inset-2 border-2 border-dashed border-[#2F69FF]/40 rounded-full animate-spin [animation-duration:15s]" />
+                      <div className="w-24 h-24 rounded-[40%] bg-gradient-to-br from-[#2F69FF] via-[#5b8eff] to-[#1e40af] shadow-[0_8px_24px_rgba(47,105,255,0.35)] animate-spin [animation-duration:8s] flex items-center justify-center" />
+                      <div className="absolute w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm shadow-inner pointer-events-none" />
+                    </div>
+                    
+                    <p className="text-[15px] font-bold text-[#4a5568] tracking-tight text-center mt-5">
+                      What Can I Help With?
+                    </p>
+                  </div>
+
+                  <div className="mt-2 flex items-center bg-[#ebf0ff]/60 border border-[#d2e0ff] rounded-full px-4 py-2 hover:bg-[#e2eaff]/80 transition-all">
+                    <button className="text-[#2F69FF] hover:text-[#1e40af] p-1 bg-white rounded-full h-6 w-6 flex items-center justify-center shadow-sm shrink-0">
+                      <Plus size={14} className="stroke-[3]" />
+                    </button>
+                    <input
+                      type="text"
+                      placeholder="Ask me anything"
+                      className="bg-transparent border-none text-xs text-slate-700 font-bold placeholder-[#9da3bc] focus:outline-none w-full px-3.5"
+                    />
+                    <button className="bg-[#2F69FF] text-white p-2 rounded-full hover:bg-opacity-90 shadow-sm transition-all flex items-center justify-center shrink-0 w-8 h-8">
+                      <ArrowUp size={16} className="stroke-[3]" />
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            // 3. Top Deals Card
+            if (cfg.id === 'top_deals') {
+              return (
+                <div key="top_deals" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-5 animate-fadeIn">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-xs font-bold text-[#0e0e11] uppercase tracking-wider">Top Deals</h3>
+                    <ChevronRight size={16} className="text-slate-400" />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#2F69FF] font-extrabold text-[10px]">
+                          TC
+                        </div>
+                        <div>
+                          <h5 className="text-[11px] font-bold text-slate-800">Techcom Corp Contract</h5>
+                          <p className="text-[9px] text-[#2F69FF] font-bold">Proposal Closed</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-black text-slate-800">$18,200</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return null;
+          })}
         </div>
       </div>
     </div>
