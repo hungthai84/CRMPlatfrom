@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { Area, AreaChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ComposedChart, Line, PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis, BarChart } from 'recharts';
-import { ArrowUpRight, TrendingUp, Users, DollarSign, Ticket, Plus, ArrowUp, Briefcase, ChevronRight, Edit2, Trash2, Clock, Calendar, CheckSquare, Bell, X, AlertCircle, Settings2, Download, Eye, EyeOff, ArrowDown } from 'lucide-react';
+import { ArrowUpRight, TrendingUp, Users, DollarSign, Ticket, Plus, ArrowUp, Briefcase, ChevronRight, Edit2, Trash2, Clock, Calendar, CheckSquare, Bell, X, AlertCircle, Settings2, Download, Eye, EyeOff, ArrowDown, Phone } from 'lucide-react';
 import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
+import { D3AnalyticsChart } from '../components/D3AnalyticsChart';
 import { db, handleFirestoreError, OperationType, getAccessToken } from '../lib/firebase';
 import { logActivity } from '../lib/auditLogger';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { mockCustomers } from '../data/mockData';
 import { generateDemoCustomers } from '../lib/generateDemoData';
 import { Sparkles } from 'lucide-react';
@@ -37,6 +40,31 @@ const leadData = [
   { name: 'Mobile', value: 1624, color: '#f59e0b' },  // Orange/Gold
 ];
 
+const realLeadSources = [
+  { name: 'Facebook Ads', value: 1420, color: '#1877F2', rate: '34%' },
+  { name: 'Google Search', value: 1150, color: '#34A853', rate: '28%' },
+  { name: 'Website Form', value: 780, color: '#F59E0B', rate: '19%' },
+  { name: 'Zalo Campaign', value: 510, color: '#0068FF', rate: '12%' },
+  { name: 'Referral', value: 285, color: '#8E44AD', rate: '7%' },
+];
+
+const pipelineValueData = [
+  { month: 'Jan', value: 240, label: '240 Tr' },
+  { month: 'Feb', value: 380, label: '380 Tr' },
+  { month: 'Mar', value: 310, label: '310 Tr' },
+  { month: 'Apr', value: 520, label: '520 Tr' },
+  { month: 'May', value: 680, label: '680 Tr' },
+  { month: 'Jun', value: 890, label: '890 Tr' },
+];
+
+const leadStatusData = [
+  { name: 'Mới', value: 450, color: '#3b82f6' },
+  { name: 'Đang gọi', value: 380, color: '#10b981' },
+  { name: 'Thẩm định', value: 290, color: '#f59e0b' },
+  { name: 'Đề xuất', value: 180, color: '#8b5cf6' },
+  { name: 'Thương thảo', value: 120, color: '#ec4899' },
+];
+
 // Stat card design with interactive mini indicators
 interface MiniBarChartProps {
   color: string;
@@ -67,13 +95,14 @@ interface StatCardProps {
   value: string;
   change: string;
   timeframe: string;
-  theme: 'purple' | 'blue' | 'orange';
+  theme: 'purple' | 'blue' | 'orange' | 'green';
   icon: any;
   miniHeights: number[];
   glowIndex?: number;
+  delay?: number;
 }
 
-function PremiumStatCard({ title, value, change, timeframe, theme, icon: Icon, miniHeights, glowIndex }: StatCardProps) {
+function PremiumStatCard({ title, value, change, timeframe, theme, icon: Icon, miniHeights, glowIndex, delay = 0 }: StatCardProps) {
   const styles = {
     purple: {
       bg: 'bg-[#eef2ff]',
@@ -89,13 +118,23 @@ function PremiumStatCard({ title, value, change, timeframe, theme, icon: Icon, m
       bg: 'bg-[#fff3e0]',
       text: 'text-[#fb8c00]',
       bar: 'bg-[#fb8c00]',
+    },
+    green: {
+      bg: 'bg-[#e8f5e9]',
+      text: 'text-[#43a047]',
+      bar: 'bg-[#43a047]',
     }
   };
 
   const currentStyle = styles[theme];
 
   return (
-    <div className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 transition-all hover:shadow-[0_12px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between h-44 relative overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
+      className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 transition-all hover:shadow-[0_12px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between h-44 relative overflow-hidden"
+    >
       <div className="flex justify-between items-start">
         {/* Metric icon with rounded pill banner */}
         <div className={`w-11 h-11 flex items-center justify-center rounded-[10px] ${currentStyle.bg} ${currentStyle.text} shadow-sm shrink-0`}>
@@ -120,20 +159,166 @@ function PremiumStatCard({ title, value, change, timeframe, theme, icon: Icon, m
           <MiniBarIndicator color={currentStyle.bar} heights={miniHeights} glowIndex={glowIndex} />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
+const mockLeadsData = [
+  { id: 'LD-101', name: 'Phạm Minh Trí', company: 'TechVina Corp', value: 15000000, priority: 'High', status: 'Mới', phone: '0901234555' },
+  { id: 'LD-102', name: 'Trần Cường', company: 'Đầu tư Á Châu', value: 34000000, priority: 'Medium', status: 'Mới', phone: '0983444222' },
+  { id: 'LD-103', name: 'Lê Kiều Trang', company: 'Sơn Hà Group', value: 12000000, priority: 'Low', status: 'Mới', phone: '0912333211' },
+  { id: 'LD-104', name: 'Đặng Quốc Anh', company: 'BĐS Hải Đường', value: 45000000, priority: 'High', status: 'Đang gọi', phone: '0934111222' },
+  { id: 'LD-105', name: 'Vũ Thị Mai', company: 'Y tế Hoàn Mỹ', value: 25000000, priority: 'Low', status: 'Đang gọi', phone: '0977888999' },
+  { id: 'LD-106', name: 'Nguyễn Bách', company: 'Thực phẩm Sạch', value: 60000000, priority: 'High', status: 'Thẩm định', phone: '0909555222' },
+  { id: 'LD-107', name: 'Phạm Thuỳ Linh', company: 'Logistics Hồng Hà', value: 18000000, priority: 'Medium', status: 'Thẩm định', phone: '0944666222' },
+  { id: 'LD-108', name: 'Hoàng Văn Thế', company: 'Năng lượng Xanh', value: 95000050, priority: 'High', status: 'Đề xuất', phone: '0901555111' },
+  { id: 'LD-109', name: 'Đỗ Hữu Phước', company: 'Cơ khí Chính xác', value: 120000000, priority: 'High', status: 'Thương thảo', phone: '0988777666' }
+];
+
 export function Dashboard() {
   const { user, isAdmin } = useAuth();
+  const { addToast } = useToast();
   const [customerCount, setCustomerCount] = useState<number>(0);
   const [activeCustomerCount, setActiveCustomerCount] = useState<number>(0);
   const [ticketCount, setTicketCount] = useState<number>(0);
   const [pendingTicketCount, setPendingTicketCount] = useState<number>(0);
   const [totalLtv, setTotalLtv] = useState<number>(0);
   const [salesVelocityData, setSalesVelocityData] = useState<any[]>([]);
+  const [activeSourceTab, setActiveSourceTab] = useState<'source' | 'pipeline' | 'status'>('source');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
   const [seedSuccess, setSeedSuccess] = useState(false);
+
+  // Quick Actions floating menu states
+  const [isFabOpen, setIsFabOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<'call' | 'task' | 'opportunity' | null>(null);
+
+  // Quick Action form states
+  const [callForm, setCallForm] = useState({
+    contactPerson: '',
+    phone: '',
+    duration: '5 phút',
+    notes: '',
+    outcome: 'Hoàn thành'
+  });
+
+  const [taskForm, setTaskForm] = useState({
+    title: '',
+    description: '',
+    priority: 'Medium' as 'High' | 'Medium' | 'Low',
+    dueDate: new Date().toISOString().split('T')[0]
+  });
+
+  const [oppForm, setOppForm] = useState({
+    title: '',
+    company: '',
+    amount: '',
+    stage: 'Tiềm năng' as 'Tiềm năng' | 'Thẩm định' | 'Đề xuất' | 'Đàm phán' | 'Đã chốt (Thắng)',
+    probability: '50'
+  });
+
+  const handleLogCallSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!callForm.contactPerson || !callForm.phone) {
+      addToast('Lỗi', 'Vui lòng điền thông tin người liên hệ và số điện thoại.', 'error', 'crm');
+      return;
+    }
+
+    const newCall = {
+      id: `call-${Date.now()}`,
+      ...callForm,
+      timestamp: new Date().toISOString()
+    };
+
+    const savedCalls = localStorage.getItem('crm_logged_calls');
+    const existingCalls = savedCalls ? JSON.parse(savedCalls) : [];
+    localStorage.setItem('crm_logged_calls', JSON.stringify([newCall, ...existingCalls]));
+
+    logActivity('LOG_GỌI_ĐIỆN', 'CALL_LOGGER', `Đã ghi nhận cuộc gọi với ${callForm.contactPerson} (${callForm.duration}) - Kết quả: ${callForm.outcome}`);
+    addToast('Ghi nhận cuộc gọi', `Đã lập nhật ký cuộc gọi đến ${callForm.contactPerson} thành công.`, 'success', 'crm');
+
+    // Reset Form
+    setCallForm({
+      contactPerson: '',
+      phone: '',
+      duration: '5 phút',
+      notes: '',
+      outcome: 'Hoàn thành'
+    });
+    setActiveModal(null);
+  };
+
+  const handleAddTaskSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!taskForm.title) {
+      addToast('Lỗi', 'Vui lòng điền tiêu đề nhiệm vụ.', 'error', 'crm');
+      return;
+    }
+
+    const newTask = {
+      id: `K-${Math.floor(Math.random() * 900) + 100}`,
+      title: taskForm.title,
+      description: taskForm.description,
+      dueDate: taskForm.dueDate,
+      priority: taskForm.priority,
+      status: 'To Do' as 'To Do' | 'In Progress' | 'Completed',
+      assignee: {
+        name: user?.displayName || 'Thái Hùng',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'Thai Hung')}&background=random`
+      }
+    };
+
+    const savedTasks = localStorage.getItem('crm_kanban_tasks');
+    const existingTasks = savedTasks ? JSON.parse(savedTasks) : [];
+    localStorage.setItem('crm_kanban_tasks', JSON.stringify([newTask, ...existingTasks]));
+
+    logActivity('THÊM_NHIỆM_VỤ', 'TASKS', `Đã tạo nhiệm vụ mới nhanh từ Dashboard: ${taskForm.title}`);
+    addToast('Tạo nhiệm vụ', `Nhiệm vụ "${taskForm.title}" đã được đưa vào bảng Kanban.`, 'success', 'crm');
+
+    // Reset Form
+    setTaskForm({
+      title: '',
+      description: '',
+      priority: 'Medium',
+      dueDate: new Date().toISOString().split('T')[0]
+    });
+    setActiveModal(null);
+  };
+
+  const handleCreateOpportunitySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!oppForm.title || !oppForm.company) {
+      addToast('Lỗi', 'Vui lòng điền tên cơ hội và tên công ty.', 'error', 'crm');
+      return;
+    }
+
+    const newOpp = {
+      id: Math.random().toString(36).substring(7),
+      title: oppForm.title,
+      company: oppForm.company,
+      amount: Number(oppForm.amount) || 0,
+      probability: Number(oppForm.probability) || 50,
+      stage: oppForm.stage,
+      expectedClose: new Date().toISOString()
+    };
+
+    const savedOpps = localStorage.getItem('crm_opportunities');
+    const existingOpps = savedOpps ? JSON.parse(savedOpps) : [];
+    localStorage.setItem('crm_opportunities', JSON.stringify([newOpp, ...existingOpps]));
+
+    logActivity('TẠO_CƠ_HỘI', 'SALES_PIPELINE', `Đã tạo cơ hội kinh doanh mới nhanh từ Dashboard: ${oppForm.title}`);
+    addToast('Tạo cơ hội', `Đã tạo cơ hội kinh doanh cho "${oppForm.company}" thành công.`, 'success', 'crm');
+
+    // Reset Form
+    setOppForm({
+      title: '',
+      company: '',
+      amount: '',
+      stage: 'Tiềm năng',
+      probability: '50'
+    });
+    setActiveModal(null);
+  };
   
   // States for the 24-hour upcoming tasks notification system
   const [calendarTasks, setCalendarTasks] = useState<any[]>([]);
@@ -144,14 +329,29 @@ export function Dashboard() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [kpiConfigs, setKpiConfigs] = useState(() => {
     const saved = localStorage.getItem('crm_kpi_configs');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { }
-    }
-    return [
+    const defaultKpis = [
       { id: 'active_customers', label: 'Active Customers (Khách hàng hoạt động)', visible: true },
       { id: 'pending_tickets', label: 'Pending Support Tickets (Yêu cầu chưa xử lý)', visible: true },
-      { id: 'sales_growth', label: 'Current Month Sales Growth (Tăng trưởng doanh số)', visible: true }
+      { id: 'sales_growth', label: 'Current Month Sales Growth (Tăng trưởng doanh số)', visible: true },
+      { id: 'total_customers', label: 'Total Customers (Tổng số khách hàng CRM)', visible: false },
+      { id: 'total_ltv', label: 'Total Customer Lifetime Value (Tổng số LTV)', visible: false },
+      { id: 'average_sla', label: 'Average Resolution SLA (Thời gian phản hồi SLA)', visible: false }
     ];
+
+    if (saved) {
+      try { 
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const existingIds = parsed.map((item: any) => item.id);
+          const missing = defaultKpis.filter(item => !existingIds.includes(item.id));
+          if (missing.length > 0) {
+            return [...parsed, ...missing];
+          }
+          return parsed;
+        }
+      } catch (e) { }
+    }
+    return defaultKpis;
   });
 
   const [panelConfigs, setPanelConfigs] = useState(() => {
@@ -211,7 +411,10 @@ export function Dashboard() {
     const defaultKpis = [
       { id: 'active_customers', label: 'Active Customers (Khách hàng hoạt động)', visible: true },
       { id: 'pending_tickets', label: 'Pending Support Tickets (Yêu cầu chưa xử lý)', visible: true },
-      { id: 'sales_growth', label: 'Current Month Sales Growth (Tăng trưởng doanh số)', visible: true }
+      { id: 'sales_growth', label: 'Current Month Sales Growth (Tăng trưởng doanh số)', visible: true },
+      { id: 'total_customers', label: 'Total Customers (Tổng số khách hàng CRM)', visible: false },
+      { id: 'total_ltv', label: 'Total Customer Lifetime Value (Tổng số LTV)', visible: false },
+      { id: 'average_sla', label: 'Average Resolution SLA (Thời gian phản hồi SLA)', visible: false }
     ];
     const defaultPanels = [
       { id: 'revenue_analytics', label: 'Revenue Analytics (Doanh thu)', visible: true },
@@ -883,58 +1086,112 @@ export function Dashboard() {
       )}
 
       {/* Dynamic customizable stat card grid based on user preference */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {kpiConfigs.map((cfg) => {
-          if (!cfg.visible) return null;
-          if (cfg.id === 'active_customers') {
-            return (
-              <PremiumStatCard 
-                key="active_customers"
-                title="Active Customers" 
-                value={displayActiveCustomers} 
-                change="+12% 28 days" 
-                timeframe={`Đang hoạt động trên tổng số ${customerCount > 0 ? customerCount : "4,562"} TV`} 
-                theme="purple" 
-                icon={Users}
-                miniHeights={[35, 60, 45, 100]}
-                glowIndex={3}
-              />
-            );
-          }
-          if (cfg.id === 'pending_tickets') {
-            return (
-              <PremiumStatCard 
-                key="pending_tickets"
-                title="Pending Support Tickets" 
-                value={displayPendingTickets} 
-                change="+19% This month" 
-                timeframe={`Yêu cầu chưa đóng trên tổng số ${ticketCount > 0 ? ticketCount : "2,543"} phiếu`} 
-                theme="orange" 
-                icon={Ticket}
-                miniHeights={[40, 60, 50, 80]}
-              />
-            );
-          }
-          if (cfg.id === 'sales_growth') {
-            return (
-              <PremiumStatCard 
-                key="sales_growth"
-                title="Current Month Sales Growth" 
-                value={displaySalesGrowth} 
-                change="+24.8% This month" 
-                timeframe="Tỷ lệ tăng trưởng doanh số thực tế" 
-                theme="blue" 
-                icon={TrendingUp}
-                miniHeights={[30, 45, 95, 55]}
-              />
-            );
-          }
-          return null;
-        })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        {(() => {
+          let visibleCount = 0;
+          return kpiConfigs.map((cfg) => {
+            if (!cfg.visible) return null;
+            const currentDelay = visibleCount * 0.12;
+            visibleCount++;
+
+            if (cfg.id === 'active_customers') {
+              return (
+                <PremiumStatCard 
+                  key="active_customers"
+                  title="Active Customers" 
+                  value={displayActiveCustomers} 
+                  change="+12% 28 days" 
+                  timeframe={`Đang hoạt động trên tổng số ${customerCount > 0 ? customerCount : "4,562"} TV`} 
+                  theme="purple" 
+                  icon={Users}
+                  miniHeights={[35, 60, 45, 100]}
+                  glowIndex={3}
+                  delay={currentDelay}
+                />
+              );
+            }
+            if (cfg.id === 'pending_tickets') {
+              return (
+                <PremiumStatCard 
+                  key="pending_tickets"
+                  title="Pending Support Tickets" 
+                  value={displayPendingTickets} 
+                  change="+19% This month" 
+                  timeframe={`Yêu cầu chưa đóng trên tổng số ${ticketCount > 0 ? ticketCount : "2,543"} phiếu`} 
+                  theme="orange" 
+                  icon={Ticket}
+                  miniHeights={[40, 60, 50, 80]}
+                  delay={currentDelay}
+                />
+              );
+            }
+            if (cfg.id === 'sales_growth') {
+              return (
+                <PremiumStatCard 
+                  key="sales_growth"
+                  title="Current Month Sales Growth" 
+                  value={displaySalesGrowth} 
+                  change="+24.8% This month" 
+                  timeframe="Tỷ lệ tăng trưởng doanh số thực tế" 
+                  theme="blue" 
+                  icon={TrendingUp}
+                  miniHeights={[30, 45, 95, 55]}
+                  delay={currentDelay}
+                />
+              );
+            }
+            if (cfg.id === 'total_customers') {
+              return (
+                <PremiumStatCard 
+                  key="total_customers"
+                  title="Total CRM Customers" 
+                  value={customerCount > 0 ? customerCount.toLocaleString() : "4,562"} 
+                  change="+8.3% This month" 
+                  timeframe="Tổng lượng khách hàng toàn thời gian" 
+                  theme="blue" 
+                  icon={Briefcase}
+                  miniHeights={[20, 45, 60, 90]}
+                  delay={currentDelay}
+                />
+              );
+            }
+            if (cfg.id === 'total_ltv') {
+              return (
+                <PremiumStatCard 
+                  key="total_ltv"
+                  title="Total Lifetime Value" 
+                  value={totalLtv > 0 ? `$${totalLtv.toLocaleString('en-US', {maximumFractionDigits:0})}` : "$842,500"} 
+                  change="+15.4% YoY" 
+                  timeframe="Tổng doanh số vòng đời được kích hoạt" 
+                  theme="green" 
+                  icon={DollarSign}
+                  miniHeights={[45, 80, 50, 95]}
+                  delay={currentDelay}
+                />
+              );
+            }
+            if (cfg.id === 'average_sla') {
+              return (
+                <PremiumStatCard 
+                  key="average_sla"
+                  title="Average Resolution SLA" 
+                  value="1.8 Hours" 
+                  change="-12% Chờ" 
+                  timeframe="Thời gian phản hồi SLA trung bình" 
+                  theme="orange" 
+                  icon={Clock}
+                  miniHeights={[70, 45, 30, 20]}
+                  delay={currentDelay}
+                />
+              );
+            }
+            return null;
+          });
+        })()}
       </div>
 
       {/* Main split grid: Revenue & Deals vs Leads and AI Assistant (Dynamic sorting applied per column) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Left Column (Spans 2 columns on large screen, handles left-eligible cards in customized order) */}
         <div className="lg:col-span-2 space-y-6 flex flex-col">
           {panelConfigs.map((cfg) => {
@@ -1207,51 +1464,236 @@ export function Dashboard() {
             if (cfg.id === 'leads_source') {
               return (
                 <div key="leads_source" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 animate-fadeIn">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Leads by Source</h3>
-                    <button className="text-slate-400 hover:text-slate-600 text-xs font-bold tracking-widest">•••</button>
+                  <div className="flex flex-col gap-3 mb-5">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Leads & Pipeline Analytics</h3>
+                      <button className="text-slate-400 hover:text-slate-600 text-xs font-bold tracking-widest">•••</button>
+                    </div>
+
+                    {/* Styled Pill Selector for Tabs */}
+                    <div className="flex bg-[#f4f6fa] p-1 rounded-xl w-full border border-slate-100/50">
+                      <button
+                        onClick={() => setActiveSourceTab('source')}
+                        className={`flex-1 text-center py-2 rounded-lg text-xs font-bold transition-all ${
+                          activeSourceTab === 'source'
+                            ? 'bg-white text-slate-900 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        Leads by Source
+                      </button>
+                      <button
+                        onClick={() => setActiveSourceTab('pipeline')}
+                        className={`flex-1 text-center py-2 rounded-lg text-xs font-bold transition-all ${
+                          activeSourceTab === 'pipeline'
+                            ? 'bg-white text-slate-900 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        Pipeline Value
+                      </button>
+                      <button
+                        onClick={() => setActiveSourceTab('status')}
+                        className={`flex-1 text-center py-2 rounded-lg text-xs font-bold transition-all ${
+                          activeSourceTab === 'status'
+                            ? 'bg-white text-slate-900 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        Lead Status
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="relative h-44 flex items-center justify-center">
-                    <ResponsiveContainer width={180} height={180}>
-                      <PieChart>
-                        <Pie
-                          data={leadData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={55}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                          startAngle={90}
-                          endAngle={-270}
-                        >
-                          {leadData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute text-center">
-                      <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase leading-none">Total</p>
-                      <p className="text-2xl font-black text-slate-800 mt-1 leading-none">4,145</p>
-                    </div>
-                  </div>
+                  {activeSourceTab === 'source' ? (
+                    <div className="animate-fadeIn">
+                      <div className="relative h-44 flex items-center justify-center">
+                        <ResponsiveContainer width={180} height={180}>
+                          <PieChart>
+                            <Pie
+                              data={realLeadSources}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={55}
+                              outerRadius={75}
+                              paddingAngle={3}
+                              dataKey="value"
+                              startAngle={90}
+                              endAngle={-270}
+                            >
+                              {realLeadSources.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{
+                                borderRadius: '8px',
+                                border: '1px solid #f1f3f7',
+                                background: 'rgba(255,255,255,0.96)',
+                                backdropFilter: 'blur(8px)',
+                                fontSize: '11px',
+                                fontWeight: 700
+                              }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute text-center pointer-events-none">
+                          <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase leading-none">Total</p>
+                          <p className="text-xl font-black text-slate-800 mt-1 leading-none">4,145</p>
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-3 gap-2 mt-4 pt-2 border-t border-[#f8f9fb]">
-                    <div className="border-l-2 border-pink-500 pl-3">
-                      <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Desktop</p>
-                      <p className="text-sm font-extrabold text-slate-800 leading-none">1,207</p>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4 pt-4 border-t border-[#f8f9fb]">
+                        {realLeadSources.map((src) => (
+                          <div key={src.name} className="flex items-center justify-between pl-3 border-l-2 text-[10px] font-bold" style={{ borderColor: src.color }}>
+                            <span className="text-[#8c94a5] truncate max-w-[85px]">{src.name}</span>
+                            <span className="text-slate-800 font-extrabold">{src.value}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="border-l-2 border-[#2F69FF] pl-3">
-                      <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Laptop</p>
-                      <p className="text-sm font-extrabold text-slate-800 leading-none">1,152</p>
+                  ) : activeSourceTab === 'pipeline' ? (
+                    <div className="animate-fadeIn">
+                      <div className="h-44 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={pipelineValueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="pipelineColor" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor="#4F46E5" stopOpacity={0.0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f7" strokeOpacity={0.8} />
+                            <XAxis
+                              dataKey="month"
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }}
+                            />
+                            <YAxis
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }}
+                              tickFormatter={(val) => `${val}M`}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                borderRadius: '8px',
+                                border: '1px solid #f1f3f7',
+                                background: 'rgba(255,255,255,0.96)',
+                                backdropFilter: 'blur(8px)',
+                                fontSize: '11px',
+                                fontWeight: 700
+                              }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="value"
+                              stroke="#4F46E5"
+                              strokeWidth={2}
+                              fillOpacity={1}
+                              fill="url(#pipelineColor)"
+                              name="Pipeline Value (VND)"
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-[#f8f9fb] flex justify-between items-center text-xs">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">Pipeline (Jun)</p>
+                          <p className="text-xs font-black text-[#4F46E5] mt-0.5">890M VND</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">Growth</p>
+                          <p className="text-xs font-black text-emerald-600 mt-0.5">+30.8%</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="border-l-2 border-amber-500 pl-3">
-                      <p className="text-[10px] font-bold text-[#8c94a5] leading-none mb-1">Mobile</p>
-                      <p className="text-sm font-extrabold text-slate-800 leading-none">1,624</p>
+                  ) : (
+                    <div className="animate-fadeIn">
+                      <div className="h-44 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={leadStatusData} layout="vertical" margin={{ top: 5, right: 15, left: 10, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f3f7" strokeOpacity={0.8} />
+                            <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8c94a5', fontSize: 9, fontWeight: 700 }} />
+                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }} width={80} />
+                            <Tooltip
+                              contentStyle={{
+                                borderRadius: '8px',
+                                border: '1px solid #f1f3f7',
+                                background: 'rgba(255,255,255,0.96)',
+                                backdropFilter: 'blur(8px)',
+                                fontSize: '11px',
+                                fontWeight: 700
+                              }}
+                            />
+                            <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={12}>
+                              {leadStatusData.map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={entry.color} 
+                                  onClick={() => {
+                                    setSelectedStatusFilter(prev => prev === entry.name ? null : entry.name);
+                                  }}
+                                  className="cursor-pointer hover:opacity-80 transition-opacity"
+                                />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-[#f8f9fb] flex justify-between items-center text-xs">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">Cách lọc</p>
+                          <p className="text-xs font-semibold text-slate-500">Ấn cột biểu đồ để xem chi tiết</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">Tổng số Lead</p>
+                          <p className="text-xs font-black text-slate-800 mt-0.5">1,420</p>
+                        </div>
+                      </div>
+
+                      {/* Interactive Drill-down List View */}
+                      {selectedStatusFilter && (
+                        <div className="mt-4 p-4 bg-slate-50 border border-slate-200/60 rounded-2xl animate-fadeIn text-left">
+                          <div className="flex justify-between items-center pb-2 border-b border-slate-200 mb-2">
+                            <span className="text-xs font-black text-slate-800 flex items-center gap-1">
+                              <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping inline-block" />
+                              Leads: <strong className="text-blue-600">{selectedStatusFilter}</strong> ({mockLeadsData.filter(l => l.status === selectedStatusFilter).length})
+                            </span>
+                            <button
+                              onClick={() => setSelectedStatusFilter(null)}
+                              className="text-[10px] font-black text-rose-500 hover:text-rose-600 uppercase"
+                            >
+                              ✕ Bỏ lọc
+                            </button>
+                          </div>
+                          <div className="space-y-2 max-h-[140px] overflow-y-auto no-scrollbar">
+                            {mockLeadsData.filter(l => l.status === selectedStatusFilter).length === 0 ? (
+                              <p className="text-[10px] font-bold text-slate-400 text-center py-2">Không tìm thấy leads nào</p>
+                            ) : (
+                              mockLeadsData.filter(l => l.status === selectedStatusFilter).map(lead => (
+                                <div key={lead.id} className="flex justify-between items-center text-xs p-2.5 bg-white rounded-xl border border-slate-100 hover:bg-slate-50/50 shadow-sm">
+                                  <div>
+                                    <p className="font-extrabold text-slate-800">{lead.name}</p>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase">{lead.company} • SĐT: {lead.phone}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-black text-indigo-650">{lead.value.toLocaleString('vi-VN')} đ</p>
+                                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                      lead.priority === 'High' ? 'bg-red-50 text-red-650' : 'bg-slate-100 text-slate-600'
+                                    }`}>{lead.priority}</span>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             }
@@ -1325,6 +1767,358 @@ export function Dashboard() {
           })}
         </div>
       </div>
+
+      {/* D3.js Full Width Analytics Section */}
+      <D3AnalyticsChart />
+
+      {/* Quick Actions Floating Action Button (FAB) */}
+      <div className="fixed bottom-6 right-6 z-[50] flex flex-col items-end gap-3.5">
+        {/* Floating Expandable Action Items */}
+        {isFabOpen && (
+          <div className="flex flex-col items-end gap-2.5 mb-1.5 animate-fadeIn">
+            {/* Log Call Bubble */}
+            <div className="flex items-center gap-2.5">
+              <span className="bg-slate-800 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-md pointer-events-none">
+                Ghi cuộc gọi (Log Call)
+              </span>
+              <button
+                type="button"
+                onClick={() => { setActiveModal('call'); setIsFabOpen(false); }}
+                className="w-11 h-11 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+              >
+                <Phone size={18} />
+              </button>
+            </div>
+
+            {/* Add Task Bubble */}
+            <div className="flex items-center gap-2.5">
+              <span className="bg-slate-800 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-md pointer-events-none">
+                Thêm nhiệm vụ (Add Task)
+              </span>
+              <button
+                type="button"
+                onClick={() => { setActiveModal('task'); setIsFabOpen(false); }}
+                className="w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+              >
+                <CheckSquare size={18} />
+              </button>
+            </div>
+
+            {/* New Opportunity Bubble */}
+            <div className="flex items-center gap-2.5">
+              <span className="bg-slate-800 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-md pointer-events-none">
+                Cơ hội mới (New Opportunity)
+              </span>
+              <button
+                type="button"
+                onClick={() => { setActiveModal('opportunity'); setIsFabOpen(false); }}
+                className="w-11 h-11 rounded-full bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+              >
+                <DollarSign size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Primary FAB Button */}
+        <button
+          type="button"
+          onClick={() => setIsFabOpen(!isFabOpen)}
+          className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${
+            isFabOpen 
+              ? 'bg-rose-500 hover:bg-rose-600 rotate-45 animate-pulse' 
+              : 'bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-700 hover:to-indigo-700 shadow-[#2F69FF]/20 shadow-md'
+          }`}
+          title="Thực hiện nhanh"
+        >
+          <Plus size={28} className="transition-transform duration-250 stroke-[3]" />
+        </button>
+      </div>
+
+      {/* Quick Action Modal Overlays */}
+      {activeModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-850 shadow-2xl max-w-lg w-full overflow-hidden p-6 relative">
+            <button
+              onClick={() => setActiveModal(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-655 dark:hover:text-white transition-colors"
+            >
+              <X size={20} className="stroke-[3]" />
+            </button>
+
+            {/* 1. Log Call Form */}
+            {activeModal === 'call' && (
+              <form onSubmit={handleLogCallSubmit} className="space-y-4 text-left">
+                <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-850 pb-3">
+                  <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-500 dark:text-emerald-450">
+                    <Phone size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Ghi nhận cuộc gọi mới nhanh</h3>
+                    <p className="text-xs text-slate-450 dark:text-slate-500">Lưu thông tin trao đổi ngay sau cuộc điện thoại với khách hàng.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Người liên hệ</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ví dụ: Anh Nguyễn Văn An..."
+                      value={callForm.contactPerson}
+                      onChange={(e) => setCallForm({ ...callForm, contactPerson: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Số điện thoại</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ví dụ: 09012345xx"
+                      value={callForm.phone}
+                      onChange={(e) => setCallForm({ ...callForm, phone: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Thời lượng cuộc gọi</label>
+                    <select
+                      value={callForm.duration}
+                      onChange={(e) => setCallForm({ ...callForm, duration: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 transition-all cursor-pointer font-semibold"
+                    >
+                      <option value="1 phút">1 phút</option>
+                      <option value="3 phút">3 phút</option>
+                      <option value="5 phút">5 phút (Mặc định)</option>
+                      <option value="10 phút">10 phút</option>
+                      <option value=">20 phút">&gt;20 phút</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Kết quả cuộc gọi</label>
+                    <select
+                      value={callForm.outcome}
+                      onChange={(e) => setCallForm({ ...callForm, outcome: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 transition-all cursor-pointer font-semibold"
+                    >
+                      <option value="Hoàn thành">Hoàn thành cuộc gọi</option>
+                      <option value="Hẹn gọi lại">Hẹn phản hồi cuộc sau</option>
+                      <option value="Không liên lạc được">Thuê bao bận / Không nghe máy</option>
+                      <option value="Sai số điện thoại">Không đúng người / Số sai</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Chi tiết nội dung trao đổi</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Nhập ghi chú quan trọng thảo luận được với khách hàng..."
+                    value={callForm.notes}
+                    onChange={(e) => setCallForm({ ...callForm, notes: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal(null)}
+                    className="flex-1 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-650 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-850 hover:text-slate-800 transition-all text-xs font-bold"
+                  >
+                    Huỷ bỏ
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-emerald-500/10"
+                  >
+                    Ghi kết quả cuộc gọi
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* 2. Add Task Form */}
+            {activeModal === 'task' && (
+              <form onSubmit={handleAddTaskSubmit} className="space-y-4 text-left">
+                <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-850 pb-3">
+                  <div className="w-10 h-10 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-500 dark:text-blue-450">
+                    <CheckSquare size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Thêm nhiệm vụ Kanban mới nhanh</h3>
+                    <p className="text-xs text-slate-450 dark:text-slate-500">Đặt lịch biểu và theo dõi tiến độ công việc một cách trực quan.</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Nhiệm vụ cần thực hiện</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ví dụ: Thiết lập SLA mẫu cho hợp đồng..."
+                    value={taskForm.title}
+                    onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 transition-all font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Chi tiết mô tả nhiệm vụ</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Nhập nội dung yêu cầu cụ thể cần giải quyết..."
+                    value={taskForm.description}
+                    onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 transition-all font-semibold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Mức độ ưu tiên</label>
+                    <select
+                      value={taskForm.priority}
+                      onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer font-semibold"
+                    >
+                      <option value="High">🔴 Ưu tiên Cao (High)</option>
+                      <option value="Medium">🟡 Ưu tiên Trung bình (Medium)</option>
+                      <option value="Low">🟢 Ưu tiên Thấp (Low)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Hạn hoàn thành (Deadline)</label>
+                    <input
+                      type="date"
+                      required
+                      value={taskForm.dueDate}
+                      onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 transition-all font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal(null)}
+                    className="flex-1 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-650 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-850 hover:text-slate-800 transition-all text-xs font-bold"
+                  >
+                    Huỷ bỏ
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/10"
+                  >
+                    Đăng ký nhiệm vụ mới
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* 3. New Opportunity Form */}
+            {activeModal === 'opportunity' && (
+              <form onSubmit={handleCreateOpportunitySubmit} className="space-y-4 text-left">
+                <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-850 pb-3">
+                  <div className="w-10 h-10 bg-amber-50 dark:bg-amber-950/40 rounded-xl flex items-center justify-center text-amber-500 dark:text-amber-450">
+                    <DollarSign size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Thêm cơ hội kinh doanh mới</h3>
+                    <p className="text-xs text-slate-450 dark:text-slate-500">Đưa dự án hoặc giao dịch mới vào phễu lọc bán hàng (Sales Pipeline).</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Tên Cơ hội / Hợp đồng</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ví dụ: Cung cấp máy chiếu Q4..."
+                      value={oppForm.title}
+                      onChange={(e) => setOppForm({ ...oppForm, title: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-all font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Công ty / Doanh nghiệp</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ví dụ: Vingroup Corp..."
+                      value={oppForm.company}
+                      onChange={(e) => setOppForm({ ...oppForm, company: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-all font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Giá trị cơ hội (đ)</label>
+                    <input
+                      type="number"
+                      placeholder="Ví dụ: 250000000"
+                      value={oppForm.amount}
+                      onChange={(e) => setOppForm({ ...oppForm, amount: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-all font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Xác suất thành công (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={oppForm.probability}
+                      onChange={(e) => setOppForm({ ...oppForm, probability: e.target.value })}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-all font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Giai đoạn bán hàng</label>
+                  <select
+                    value={oppForm.stage}
+                    onChange={(e) => setOppForm({ ...oppForm, stage: e.target.value as any })}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-all cursor-pointer font-semibold"
+                  >
+                    <option value="Tiềm năng">1. Tiềm năng (Lead / Qualification)</option>
+                    <option value="Thẩm định">2. Thẩm định nhu cầu (Discovery)</option>
+                    <option value="Đề xuất">3. Đề xuất giải pháp (Proposal)</option>
+                    <option value="Đàm phán">4. Đàm phán thương thảo (Negotiation)</option>
+                    <option value="Đã chốt (Thắng)">5. Đã chốt thành công 🎉 (Closed Won)</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal(null)}
+                    className="flex-1 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-650 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-850 hover:text-slate-800 transition-all text-xs font-bold"
+                  >
+                    Huỷ bỏ
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-amber-500/10"
+                  >
+                    Đăng ký cơ hội giao dịch
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

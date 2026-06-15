@@ -34,7 +34,10 @@ service cloud.firestore {
              (!('tier' in data) || (data.tier is string && data.tier.size() <= 50)) &&
              (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 500)) &&
              (!('loyaltyPoints' in data) || data.loyaltyPoints is number) &&
-             (!('lifetimeValue' in data) || data.lifetimeValue is number);
+             (!('lifetimeValue' in data) || data.lifetimeValue is number) &&
+             (!('nextFollowUpDate' in data) || (data.nextFollowUpDate is string && data.nextFollowUpDate.size() <= 100)) &&
+             (!('followUpNotes' in data) || (data.followUpNotes is string && data.followUpNotes.size() <= 2000)) &&
+             (!('noteText' in data) || (data.noteText is string && data.noteText.size() <= 10000));
     }
 
     function isTicketValid(data) {

@@ -291,6 +291,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Automatic 30-minute inactivity timeout configuration
+  useEffect(() => {
+    if (!user) return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const logoutDueToInactivity = async () => {
+      console.warn("User session expired due to 30 minutes of inactivity");
+      try {
+        const userEmail = user.email || 'N/A';
+        await logActivity('ĐĂNG_XUẤT_HẾT_HẠN', 'AUTHENTICATION', `Tự động đăng dịch xuất do không hoạt động (Inactivity timeout) - ${userEmail}`);
+      } catch (err) {
+        console.warn("Failed to log activity during inactivity logout", err);
+      }
+
+      setError("Phiên làm việc đã tự động kết thúc do 30 phút không hoạt động để bảo mật thông tin.");
+      localStorage.removeItem('backup_auth_user');
+      
+      try {
+        await logout();
+      } catch (e) {
+        console.error("Firebase logout on inactivity failed", e);
+      } finally {
+        setUser(null);
+        setIsAdmin(false);
+      }
+    };
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        logoutDueToInactivity();
+      }, 30 * 60 * 1000); // 30 minutes in milliseconds
+    };
+
+    // Global document and window event listeners representing active human interactions
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    // Start timer on initial hook mounting
+    resetTimer();
+
+    // Bind event listeners with passive mode for optimal scrolling/rendering performance
+    events.forEach(event => {
+      window.addEventListener(event, resetTimer, { passive: true });
+    });
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach(event => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [user]);
+
   const logoutAction = async () => {
     try {
       const email = auth.currentUser?.email || user?.email || 'N/A';
@@ -299,6 +353,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await logout();
     } catch (err: any) {
       console.error("Logout failed", err);
+    } finally {
+      setUser(null);
+      setIsAdmin(false);
     }
   };
 

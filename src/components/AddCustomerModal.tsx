@@ -3,6 +3,7 @@ import { X, Loader2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { logActivity } from '../lib/auditLogger';
 
 interface AddCustomerModalProps {
@@ -12,6 +13,7 @@ interface AddCustomerModalProps {
 
 export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +62,13 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
 
       await logActivity('TẠO_KHÁCH_HÀNG', 'CRM_CUSTOMERS', `Đã thêm khách hàng mới: ${formData.name} (${formData.email})`);
       
+      addToast(
+        'Thành công',
+        `Khách hàng mới "${formData.name}" đã được lưu trữ an toàn vào CRM!`,
+        'success',
+        'crm'
+      );
+
       onClose();
       // Reset form
       setFormData({

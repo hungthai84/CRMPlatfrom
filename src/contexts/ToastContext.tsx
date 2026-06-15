@@ -27,6 +27,35 @@ export const useToast = () => useContext(ToastContext);
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      addToast(
+        'Đã khôi phục kết nối',
+        'Đã kết nối lại thành công với dịch vụ dữ liệu Firebase.',
+        'success',
+        'system'
+      );
+    };
+    const handleOffline = () => {
+      setIsOffline(true);
+      addToast(
+        'Mất kết nối dữ liệu',
+        'Hệ thống chuyển sang chế độ hoạt động ngoại tuyến. Mọi cập nhật sẽ tự động đồng bộ khi có kết nối lại.',
+        'error',
+        'system'
+      );
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const addToast = (
     title: string,
@@ -89,6 +118,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Request native browser notification permissions on startup
+  useEffect(() => {
+    if ('Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
   // Listen to incoming notifications in Firestore to display them as real-time toast popups
   useEffect(() => {
     if (!user) return;
@@ -118,6 +156,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               data.type || 'info',
               data.category || 'system'
             );
+
+            // Trigger standard browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+              try {
+                new Notification(data.title || 'Thông báo CRM', {
+                  body: data.message || '',
+                  tag: change.doc.id,
+                });
+              } catch (nErr) {
+                console.warn('Browser Notification delivery bypassed:', nErr);
+              }
+            }
           }
         }
       });
@@ -179,6 +229,24 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         id="toast-notifications-portal" 
         className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none"
       >
+        {isOffline && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="pointer-events-auto p-3.5 rounded-xl border border-rose-200 dark:border-rose-950/60 bg-rose-50/95 dark:bg-rose-950/20 backdrop-blur-md flex items-center justify-between gap-3 text-rose-700 dark:text-rose-450 font-sans shadow-lg"
+          >
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              </span>
+              <span className="text-xs font-bold font-sans">Mất kết nối Firebase (Offline)</span>
+            </div>
+            <span className="text-[9px] font-black uppercase bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded">
+              NGOẠI TUYẾN
+            </span>
+          </motion.div>
+        )}
         <AnimatePresence>
           {toasts.map((toast) => (
             <motion.div

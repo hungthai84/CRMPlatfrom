@@ -34,6 +34,7 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Customer, Touchpoint } from '../types';
 import { generateDemoCustomers } from '../lib/generateDemoData';
+import { triggerLifecycleEmail } from '../lib/emailAutomation';
 
 const STAGES = [
   { id: 'Awareness', label: 'Nhận thức', desc: 'Tìm hiểu thương hiệu', color: 'bg-sky-500', text: 'text-sky-600', hover: 'hover:bg-sky-50' },
@@ -210,6 +211,17 @@ export function Journey() {
       await updateDoc(doc(db, 'customers', selectedCustomerId), {
         journeyStage: stageId
       });
+      
+      // Trigger lifecycle email automation rules
+      const currentCust = customers.find(c => c.id === selectedCustomerId) || selectedCustomer;
+      if (currentCust) {
+        await triggerLifecycleEmail(
+          selectedCustomerId,
+          currentCust.name,
+          currentCust.email || '',
+          stageId
+        );
+      }
     } catch (err) {
       console.error('Error shifting stage:', err);
     }

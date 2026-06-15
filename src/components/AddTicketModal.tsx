@@ -94,6 +94,24 @@ export const AddTicketModal = ({ onClose, onAdd }: AddTicketModalProps) => {
       const docRef = doc(collection(db, 'tickets'));
       await setDoc(docRef, newTicket);
       
+      // Auto-alert user if high priority or urgent ticket is created/assigned
+      if (formData.priority === 'high' || formData.priority === 'urgent') {
+        try {
+          const priorityText = formData.priority === 'urgent' ? '⚠️ Khẩn cấp' : '🔥 Cao';
+          await addDoc(collection(db, 'notifications'), {
+            userId: user.uid,
+            title: `Vé hỗ trợ (${priorityText}): ${formData.title}`,
+            message: `Ticket mới được gán cho bạn. Khách hàng: ${selectedCustomer?.name || 'Vãng lai'}. Hạn SLA: ${formData.priority === 'urgent' ? '1 giờ' : '24 giờ'}.`,
+            type: 'error',
+            category: 'ticket',
+            read: false,
+            createdAt: Date.now()
+          });
+        } catch (notifErr) {
+          console.warn('Silent notice trigger check:', notifErr);
+        }
+      }
+
       onAdd();
       onClose();
     } catch (err) {

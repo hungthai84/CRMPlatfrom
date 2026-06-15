@@ -13,6 +13,9 @@
         "loyaltyPoints": { "type": "number", "description": "Points" },
         "lifetimeValue": { "type": "number", "description": "LTV in VND" },
         "avatar": { "type": "string", "description": "Avatar URL" },
+        "nextFollowUpDate": { "type": "string", "description": "Date & time of the next scheduled follow-up" },
+        "followUpNotes": { "type": "string", "description": "Special reminder notes for next follow-up" },
+        "noteText": { "type": "string", "description": "Customer general notes / voice transcripts" },
         "createdAt": { "type": "number", "description": "Timestamp" },
         "updatedAt": { "type": "number", "description": "Timestamp" },
         "ownerId": { "type": "string", "description": "ID of the user managing this" }

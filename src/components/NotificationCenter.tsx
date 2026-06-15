@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Trash2, Clock, Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
-import { collection, query, where, onSnapshot, orderBy, updateDoc, doc, deleteDoc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, updateDoc, doc, deleteDoc, getDocs, writeBatch, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { Notification } from '../types';
+import { Notification as CRMNotification } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../contexts/ToastContext';
+import { cn } from '../lib/utils';
 
-export function NotificationCenter() {
+export function NotificationCenter({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const { user } = useAuth();
   const { simulateCRMEvent } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<CRMNotification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -27,11 +28,101 @@ export function NotificationCenter() {
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      })) as Notification[];
+      })) as CRMNotification[];
       setNotifications(data);
     });
 
     return () => unsubscribe();
+  }, [user]);
+
+  // Automatic Upcoming Reminders Scanner (Tasks & Customer Follow-ups)
+  useEffect(() => {
+    if (!user) return;
+
+    const performUpcomingScan = async () => {
+      try {
+        const storedNotified = localStorage.getItem('crm_notified_deadlines');
+        const notifiedSet = new Set<string>(storedNotified ? JSON.parse(storedNotified) : []);
+        const newlyNotified: string[] = [];
+
+        // 1. Scan Customer Follow-ups from Firestore
+        const custQuery = query(collection(db, 'customers'), where('ownerId', '==', user.uid));
+        const custSnap = await getDocs(custQuery);
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        // Use standard and secure Firestore writes
+        const notificationsRef = collection(db, 'notifications');
+
+        for (const customerDoc of custSnap.docs) {
+          const cust = customerDoc.data();
+          if (cust.nextFollowUpDate) {
+            const followTime = new Date(cust.nextFollowUpDate).getTime();
+            const diff = followTime - now;
+            // Notify if follow-up is within 24 hours
+            if (diff > 0 && diff <= oneDayMs) {
+              const notifyKey = `followup-${customerDoc.id}-${cust.nextFollowUpDate}`;
+              if (!notifiedSet.has(notifyKey)) {
+                // Add real persistent notification to database
+                await addDoc(notificationsRef, {
+                  userId: user.uid,
+                  title: '📅 Lịch hẹn Chăm sóc Sắp đến hạn',
+                  message: `Hẹn gặp/chăm sóc khách hàng ${cust.name} sắp diễn ra vào ngày ${cust.nextFollowUpDate.replace('T', ' ')}. ${cust.followUpNotes ? `Chi tiết: ${cust.followUpNotes}` : ''}`,
+                  type: 'warning',
+                  category: 'crm',
+                  read: false,
+                  createdAt: Date.now()
+                });
+                notifiedSet.add(notifyKey);
+                newlyNotified.push(notifyKey);
+              }
+            }
+          }
+        }
+
+        // 2. Scan Kanban Tasks from LocalStorage
+        const savedTasks = localStorage.getItem('crm_kanban_tasks');
+        if (savedTasks) {
+          const tasks = JSON.parse(savedTasks);
+          for (const task of tasks) {
+            if (task.status !== 'Completed' && task.dueDate) {
+              const taskTime = new Date(task.dueDate).getTime();
+              const diff = taskTime - now;
+              // Notify if task is within 24 hours
+              if (diff > -oneDayMs && diff <= oneDayMs) {
+                const notifyKey = `task-${task.id}-${task.dueDate}`;
+                if (!notifiedSet.has(notifyKey)) {
+                  // Add real persistent notification to database
+                  await addDoc(notificationsRef, {
+                    userId: user.uid,
+                    title: '⏳ Nhiệm vụ Sắp đến hạn chót',
+                    message: `Thẻ công việc "${task.title}"${task.customerName ? ` liên kết với KH ${task.customerName}` : ''} có hạn chót ngày ${task.dueDate}.`,
+                    type: 'warning',
+                    category: 'task',
+                    read: false,
+                    createdAt: Date.now()
+                  });
+                  notifiedSet.add(notifyKey);
+                  newlyNotified.push(notifyKey);
+                }
+              }
+            }
+          }
+        }
+
+        // Persist notified identifiers
+        if (newlyNotified.length > 0) {
+          localStorage.setItem('crm_notified_deadlines', JSON.stringify(Array.from(notifiedSet)));
+        }
+      } catch (err) {
+        console.warn('Upcoming reminder scanner failed:', err);
+      }
+    };
+
+    // Run scanner immediately on load, and then every 45 seconds
+    performUpcomingScan();
+    const interval = setInterval(performUpcomingScan, 45000);
+    return () => clearInterval(interval);
   }, [user]);
 
   useEffect(() => {
@@ -85,42 +176,54 @@ export function NotificationCenter() {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative w-full" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full hover:bg-slate-100 transition-colors dark:hover:bg-slate-800"
+        className={cn(
+          "w-full flex items-center py-2 rounded-xl hover:bg-slate-200/50 transition-colors dark:hover:bg-slate-800/50 group",
+          isCollapsed ? "justify-center relative" : "justify-between px-3"
+        )}
       >
-        <Bell size={20} className="text-slate-600 dark:text-slate-400" />
-        {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-[#FF4560] text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white dark:ring-slate-900 animate-pulse">
+        <div className="flex items-center gap-2">
+          <Bell size={isCollapsed ? 18 : 16} className="text-slate-400 group-hover:text-[#3370FF] transition-colors" />
+          {!isCollapsed && <span className="text-xs font-semibold text-slate-500 group-hover:text-[#3370FF]">Thông báo</span>}
+        </div>
+        {!isCollapsed && unreadCount > 0 && (
+          <span className="w-5 h-5 bg-[#FF4560] text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shrink-0">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
+        {isCollapsed && unreadCount > 0 && (
+          <span className="absolute top-1 right-2 w-2 h-2 bg-[#FF4560] rounded-full border-2 border-white dark:border-slate-900"></span>
+        )}
       </button>
+
+      {/* Backdrop for explicit click-outside fallback if needed when collapsed */}
+      {isCollapsed && isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-transparent cursor-default" 
+          onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
+        />
+      )}
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden"
+            initial={isCollapsed ? { opacity: 0, scale: 0.95 } : { opacity: 0, height: 0 }}
+            animate={isCollapsed ? { opacity: 1, scale: 1 } : { opacity: 1, height: 'auto' }}
+            exit={isCollapsed ? { opacity: 0, scale: 0.95 } : { opacity: 0, height: 0 }}
+            className={cn(
+              "bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden",
+              isCollapsed ? "absolute left-full bottom-0 ml-3 shadow-xl w-80 z-50 origin-bottom-left" : "mt-2 w-full z-50"
+            )}
           >
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
-              <h3 className="font-bold text-sm text-slate-900 dark:text-white">Thông báo</h3>
-              <div className="flex gap-2 items-center">
-                <button
-                  type="button"
-                  onClick={() => simulateCRMEvent()}
-                  className="bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] px-2 py-1 rounded transition-colors"
-                  title="Mô phỏng ngẫu nhiên các sự kiện hot CRM (Lead Mới, Hạn chót...)"
-                >
-                  Mô phỏng Event
-                </button>
+            <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider dark:text-slate-400">Thông báo</h3>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase"
+                    className="text-[9px] font-bold text-indigo-600 hover:text-indigo-700 uppercase"
                   >
                     Đã xem hết
                   </button>

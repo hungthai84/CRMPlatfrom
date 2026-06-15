@@ -24,6 +24,8 @@ export interface Customer {
   ownerId?: string;
   journeyStage?: 'Awareness' | 'Consideration' | 'Purchase' | 'Retention' | 'Loyalty';
   journeySentiment?: 'Happy' | 'Neutral' | 'Frustrated';
+  nextFollowUpDate?: string;
+  followUpNotes?: string;
 }
 
 export interface Touchpoint {

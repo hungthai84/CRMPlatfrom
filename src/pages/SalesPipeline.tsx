@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { mockOpportunities } from '../data/mockData';
 import { Opportunity } from '../types';
 import { MoreHorizontal, Plus, X, Clock, Mail, Phone, Calendar, ArrowRight, AlertCircle, Building2, Download } from 'lucide-react';
@@ -135,7 +135,14 @@ function DraggableCard({ op, onClick }: { op: Opportunity, onClick: () => void }
 }
 
 export function SalesPipeline() {
-  const [opportunities, setOpportunities] = useState(mockOpportunities);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
+    const saved = localStorage.getItem('crm_opportunities');
+    return saved ? JSON.parse(saved) : mockOpportunities;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('crm_opportunities', JSON.stringify(opportunities));
+  }, [opportunities]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedDeal, setSelectedDeal] = useState<Opportunity | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

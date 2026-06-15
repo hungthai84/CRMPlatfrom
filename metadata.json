@@ -1,6 +1,6 @@
 {
-  "name": "RevaDetail CRM",
-  "description": "CRM Platform",
+  "name": "Power Service CRM Platform",
+  "description": "Premium CRM Platform for Power Service",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
