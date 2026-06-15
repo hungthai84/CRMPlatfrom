@@ -219,11 +219,11 @@ export function NotificationCenter({ isCollapsed = false }: { isCollapsed?: bool
           >
             <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider dark:text-slate-400">Thông báo</h3>
+                <h3 className="text-xs font-black text-slate-500 tracking-wider dark:text-slate-400">Thông báo</h3>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-[9px] font-bold text-indigo-600 hover:text-indigo-700 uppercase"
+                    className="text-[9px] font-bold text-indigo-600 hover:text-indigo-700"
                   >
                     Đã xem hết
                   </button>
@@ -292,7 +292,7 @@ export function NotificationCenter({ isCollapsed = false }: { isCollapsed?: bool
             
             {notifications.length > 0 && (
               <div className="p-3 bg-slate-50 dark:bg-slate-800/50 text-center border-t border-slate-100 dark:border-slate-800">
-                <button className="text-[10px] font-bold text-slate-500 hover:text-slate-800 transition-all uppercase tracking-widest">
+                <button className="text-[10px] font-bold text-slate-500 hover:text-slate-800 transition-all tracking-widest">
                   Xem toàn bộ lịch sử
                 </button>
               </div>

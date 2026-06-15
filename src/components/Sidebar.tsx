@@ -163,7 +163,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
           />
           {!isCollapsed && (
             <div className="flex flex-col whitespace-nowrap overflow-hidden">
-              <span className="text-[17px] font-black text-[#3370FF] uppercase tracking-tight">Power Service</span>
+              <span className="text-[17px] font-black text-[#3370FF] tracking-tight">Power Service</span>
               <span className="text-[12px] font-bold text-black tracking-wider mt-0.5 animate-pulse-once">CRM Platfrom</span>
             </div>
           )}
@@ -232,7 +232,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
                   )}
                   <div className="flex items-center gap-2">
                     {GroupIcon && <GroupIcon size={isCollapsed ? 20 : 16} className={cn("text-slate-400 transition-colors", isCollapsed ? "group-hover:text-[#3370FF]" : "group-hover:text-slate-600 dark:group-hover:text-slate-300", isExpanded && isCollapsed && "text-[#3370FF]", isActiveOverview && "text-[#3370FF]")} />}
-                    {!isCollapsed && <p className={cn("text-xs font-black tracking-wider whitespace-nowrap transition-colors", isActiveOverview ? "text-[#3370FF]" : "text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300")}>{group.name}</p>}
+                    {!isCollapsed && <p className={cn("text-[15px] font-black tracking-wider whitespace-nowrap transition-colors", isActiveOverview ? "text-[#3370FF]" : "text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300")}>{group.name}</p>}
                   </div>
                 {!isCollapsed && !isOverview && (
                   <ChevronRight size={14} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
@@ -250,7 +250,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
                       "left-full top-0 ml-3"
                     )}>
                       <div className="px-3 py-2 mb-1 border-b border-slate-100 dark:border-slate-800/60">
-                         <p className="text-[10px] font-black text-slate-400 tracking-widest">{group.name}</p>
+                         <p className="text-[15px] font-black text-slate-400 tracking-widest">{group.name}</p>
                       </div>
                       {group.items.filter((i) => !i.adminOnly || isAdmin).map((item) => {
                         const Icon = icons[item.icon];
@@ -317,7 +317,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
           {showProfileMenu && (
             <div className="absolute bottom-16 left-3 right-3 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150 text-left">
               <div className="p-2 border-b border-slate-100 dark:border-slate-800/60 mb-1">
-                <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Tài khoản</p>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider">Tài khoản</p>
                 <p className="text-sm font-black text-slate-950 dark:text-white truncate mt-0.5 leading-tight">{user.displayName || user.email?.split('@')[0]}</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 truncate leading-tight mt-0.5">{user.email}</p>
               </div>
