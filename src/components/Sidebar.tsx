@@ -31,7 +31,10 @@ import {
   ChevronUp,
   ChevronLeft,
   ChevronRight,
-  Layers
+  Layers,
+  Network,
+  Calendar,
+  TrendingUp
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { NavItem } from '../types';
@@ -56,55 +59,75 @@ const navGroups: NavGroupInfo[] = [
     ]
   },
   {
-    name: 'Quản lý Khách hàng',
-    id: 'group_crm',
-    icon: 'Users',
+    name: 'Tiềm năng',
+    id: 'group_leads',
+    icon: 'Network',
     items: [
-      { name: 'Khách hàng 360', icon: 'Users', id: 'customers' },
       { name: 'Khách tiềm năng', icon: 'Magnet', id: 'leads' },
-      { name: 'Hành trình KH', icon: 'Map', id: 'journey' },
-      { name: 'Khách thân thiết', icon: 'Award', id: 'loyalty' },
       { name: 'Khảo sát', icon: 'SmilePlus', id: 'surveys' },
     ]
   },
   {
-    name: 'Kinh doanh & Dịch vụ',
-    id: 'group_sales',
-    icon: 'Target',
+    name: 'Liên hệ',
+    id: 'group_contacts',
+    icon: 'Users',
     items: [
-      { name: 'Quản lý Bán hàng', icon: 'Target', id: 'sales' },
-      { name: 'Dịch vụ hỗ trợ', icon: 'TicketIcon', id: 'tickets' },
-      { name: 'Giao tiếp Đa kênh', icon: 'MessageSquare', id: 'omnichannel' },
+      { name: 'Khách hàng 360', icon: 'Users', id: 'customers' },
+      { name: 'Hành trình KH', icon: 'Map', id: 'journey' },
+      { name: 'Khách thân thiết', icon: 'Award', id: 'loyalty' },
+    ]
+  },
+  {
+    name: 'Lịch hẹn',
+    id: 'group_calendar',
+    icon: 'Calendar',
+    items: [
       { name: 'Công việc', icon: 'CheckSquare', id: 'tasks' },
     ]
   },
   {
-    name: 'Tiếp thị & Tự động',
-    id: 'group_marketing',
-    icon: 'Megaphone',
+    name: 'Bán hàng',
+    id: 'group_sales',
+    icon: 'TrendingUp',
     items: [
-      { name: 'Mẫu Email', icon: 'Mail', id: 'email-templates' },
+      { name: 'Quản lý Bán hàng', icon: 'Target', id: 'sales' },
+      { name: 'Giao tiếp Đa kênh', icon: 'MessageSquare', id: 'omnichannel' },
       { name: 'Tiếp thị tự động', icon: 'Megaphone', id: 'marketing', adminOnly: true },
-      { name: 'AI & Quy trình', icon: 'Workflow', id: 'workflows', adminOnly: true },
     ]
   },
   {
-    name: 'Quản trị & Hệ thống',
-    id: 'group_system',
-    icon: 'Settings',
+    name: 'Thống kê',
+    id: 'group_stats',
+    icon: 'BarChart3',
     items: [
       { name: 'Báo cáo & Phân tích', icon: 'BarChart3', id: 'reports', adminOnly: true },
-      { name: 'Kiến trúc Doanh nghiệp', icon: 'Layers', id: 'enterprise-arch' },
-      { name: 'Tài liệu kiến trúc', icon: 'FileText', id: 'docs', adminOnly: true },
-      { name: 'Tài liệu', icon: 'Files', id: 'documents' },
+    ]
+  },
+  {
+    name: 'Vấn đề',
+    id: 'group_problems',
+    icon: 'TicketIcon',
+    items: [
+      { name: 'Dịch vụ hỗ trợ', icon: 'TicketIcon', id: 'tickets' },
+    ]
+  },
+  {
+    name: 'Cấu hình',
+    id: 'group_config',
+    icon: 'Settings',
+    items: [
       { name: 'Cài đặt hệ thống', icon: 'Settings', id: 'settings' },
+      { name: 'Kiến trúc Doanh nghiệp', icon: 'Layers', id: 'enterprise-arch' },
+      { name: 'AI & Quy trình', icon: 'Workflow', id: 'workflows', adminOnly: true },
+      { name: 'Tài liệu', icon: 'Files', id: 'documents' },
     ]
   }
 ];
 
 const icons: Record<string, any> = {
   LayoutDashboard, Users, Target, TicketIcon, Megaphone, FileText, Building2, Database, Settings, BrainCircuit,
-  Magnet, MessageSquare, BookOpen, Award, Map, CheckSquare, SmilePlus, BarChart3, Workflow, Files, ShieldCheck, Mail, Layers
+  Magnet, MessageSquare, BookOpen, Award, Map, CheckSquare, SmilePlus, BarChart3, Workflow, Files, ShieldCheck, Mail, Layers,
+  Network, Calendar, TrendingUp
 };
 
 interface SidebarProps {

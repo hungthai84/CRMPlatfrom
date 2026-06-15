@@ -212,6 +212,61 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
                 </div>
               </div>
 
+              {/* Main Configuration Parameters Card (Thẻ chính) */}
+              <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 text-left">
+                <h3 className="text-xs font-black text-slate-900 dark:text-white tracking-wider uppercase mb-4 flex items-center gap-2">
+                  <Activity size={16} className="text-[#3370FF]" />
+                  Thông số cấu hình Thẻ chính
+                </h3>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-y-2 border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Ứng dụng</span>
+                    <span className="text-xs font-black text-slate-900 dark:text-white text-right">Power Service CRM</span>
+                    
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Phiên bản</span>
+                    <span className="text-xs font-black text-slate-900 dark:text-white text-right">v2.4.12-pro</span>
+                    
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Font Size (Base)</span>
+                    <span className="text-xs font-black text-slate-900 dark:text-white text-right">15px / 16px / 17px</span>
+
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Menu Font Size</span>
+                    <span className="text-xs font-black text-slate-900 dark:text-white text-right">15px</span>
+                    
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Primary Color</span>
+                    <span className="text-xs font-black text-[#3370FF] text-right">#3370FF</span>
+                  </div>
+                  
+                  <button 
+                    onClick={() => {
+                      const config = {
+                        name: "Power Service CRM Platform",
+                        version: "v2.4.12-pro",
+                        fonts: {
+                          base: "15px-17px",
+                          menu: "15px",
+                          family: "Inter"
+                        },
+                        colors: {
+                          primary: "#3370FF"
+                        },
+                        engine: "Cloud Firestore",
+                        built_with: "React, Vite, Tailwind CSS"
+                      };
+                      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `crm_config_v2.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="w-full py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Download size={12} /> Xuất thông số cấu hình
+                  </button>
+                </div>
+              </div>
+
               {/* Quick instructions widget */}
               <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 text-left space-y-3">
                 <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-xs">
