@@ -185,8 +185,8 @@ export function NotificationCenter({ isCollapsed = false }: { isCollapsed?: bool
         )}
       >
         <div className="flex items-center gap-2">
-          <Bell size={isCollapsed ? 18 : 16} className="text-slate-400 group-hover:text-[#3370FF] transition-colors" />
-          {!isCollapsed && <span className="text-xs font-semibold text-slate-500 group-hover:text-[#3370FF]">Thông báo</span>}
+          <Bell size={isCollapsed ? 18 : 16} className="text-slate-400 group-hover:text-[#FBBF24] transition-colors" />
+          {!isCollapsed && <span className="text-xs font-semibold text-slate-500 group-hover:text-[#FBBF24]">Thông báo</span>}
         </div>
         {!isCollapsed && unreadCount > 0 && (
           <span className="w-5 h-5 bg-[#FF4560] text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shrink-0">

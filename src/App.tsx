@@ -258,7 +258,7 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-[#3370FF] overflow-hidden font-sans relative p-[5px]">
+    <div className="flex h-screen w-screen bg-[#FBBF24] overflow-hidden font-sans relative p-[5px]">
       {/* Main Container styled as a modern sleek canvas layout */}
       <div className="relative z-10 flex h-full w-full overflow-hidden bg-[#F4F5F9] dark:bg-slate-950 no-scrollbar rounded-[10px] shadow-[0_0_15px_rgba(0,0,0,0.5)]">
         <Sidebar 

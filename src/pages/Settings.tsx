@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Settings, BookOpen, ShieldCheck, HelpCircle, User, Activity, 
-  Trash2, RefreshCw, Key, LogOut, Info, Shield, Check, FileText
+  Trash2, RefreshCw, Key, LogOut, Info, Shield, Check, FileText, Download
 } from 'lucide-react';
 import { KnowledgeBase } from './KnowledgeBase';
 import { AuditLogs } from './Users';
@@ -215,7 +215,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
               {/* Main Configuration Parameters Card (Thẻ chính) */}
               <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 text-left">
                 <h3 className="text-xs font-black text-slate-900 dark:text-white tracking-wider uppercase mb-4 flex items-center gap-2">
-                  <Activity size={16} className="text-[#3370FF]" />
+                  <Activity size={16} className="text-[#FBBF24]" />
                   Thông số cấu hình Thẻ chính
                 </h3>
                 <div className="space-y-3">
@@ -233,7 +233,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
                     <span className="text-xs font-black text-slate-900 dark:text-white text-right">15px</span>
                     
                     <span className="text-[10px] font-bold text-slate-500 uppercase">Primary Color</span>
-                    <span className="text-xs font-black text-[#3370FF] text-right">#3370FF</span>
+                    <span className="text-xs font-black text-[#FBBF24] text-right">#FBBF24</span>
                   </div>
                   
                   <button 
@@ -247,7 +247,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
                           family: "Inter"
                         },
                         colors: {
-                          primary: "#3370FF"
+                          primary: "#FBBF24"
                         },
                         engine: "Cloud Firestore",
                         built_with: "React, Vite, Tailwind CSS"

@@ -169,7 +169,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
         {/* Collapse Button */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-slate-500 hover:text-[#3370FF] z-50 cursor-pointer shadow-md transition-all hover:scale-110"
+          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-slate-500 hover:text-[#FBBF24] z-50 cursor-pointer shadow-md transition-all hover:scale-110"
           title={isCollapsed ? "Mở rộng" : "Thu gọn"}
         >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -179,14 +179,14 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
       <div className={cn("flex items-center mb-5 shrink-0 overflow-hidden", isCollapsed ? "justify-center px-0" : "px-4")}>
         <div className="flex items-center gap-3">
           <img 
-            src="https://i.ibb.co/VcwGhfRp/Logo-mau-xanh-Lark-CV-Nguyen-H-ng-Th-i.png" 
+            src="https://i.ibb.co/GvGt4nwZ/Logo-mau-vang-Ho-tro-Kha-ch-H-ng.png" 
             alt="Power Service Logo" 
             className={cn("object-contain shrink-0 transition-all", isCollapsed ? "w-12 h-12" : "w-10 h-10")}
             referrerPolicy="no-referrer"
           />
           {!isCollapsed && (
             <div className="flex flex-col whitespace-nowrap overflow-hidden">
-              <span className="text-[17px] font-black text-[#3370FF] tracking-tight">Power Service</span>
+              <span className="text-[17px] font-black text-[#FBBF24] tracking-tight">Power Service</span>
               <span className="text-[12px] font-bold text-black tracking-wider mt-0.5 animate-pulse-once">CRM Platfrom</span>
             </div>
           )}
@@ -197,12 +197,12 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
         <button
           onClick={onSearchClick}
           className={cn(
-            "w-full flex items-center gap-2 border border-slate-200/60 dark:border-slate-800 rounded-xl leading-5 bg-white dark:bg-slate-900/50 text-slate-500 hover:text-[#3370FF] hover:border-[#3370FF]/30 transition-all cursor-pointer shadow-sm group",
+            "w-full flex items-center gap-2 border border-slate-200/60 dark:border-slate-800 rounded-xl leading-5 bg-white dark:bg-slate-900/50 text-slate-500 hover:text-[#FBBF24] hover:border-[#FBBF24]/30 transition-all cursor-pointer shadow-sm group",
             isCollapsed ? "justify-center px-0 py-2" : "pl-3 pr-2 py-2.5"
           )}
           title={isCollapsed ? "Tìm kiếm" : undefined}
         >
-          <Search size={isCollapsed ? 18 : 16} className="text-slate-400 group-hover:text-[#3370FF] transition-colors" />
+          <Search size={isCollapsed ? 18 : 16} className="text-slate-400 group-hover:text-[#FBBF24] transition-colors" />
           {!isCollapsed && (
             <>
               <span className="text-sm font-semibold">Tìm kiếm...</span>
@@ -246,16 +246,16 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
                     "flex items-center w-full mb-1.5 focus:outline-none select-none group relative rounded-xl transition-colors", 
                     isCollapsed 
                       ? "justify-center px-0 h-10 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50" 
-                      : cn("justify-between px-2 cursor-pointer py-1", isActiveOverview ? "bg-[#3370FF]/10 border border-[#3370FF]/20" : "")
+                      : cn("justify-between px-2 cursor-pointer py-1", isActiveOverview ? "bg-[#FBBF24]/10 border border-[#FBBF24]/20" : "")
                   )}
                   title={group.name}
                 >
                   {isActiveOverview && !isCollapsed && (
-                    <div className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#3370FF] rounded-r-full" />
+                    <div className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#FBBF24] rounded-r-full" />
                   )}
                   <div className="flex items-center gap-2">
-                    {GroupIcon && <GroupIcon size={isCollapsed ? 20 : 16} className={cn("text-slate-400 transition-colors", isCollapsed ? "group-hover:text-[#3370FF]" : "group-hover:text-slate-600 dark:group-hover:text-slate-300", isExpanded && isCollapsed && "text-[#3370FF]", isActiveOverview && "text-[#3370FF]")} />}
-                    {!isCollapsed && <p className={cn("text-[15px] font-black tracking-wider whitespace-nowrap transition-colors", isActiveOverview ? "text-[#3370FF]" : "text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300")}>{group.name}</p>}
+                    {GroupIcon && <GroupIcon size={isCollapsed ? 20 : 16} className={cn("text-slate-400 transition-colors", isCollapsed ? "group-hover:text-[#FBBF24]" : "group-hover:text-slate-600 dark:group-hover:text-slate-300", isExpanded && isCollapsed && "text-[#FBBF24]", isActiveOverview && "text-[#FBBF24]")} />}
+                    {!isCollapsed && <p className={cn("text-[15px] font-black tracking-wider whitespace-nowrap transition-colors", isActiveOverview ? "text-[#FBBF24]" : "text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300")}>{group.name}</p>}
                   </div>
                 {!isCollapsed && !isOverview && (
                   <ChevronRight size={14} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
@@ -289,14 +289,14 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
                             className={cn(
                               "w-full flex items-center rounded-xl text-sm font-bold transition-all duration-200 relative h-10 cursor-pointer select-none outline-none group/btn mb-1",
                               isActive 
-                                ? "bg-[#3370FF]/10 text-[#3370FF] border border-[#3370FF]/20" 
+                                ? "bg-[#FBBF24]/10 text-[#FBBF24] border border-[#FBBF24]/20" 
                                 : "text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
                             )}
                             title={item.name}
                           >
                             {/* Active Indicator Bar */}
                             {isActive && (
-                              <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#3370FF] rounded-r-full" />
+                              <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#FBBF24] rounded-r-full" />
                             )}
   
                             {/* Icon wrapper */}
@@ -407,7 +407,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
                 {user.photoURL ? (
                   <img src={user.photoURL} referrerPolicy="no-referrer" alt="User" className="w-10 h-10 rounded-full ring-1 ring-white/10 shadow-lg object-cover" />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3370FF] to-blue-700 flex items-center justify-center text-white font-black ring-1 ring-white/10 shadow-lg text-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FBBF24] to-blue-700 flex items-center justify-center text-white font-black ring-1 ring-white/10 shadow-lg text-sm">
                     {user.email?.charAt(0).toUpperCase()}
                   </div>
                 )}

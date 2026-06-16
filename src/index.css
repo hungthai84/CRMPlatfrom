@@ -11,7 +11,7 @@
   --radius-3xl: 10px;
   --radius-xl: 10px;
   
-  --color-primary: #3370FF;
+  --color-primary: #FBBF24;
   --color-primary-foreground: #ffffff;
   --color-background: #f8fafc;
   --color-foreground: #0f172a;
@@ -37,10 +37,10 @@
     }
   }
   body {
-    @apply bg-[#3370FF] text-slate-900 transition-colors duration-300;
+    @apply bg-[#FBBF24] text-slate-900 transition-colors duration-300;
   }
   .dark body {
-    @apply bg-[#3370FF] text-slate-100;
+    @apply bg-[#FBBF24] text-slate-100;
   }
   /* Globally hide scrollbars while preserving scrolling functionality */
   * {

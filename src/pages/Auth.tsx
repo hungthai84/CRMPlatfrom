@@ -20,7 +20,7 @@ export function AuthScreen() {
   };
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-[#3370FF] p-4 relative overflow-hidden font-sans">
+    <div className="flex h-screen w-screen items-center justify-center bg-[#FBBF24] p-4 relative overflow-hidden font-sans">
       <div className="absolute top-[-10%] left-[10%] w-[40rem] h-[40rem] bg-indigo-300/60 rounded-full mix-blend-multiply blur-[128px] opacity-70 animate-blob pointer-events-none"></div>
       <div className="absolute bottom-[-20%] right-[10%] w-[40rem] h-[40rem] bg-rose-300/50 rounded-full mix-blend-multiply blur-[128px] opacity-70 animate-blob animation-delay-4000 pointer-events-none"></div>
       
