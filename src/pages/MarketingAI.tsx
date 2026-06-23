@@ -184,7 +184,7 @@ export const MarketingAI = () => {
   }, [user, isAdmin]);
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50">
+    <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-900/40 p-4 lg:p-6 space-y-6 overflow-y-auto no-scrollbar w-full">
       {/* Header */}
       <div className="p-6 border-b border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between w-full">

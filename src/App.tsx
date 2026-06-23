@@ -38,6 +38,7 @@ import { Reports } from './pages/Reports';
 import { Workflows } from './pages/Workflows';
 import { EmailTemplates } from './pages/EmailTemplates';
 import { EnterpriseArchitecture } from './pages/EnterpriseArchitecture';
+import { syncSessionWithDb } from './lib/api';
 
 export default function App() {
   return (
@@ -58,6 +59,135 @@ function AppContent() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { user, loading, logout: authLogout } = useAuth();
   const { addToast } = useToast();
+
+  // Session tracking logic to log logins, logouts, timeouts, and calculate total active seconds
+  useEffect(() => {
+    if (!user) {
+      const savedSessId = localStorage.getItem('crm_current_session_id');
+      if (savedSessId) {
+        const savedSessLogsStr = localStorage.getItem('crm_session_logs');
+        if (savedSessLogsStr) {
+          try {
+            const logs = JSON.parse(savedSessLogsStr);
+            const isTimeout = localStorage.getItem('crm_is_timeout_logout') === 'true';
+            const finalStatus = isTimeout ? 'timeout' : 'completed';
+            localStorage.removeItem('crm_is_timeout_logout');
+
+            const updated = logs.map((log: any) => {
+              if (log.id === savedSessId && log.status === 'active') {
+                const finalLog = {
+                  ...log,
+                  status: finalStatus,
+                  logoutTime: Date.now()
+                };
+                // Sync session completion to Cloud SQL
+                syncSessionWithDb({
+                  sessionId: finalLog.id,
+                  loginTime: finalLog.loginTime,
+                  logoutTime: finalLog.logoutTime,
+                  activeTime: finalLog.activeTime,
+                  status: finalLog.status
+                }).catch(err => console.error("Session sync failed:", err));
+                return finalLog;
+              }
+              return log;
+            });
+            localStorage.setItem('crm_session_logs', JSON.stringify(updated));
+          } catch (e) {}
+        }
+        localStorage.removeItem('crm_current_session_id');
+      }
+      return;
+    }
+
+    const email = user.email || 'unknown@example.com';
+    let savedSessId = localStorage.getItem('crm_current_session_id');
+    const savedSessLogsStr = localStorage.getItem('crm_session_logs') || '[]';
+    let logs = [];
+    try {
+      logs = JSON.parse(savedSessLogsStr);
+      if (!Array.isArray(logs)) logs = [];
+    } catch (e) {}
+
+    let currentSess = logs.find((l: any) => l.id === savedSessId && l.status === 'active');
+    
+    if (!currentSess) {
+      logs = logs.map((l: any) => {
+        if (l.status === 'active') {
+          const finishedLog = { ...l, status: 'completed', logoutTime: l.logoutTime || Date.now() };
+          // Sync completion to Cloud SQL
+          syncSessionWithDb({
+            sessionId: finishedLog.id,
+            loginTime: finishedLog.loginTime,
+            logoutTime: finishedLog.logoutTime,
+            activeTime: finishedLog.activeTime,
+            status: finishedLog.status
+          }).catch(err => console.error("Session sync failed:", err));
+          return finishedLog;
+        }
+        return l;
+      });
+      
+      savedSessId = `sess_${Date.now()}`;
+      currentSess = {
+        id: savedSessId,
+        email,
+        loginTime: Date.now(),
+        activeTime: 0,
+        status: 'active'
+      };
+      logs.unshift(currentSess);
+      localStorage.setItem('crm_session_logs', JSON.stringify(logs));
+      localStorage.setItem('crm_current_session_id', savedSessId);
+
+      // Sync initialization to Cloud SQL
+      syncSessionWithDb({
+        sessionId: currentSess.id,
+        loginTime: currentSess.loginTime,
+        logoutTime: null,
+        activeTime: currentSess.activeTime,
+        status: currentSess.status
+      }).catch(err => console.error("Session sync failed:", err));
+    }
+
+    const interval = setInterval(() => {
+      const logsStr = localStorage.getItem('crm_session_logs') || '[]';
+      try {
+        let currentLogs = JSON.parse(logsStr);
+        if (Array.isArray(currentLogs)) {
+          let updated = false;
+          let activeLogToSync: any = null;
+          currentLogs = currentLogs.map((log: any) => {
+            if (log.id === savedSessId && log.status === 'active') {
+              updated = true;
+              const nextLog = {
+                ...log,
+                activeTime: (log.activeTime || 0) + 1
+              };
+              activeLogToSync = nextLog;
+              return nextLog;
+            }
+            return log;
+          });
+          if (updated) {
+            localStorage.setItem('crm_session_logs', JSON.stringify(currentLogs));
+            // Sync intermediate updates to Cloud SQL
+            if (activeLogToSync) {
+              syncSessionWithDb({
+                sessionId: activeLogToSync.id,
+                loginTime: activeLogToSync.loginTime,
+                logoutTime: null,
+                activeTime: activeLogToSync.activeTime,
+                status: activeLogToSync.status
+              }).catch(err => console.error("Session tick sync failed:", err));
+            }
+          }
+        }
+      } catch (e) {}
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Idle session expiration states
   const [isIdleWarningOpen, setIsIdleWarningOpen] = useState(false);
@@ -124,6 +254,7 @@ function AppContent() {
         'warning',
         'system'
       );
+      localStorage.setItem('crm_is_timeout_logout', 'true');
       authLogout();
     }
   }, [isIdleWarningOpen, countdown, authLogout, addToast]);
@@ -268,7 +399,7 @@ function AppContent() {
           onClose={() => setIsMobileMenuOpen(false)} 
           onSearchClick={() => setIsSearchOpen(true)}
         />
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden p-2 sm:p-4 gap-[5px]">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden p-2 sm:p-4 gap-[5px]" style={{ width: '130px' }}>
           {/* Mobile Menu Button - shows only on small screens when sidebar is hidden */}
           {!isMobileMenuOpen && (
             <button 

@@ -75,7 +75,7 @@ export function KnowledgeBase() {
   };
 
   return (
-    <div className="flex h-full bg-[#f8fafc] overflow-hidden p-6 md:p-8">
+    <div className="flex h-full bg-slate-50 dark:bg-slate-900/40 overflow-hidden p-4 lg:p-6 gap-5">
       {/* Left Sidebar - Article List */}
       <div className="w-80 bg-white border border-slate-200 rounded-[12px] shadow-sm flex flex-col mr-6 shrink-0 h-full overflow-hidden">
         <div className="p-5 border-b border-slate-100 bg-slate-50/50 shrink-0">

@@ -502,7 +502,7 @@ export function Omnichannel() {
   };
 
   return (
-    <div id="omnichannel-container" className="flex flex-col lg:flex-row h-full w-full gap-5">
+    <div id="omnichannel-container" className="flex flex-col lg:flex-row h-full w-full gap-5 p-4 lg:p-6 bg-slate-50 dark:bg-slate-900/40">
       
       {/* LEFT SIDEBAR CONTROLS: Inbox & Settings Tabs */}
       <div id="omnichannel-tabs" className="w-full lg:w-72 bg-white rounded-2xl border border-slate-100 flex flex-col p-5 shrink-0 shadow-sm">

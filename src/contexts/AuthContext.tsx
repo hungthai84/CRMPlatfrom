@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { auth, loginWithGoogle, logout, cachedAccessToken, isSigningIn } from '../lib/firebase';
 import { logActivity } from '../lib/auditLogger';
+import { syncUserWithDb } from '../lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -343,6 +344,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.removeEventListener(event, resetTimer);
       });
     };
+  }, [user]);
+
+  // Synchronize authenticated CRM users to Cloud SQL database (PostgreSQL)
+  useEffect(() => {
+    if (user) {
+      syncUserWithDb().catch(err => console.error("Database user sync error:", err));
+    }
   }, [user]);
 
   const logoutAction = async () => {

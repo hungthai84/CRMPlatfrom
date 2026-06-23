@@ -220,7 +220,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
       )}>
         <div className="space-y-6 my-auto">
 
-        <div className="space-y-4">
+        <div className="space-y-4" style={{ width: '130px' }}>
           {navGroups.map((group) => {
             const hasVisibleItems = group.items.some(i => !i.adminOnly || isAdmin);
             if (!hasVisibleItems) return null;
@@ -258,23 +258,29 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
                     {!isCollapsed && <p className={cn("text-[15px] font-black tracking-wider whitespace-nowrap transition-colors", isActiveOverview ? "text-[#FBBF24]" : "text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300")}>{group.name}</p>}
                   </div>
                 {!isCollapsed && !isOverview && (
-                  <ChevronRight size={14} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
+                  <ChevronRight size={14} className={cn("text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-all duration-200", isExpanded && "rotate-90")} />
                 )}
                 </button>
                 
                 {isExpanded && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-[90] bg-transparent" 
-                      onClick={(e) => { e.stopPropagation(); setExpandedGroups([]); }}
-                    />
+                    {isCollapsed && (
+                      <div 
+                        className="fixed inset-0 z-[90] bg-transparent" 
+                        onClick={(e) => { e.stopPropagation(); setExpandedGroups([]); }}
+                      />
+                    )}
                     <nav className={cn(
-                      "pointer-events-auto absolute bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 p-2 rounded-2xl shadow-xl w-56 z-[100] animate-in fade-in zoom-in-95 duration-200 space-y-1", 
-                      "left-full top-0 ml-3"
+                      "space-y-1 transition-all",
+                      isCollapsed 
+                        ? "pointer-events-auto absolute bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 p-2 rounded-2xl shadow-xl w-[130px] z-[100] animate-in fade-in zoom-in-95 duration-200 left-full top-0 ml-3"
+                        : "relative w-full animate-in slide-in-from-top-2 duration-200 pl-3 pb-1"
                     )}>
-                      <div className="px-3 py-2 mb-1 border-b border-slate-100 dark:border-slate-800/60">
-                         <p className="text-[15px] font-black text-slate-400 tracking-widest">{group.name}</p>
-                      </div>
+                      {isCollapsed && (
+                        <div className="px-3 py-2 mb-1 border-b border-slate-100 dark:border-slate-800/60">
+                           <p className="text-[15px] font-black text-slate-400 tracking-widest">{group.name}</p>
+                        </div>
+                      )}
                       {group.items.filter((i) => !i.adminOnly || isAdmin).map((item) => {
                         const Icon = icons[item.icon];
                         const isActive = currentTab === item.id;
@@ -283,7 +289,9 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
                             key={item.id}
                             onClick={() => {
                               setCurrentTab(item.id);
-                              setExpandedGroups([]);
+                              if (isCollapsed) {
+                                setExpandedGroups([]);
+                              }
                               if (onClose) onClose();
                             }}
                             className={cn(

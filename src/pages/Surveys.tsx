@@ -392,7 +392,7 @@ export function Surveys() {
   };
 
   return (
-    <div className="flex flex-col h-full gap-5 font-sans relative pr-1.5" id="surveys-module-container">
+    <div className="flex flex-col h-full gap-5 font-sans relative p-4 lg:p-6 overflow-y-auto no-scrollbar w-full" id="surveys-module-container">
       
       {/* 1. Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">

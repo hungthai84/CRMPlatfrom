@@ -2,6 +2,8 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import { requireAuth, AuthRequest } from "./src/middleware/auth.ts";
+import { getOrCreateUser, getSessionLogsByEmail, syncSessionLog, clearSessionLogsByEmail } from "./src/db/helpers.ts";
 
 async function startServer() {
   const app = express();
@@ -40,6 +42,55 @@ async function startServer() {
     } catch (error: any) {
       console.error("AI Chat Error:", error);
       res.status(500).json({ error: error.message || "Failed to generate AI response" });
+    }
+  });
+
+  // DB Synchronization and Verification Endpoints
+  app.post("/api/users/sync", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const email = req.user.email || 'unknown@example.com';
+      const user = await getOrCreateUser(req.user.uid, email);
+      res.json({ success: true, user });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/sessions", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const email = req.user.email || 'unknown@example.com';
+      const logs = await getSessionLogsByEmail(email);
+      res.json(logs);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/sessions/sync", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const email = req.user.email || 'unknown@example.com';
+      const { sessionId, loginTime, logoutTime, activeTime, status } = req.body;
+      const log = await syncSessionLog({
+        sessionId,
+        email,
+        loginTime,
+        logoutTime,
+        activeTime,
+        status,
+      });
+      res.json({ success: true, log });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/sessions/clear", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const email = req.user.email || 'unknown@example.com';
+      await clearSessionLogsByEmail(email);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 

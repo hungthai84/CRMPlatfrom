@@ -244,7 +244,7 @@ export function SalesPipeline() {
   ];
 
   return (
-    <div className="max-w-full h-full flex p-6 md:p-8 overflow-hidden relative">
+    <div className="max-w-full h-full flex p-4 lg:p-6 overflow-hidden relative w-full gap-5 bg-slate-50 dark:bg-slate-900/40">
       <div className="flex flex-col flex-1 min-w-0 transition-all duration-300" style={{ paddingRight: selectedDeal ? '400px' : '0' }}>
         <div className="flex justify-between items-center mb-8 shrink-0">
           <div>

@@ -385,7 +385,7 @@ export function Customers({ onSelect }: CustomersProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white relative p-6 md:p-8 no-scrollbar">
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/40 relative p-4 lg:p-6 overflow-y-auto w-full no-scrollbar space-y-6">
       <div className="flex justify-between items-center mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Danh sách Khách hàng</h1>

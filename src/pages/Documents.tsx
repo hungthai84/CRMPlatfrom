@@ -52,7 +52,7 @@ export function Documents() {
   };
 
   return (
-    <div className="p-6 md:p-8 h-full bg-slate-50 flex flex-col">
+    <div className="p-4 lg:p-6 h-full bg-slate-50 dark:bg-slate-900/40 flex flex-col overflow-y-auto w-full space-y-6">
       <div className="flex justify-between items-center mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Quản lý Tài liệu</h1>

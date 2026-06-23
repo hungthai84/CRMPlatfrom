@@ -256,7 +256,7 @@ export function Tasks() {
   };
 
   return (
-    <div className="p-8 h-full bg-slate-50 dark:bg-slate-900/40 flex flex-col font-sans">
+    <div className="p-4 lg:p-6 h-full bg-slate-50 dark:bg-slate-900/40 flex flex-col font-sans overflow-y-auto no-scrollbar w-full space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">Công việc & Nhiệm vụ</h1>

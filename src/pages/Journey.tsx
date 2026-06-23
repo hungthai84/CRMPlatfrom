@@ -356,7 +356,7 @@ export function Journey() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 relative p-6 md:p-8 overflow-y-auto no-scrollbar">
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/40 relative p-4 lg:p-6 overflow-y-auto no-scrollbar w-full space-y-6">
       {/* Header section with tab switcher */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0">
         <div>

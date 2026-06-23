@@ -21,7 +21,7 @@ export function LoyaltyManagement() {
   ];
 
   return (
-    <div className="p-6 md:p-8 h-full flex flex-col items-stretch max-w-7xl mx-auto w-full no-scrollbar">
+    <div className="p-4 lg:p-6 h-full flex flex-col items-stretch max-w-7xl mx-auto w-full no-scrollbar overflow-y-auto space-y-6">
       <div className="flex justify-between items-center mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Quản lý Khách hàng thân thiết</h1>
