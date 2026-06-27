@@ -8,9 +8,10 @@ import { db, handleFirestoreError, OperationType, getAccessToken } from '../lib/
 import { logActivity } from '../lib/auditLogger';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { mockCustomers } from '../data/mockData';
+import { mockCustomers, mockLeadsData } from '../data/mockData';
 import { generateDemoCustomers } from '../lib/generateDemoData';
 import { Sparkles } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 // Chart analytics data matching the curves of the screenshot
 const analyticsData = [
@@ -36,7 +37,7 @@ const heatmapData = [
 // Leads donut data
 const leadData = [
   { name: 'Desktop', value: 1207, color: '#ec4899' }, // Pink
-  { name: 'Laptop', value: 1152, color: '#2F69FF' },  // Power Blue
+  { name: 'Laptop', value: 1152, color: '#2563eb' },  // Power Blue
   { name: 'Mobile', value: 1624, color: '#f59e0b' },  // Orange/Gold
 ];
 
@@ -105,24 +106,36 @@ interface StatCardProps {
 function PremiumStatCard({ title, value, change, timeframe, theme, icon: Icon, miniHeights, glowIndex, delay = 0 }: StatCardProps) {
   const styles = {
     purple: {
-      bg: 'bg-[#eef2ff]',
-      text: 'text-[#2F69FF]',
-      bar: 'bg-[#2F69FF]',
+      bg: 'bg-[#4F46BA]',
+      text: 'text-white',
+      bar: 'bg-white',
+      label: 'text-white opacity-50',
+      changeBg: 'bg-white/10 border-white/20',
+      value: 'text-white'
     },
     blue: {
-      bg: 'bg-[#e3f2fd]',
-      text: 'text-[#1e88e5]',
-      bar: 'bg-[#1e88e5]',
+      bg: 'bg-[#4F46BA]',
+      text: 'text-white',
+      bar: 'bg-white',
+      label: 'text-white opacity-50',
+      changeBg: 'bg-white/10 border-white/20',
+      value: 'text-white'
     },
     orange: {
-      bg: 'bg-[#fff3e0]',
-      text: 'text-[#fb8c00]',
-      bar: 'bg-[#fb8c00]',
+      bg: 'bg-[#4F46BA]',
+      text: 'text-white',
+      bar: 'bg-white',
+      label: 'text-white opacity-50',
+      changeBg: 'bg-white/10 border-white/20',
+      value: 'text-white'
     },
     green: {
-      bg: 'bg-[#e8f5e9]',
-      text: 'text-[#43a047]',
-      bar: 'bg-[#43a047]',
+      bg: 'bg-[#4F46BA]',
+      text: 'text-white',
+      bar: 'bg-white',
+      label: 'text-white opacity-50',
+      changeBg: 'bg-white/10 border-white/20',
+      value: 'text-white'
     }
   };
 
@@ -133,47 +146,32 @@ function PremiumStatCard({ title, value, change, timeframe, theme, icon: Icon, m
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
-      className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 transition-all hover:shadow-[0_12px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between h-44 relative overflow-hidden"
+      className={cn("rounded-[24px] card-shadow p-8 transition-all hover:shadow-2xl hover:scale-[1.02] flex flex-col justify-between h-48 relative overflow-hidden group border border-slate-100 dark:border-slate-800", currentStyle.bg)}
     >
       <div className="flex justify-between items-start">
-        {/* Metric icon with rounded pill banner */}
-        <div className={`w-11 h-11 flex items-center justify-center rounded-[10px] ${currentStyle.bg} ${currentStyle.text} shadow-sm shrink-0`}>
-          <Icon size={20} />
+        <div className={`w-12 h-12 flex items-center justify-center rounded-[18px] bg-white/10 ${currentStyle.text} shadow-sm shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:bg-white/20`}>
+          <Icon size={24} />
         </div>
         
-        {/* Trend pill inside a sleek gray micro-container */}
-        <div className={`text-xs font-bold leading-none py-1.5 px-2.5 rounded-full bg-[#f4f6fa] ${currentStyle.text}`}>
+        <div className={`text-[11px] font-extrabold leading-none py-2 px-3.5 rounded-full ${currentStyle.changeBg} ${currentStyle.text} border border-white/20 shadow-sm backdrop-blur-sm`}>
           {change}
         </div>
       </div>
       
       <div className="flex justify-between items-end mt-4">
         <div>
-          <h3 className="text-[#8c94a5] text-[11px] font-bold tracking-wide uppercase">{title}</h3>
-          <p className="text-2xl font-extrabold text-[#0e0e11] tracking-tight mt-1">{value}</p>
-          <span className="text-[10px] text-slate-400 font-semibold mt-1 block">{timeframe}</span>
+          <h3 className={cn("text-[11px] font-black tracking-[0.2em] uppercase opacity-70", currentStyle.label)}>{title}</h3>
+          <p className={cn("text-4xl font-black tracking-tight mt-1.5", currentStyle.value)}>{value}</p>
+          <span className={cn("text-[11px] font-semibold mt-1.5 block opacity-60", currentStyle.label)}>{timeframe}</span>
         </div>
         
-        {/* Custom Mini Bar Charts matching the mockup visually */}
-        <div className="pb-1">
+        <div className="pb-1 opacity-40 group-hover:opacity-100 transition-opacity">
           <MiniBarIndicator color={currentStyle.bar} heights={miniHeights} glowIndex={glowIndex} />
         </div>
       </div>
     </motion.div>
   );
 }
-
-const mockLeadsData = [
-  { id: 'LD-101', name: 'Phạm Minh Trí', company: 'TechVina Corp', value: 15000000, priority: 'High', status: 'Mới', phone: '0901234555' },
-  { id: 'LD-102', name: 'Trần Cường', company: 'Đầu tư Á Châu', value: 34000000, priority: 'Medium', status: 'Mới', phone: '0983444222' },
-  { id: 'LD-103', name: 'Lê Kiều Trang', company: 'Sơn Hà Group', value: 12000000, priority: 'Low', status: 'Mới', phone: '0912333211' },
-  { id: 'LD-104', name: 'Đặng Quốc Anh', company: 'BĐS Hải Đường', value: 45000000, priority: 'High', status: 'Đang gọi', phone: '0934111222' },
-  { id: 'LD-105', name: 'Vũ Thị Mai', company: 'Y tế Hoàn Mỹ', value: 25000000, priority: 'Low', status: 'Đang gọi', phone: '0977888999' },
-  { id: 'LD-106', name: 'Nguyễn Bách', company: 'Thực phẩm Sạch', value: 60000000, priority: 'High', status: 'Thẩm định', phone: '0909555222' },
-  { id: 'LD-107', name: 'Phạm Thuỳ Linh', company: 'Logistics Hồng Hà', value: 18000000, priority: 'Medium', status: 'Thẩm định', phone: '0944666222' },
-  { id: 'LD-108', name: 'Hoàng Văn Thế', company: 'Năng lượng Xanh', value: 95000050, priority: 'High', status: 'Đề xuất', phone: '0901555111' },
-  { id: 'LD-109', name: 'Đỗ Hữu Phước', company: 'Cơ khí Chính xác', value: 120000000, priority: 'High', status: 'Thương thảo', phone: '0988777666' }
-];
 
 export function Dashboard() {
   const { user, isAdmin } = useAuth();
@@ -184,8 +182,10 @@ export function Dashboard() {
   const [pendingTicketCount, setPendingTicketCount] = useState<number>(0);
   const [totalLtv, setTotalLtv] = useState<number>(0);
   const [salesVelocityData, setSalesVelocityData] = useState<any[]>([]);
+  const [dashboardCustomers, setDashboardCustomers] = useState<any[]>([]);
   const [rawTickets, setRawTickets] = useState<any[]>([]);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
+  const [dashboardLeads, setDashboardLeads] = useState<any[]>([]);
 
   const systemActivityData = React.useMemo(() => {
     const result = [];
@@ -526,8 +526,10 @@ export function Dashboard() {
       setCustomerCount(snap.size);
       let ltv = 0;
       let active = 0;
+      const cList: any[] = [];
       snap.forEach(doc => {
         const d = doc.data();
+        cList.push({ id: doc.id, ...d });
         ltv += (d.lifetimeValue || 0);
         // Customer is active if status is Hoạt động, Active, or not set
         if (d.status === 'Hoạt động' || d.status === 'Active' || !d.status) {
@@ -536,6 +538,8 @@ export function Dashboard() {
       });
       setTotalLtv(ltv);
       setActiveCustomerCount(active);
+      // sort by creation or just take top 10
+      setDashboardCustomers(cList);
     });
 
     // Real-time tickets from Firestore
@@ -633,7 +637,6 @@ export function Dashboard() {
       setSalesVelocityData(staticFallback);
     });
 
-    // Attempt to query Google Calendar upcoming events (next 24 hours)
     const fetchGoogleCalendarUpcoming = async () => {
       const token = await getAccessToken();
       if (!token) return;
@@ -866,7 +869,7 @@ export function Dashboard() {
   const displaySalesGrowth = getSalesGrowthMetric();
 
   return (
-    <div className="w-full h-full p-4 lg:p-6 space-y-6 flex-1 overflow-y-auto no-scrollbar relative bg-slate-50 dark:bg-slate-900/40">
+    <div className="w-full h-full p-6 space-y-8 flex-1 overflow-y-auto no-scrollbar relative bg-transparent">
       {/* 1-Hour Urgent Toast Alerts Container - Fixed Floating Overlay */}
       <div className="fixed top-6 right-6 z-[100] space-y-3 w-96 max-w-full pointer-events-none">
         {taskAlerts.map((alert) => (
@@ -918,7 +921,7 @@ export function Dashboard() {
             <div className="p-6 overflow-y-auto max-h-[460px] space-y-6 no-scrollbar">
               {/* KPIs custom list */}
               <div>
-                <h4 className="text-xs font-black text-[#2F69FF] uppercase tracking-widest mb-3">1. Thẻ chỉ số chính (KPI Cards)</h4>
+                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">1. Thẻ chỉ số chính (KPI Cards)</h4>
                 <div className="space-y-2">
                   {kpiConfigs.map((cfg, idx) => (
                     <div 
@@ -962,7 +965,7 @@ export function Dashboard() {
 
               {/* Panels / Charts config list */}
               <div>
-                <h4 className="text-xs font-black text-[#2F69FF] uppercase tracking-widest mb-3">2. Biểu đồ bảng biểu chính</h4>
+                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">2. Biểu đồ bảng biểu chính</h4>
                 <div className="space-y-2">
                   {panelConfigs.map((cfg, idx) => (
                     <div 
@@ -1005,42 +1008,44 @@ export function Dashboard() {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 bg-gray-50 flex items-center justify-between">
-              <button 
-                onClick={handleResetDashboard}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors py-2 cursor-pointer"
-              >
-                Khôi phục mặc định
-              </button>
-              <button 
-                onClick={() => setIsSettingsModalOpen(false)}
-                className="bg-[#2F69FF] text-white px-5 py-2 rounded-xl text-xs font-extrabold hover:bg-opacity-90 shadow-md shadow-[#2F69FF]/15 transition-all cursor-pointer"
-              >
-                Xác nhận & Đóng
-              </button>
-            </div>
+          <div className="px-6 py-4 border-t border-slate-100 bg-gray-50 flex items-center justify-between">
+            <button 
+              onClick={handleResetDashboard}
+              className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors py-2 cursor-pointer"
+            >
+              Khôi phục mặc định
+            </button>
+            <button 
+              onClick={() => setIsSettingsModalOpen(false)}
+              className="bg-blue-600 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 shadow-md shadow-blue-500/15 transition-all cursor-pointer"
+            >
+              Xác nhận & Đóng
+            </button>
+          </div>
           </div>
         </div>
       )}
 
       {/* Elegant Page Title Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200/60 dark:border-slate-800 pb-10 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">CRM Dashboard</h1>
-          <p className="text-slate-500 text-sm mt-1.5 font-semibold">Tự động hóa kết quả doanh thu, liên kết hoạt động và quản lý chất lượng hỗ trợ SLA.</p>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Hệ thống Dashboard</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-[15px] mt-2 font-medium max-w-2xl leading-relaxed">
+            Giám sát thời gian thực các chỉ số kinh doanh, quản lý khách hàng tiềm năng và tối ưu hóa hiệu suất đội ngũ Sale & CSKH.
+          </p>
         </div>
-        <div className="flex items-center gap-2.5 shrink-0 self-stretch md:self-auto justify-end">
+        <div className="flex items-center gap-4 shrink-0 self-stretch md:self-auto justify-end">
           <button 
             onClick={() => setIsSettingsModalOpen(true)}
-            className="flex items-center gap-2 text-xs font-bold text-gray-700 hover:text-gray-900 border border-gray-300 bg-white px-4 py-2.5 rounded-xl shadow-xs hover:bg-gray-50 transition-all cursor-pointer"
+            className="flex items-center gap-2.5 text-sm font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-3 rounded-2xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer outline-none"
           >
-            <Settings2 size={14} className="text-gray-500 animate-spin [animation-duration:10s]" /> Tùy chỉnh Dashboard
+            <Settings2 size={16} className="text-slate-400" /> Tùy chỉnh báo cáo
           </button>
           <button 
             onClick={handleExportDashboardCsv}
-            className="flex items-center gap-2 text-xs font-bold text-[#2F69FF] bg-blue-50 border border-blue-200 px-4 py-2.5 rounded-xl shadow-xs hover:bg-blue-100 transition-all cursor-pointer animate-fadeIn"
+            className="flex items-center gap-2.5 text-sm font-bold text-white bg-slate-900 dark:bg-blue-600 px-5 py-3 rounded-2xl shadow-lg shadow-slate-900/10 dark:shadow-blue-500/10 hover:opacity-90 transition-all cursor-pointer outline-none"
           >
-            <Download size={14} /> Xuất Báo Cáo (CSV)
+            <Download size={16} /> Xuất dữ liệu
           </button>
         </div>
       </div>
@@ -1121,7 +1126,7 @@ export function Dashboard() {
               >
                 <div className="flex items-center gap-3">
                   {task.isGoogle ? (
-                    <Calendar size={16} className="text-[#2F69FF] shrink-0" />
+                    <Calendar size={16} className="text-blue-600 shrink-0" />
                   ) : (
                     <Clock size={16} className="text-amber-500 shrink-0" />
                   )}
@@ -1151,7 +1156,7 @@ export function Dashboard() {
                       href={task.link}
                       target="_blank" 
                       rel="noreferrer"
-                      className="px-3 py-1.5 text-[10px] font-bold text-[#2F69FF] bg-[#2F69FF]/10 rounded-lg hover:bg-[#2F69FF]/15 transition-all text-center flex items-center gap-1"
+                      className="px-3 py-1.5 text-[10px] font-bold text-blue-600 bg-blue-600/10 rounded-lg hover:bg-blue-600/15 transition-all text-center flex items-center gap-1"
                     >
                       Xem lịch sự kiện
                     </a>
@@ -1277,23 +1282,23 @@ export function Dashboard() {
       </div>
 
       {/* Main split grid: Revenue & Deals vs Leads and AI Assistant (Dynamic sorting applied per column) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Left Column (Spans 2 columns on large screen, handles left-eligible cards in customized order) */}
-        <div className="lg:col-span-2 space-y-6 flex flex-col">
+        <div className="lg:col-span-2 space-y-8 flex flex-col">
           {panelConfigs.map((cfg) => {
             if (!cfg.visible) return null;
             
             // 1. Revenue Analytics Card
             if (cfg.id === 'revenue_analytics') {
               return (
-                <div key="revenue_analytics" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 flex flex-col animate-fadeIn">
+                <div key="revenue_analytics" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 flex flex-col animate-fadeIn group">
                   <div className="flex justify-between items-center mb-6">
                     <div>
-                      <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Revenue Analytics</h3>
-                      <p className="text-slate-400 text-xs font-semibold">Monthly overview & sales statistics</p>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Revenue Analytics</h3>
+                      <p className="text-slate-500 text-xs font-medium mt-1">Monthly overview & sales statistics</p>
                     </div>
                     <div>
-                      <select className="bg-[#f4f6fa]/70 border border-[#e4e7ec] text-[11px] font-bold text-slate-600 rounded-full py-1.5 px-3.5 focus:outline-none transition-colors hover:bg-[#f0f2f7] cursor-pointer">
+                      <select className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300 rounded-lg py-1.5 px-3 focus:outline-none transition-colors hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
                         <option>Month</option>
                         <option>Quarter</option>
                         <option>Year</option>
@@ -1305,18 +1310,18 @@ export function Dashboard() {
                   <div className="h-68 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={analyticsData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f7" strokeOpacity={0.8} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.6} />
                         <XAxis 
                           dataKey="name" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#8c94a5', fontSize: 11, fontWeight: 700 }} 
+                          tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }} 
                           dy={8}
                         />
                         <YAxis 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#8c94a5', fontSize: 11, fontWeight: 700 }} 
+                          tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }} 
                           dx={-6}
                           domain={[0, 1000]}
                           tickCount={6}
@@ -1324,21 +1329,21 @@ export function Dashboard() {
                         <Tooltip 
                           cursor={{ fill: 'rgba(235, 238, 245, 0.4)', radius: 10 }}
                           contentStyle={{ 
-                            borderRadius: '10px', 
-                            border: '1px solid #f1f3f7', 
-                            background: 'rgba(255,255,255,0.96)', 
+                            borderRadius: '12px', 
+                            border: '1px solid #e2e8f0', 
+                            background: 'rgba(255,255,255,0.9)', 
                             backdropFilter: 'blur(8px)', 
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.04)', 
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
                             padding: '10px 14px' 
                           }}
-                          labelStyle={{ fontWeight: 800, color: '#1e293b', fontSize: '11px' }}
-                          itemStyle={{ fontWeight: 700, fontSize: '11px' }}
+                          labelStyle={{ fontWeight: 700, color: '#0f172a', fontSize: '12px' }}
+                          itemStyle={{ fontWeight: 600, fontSize: '11px' }}
                         />
                         {/* Subtle lower bars for background feel */}
                         <Bar 
                           dataKey="barValue" 
-                          fill="#2F69FF" 
-                          fillOpacity={0.15} 
+                          fill="#3b82f6" 
+                          fillOpacity={0.1} 
                           radius={[4, 4, 4, 4]} 
                           barSize={20} 
                           name="Goal Target" 
@@ -1347,10 +1352,10 @@ export function Dashboard() {
                         <Line 
                           type="monotone" 
                           dataKey="value" 
-                          stroke="#2F69FF" 
-                          strokeWidth={2.5} 
-                          dot={{ fill: '#2F69FF', stroke: '#ffffff', strokeWidth: 2, r: 6 }} 
-                          activeDot={{ r: 8 }}
+                          stroke="#3b82f6" 
+                          strokeWidth={2} 
+                          dot={{ fill: '#3b82f6', stroke: '#ffffff', strokeWidth: 2, r: 4 }} 
+                          activeDot={{ r: 6 }}
                           name="Actual Value" 
                         />
                       </ComposedChart>
@@ -1363,17 +1368,17 @@ export function Dashboard() {
             // 2. Sales Velocity Card
             if (cfg.id === 'sales_velocity') {
               return (
-                <div key="sales_velocity" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 animate-fadeIn" id="sales-velocity-card">
+                <div key="sales_velocity" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group" id="sales-velocity-card">
                   <div className="flex justify-between items-center mb-6">
                     <div>
-                      <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight flex items-center gap-2">
-                        <TrendingUp className="text-[#2F69FF] h-5 w-5" />
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                        <TrendingUp className="text-blue-500 h-5 w-5" />
                         Sales Velocity
                       </h3>
-                      <p className="text-slate-400 text-xs font-semibold">Conversion rate of leads over the last 30 days</p>
+                      <p className="text-slate-500 text-xs font-medium mt-1">Conversion rate of leads over the last 30 days</p>
                     </div>
                     <div className="flex items-center gap-3 text-xs">
-                      <span className="flex items-center gap-1.5 font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                      <span className="flex items-center gap-1.5 font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-800">
                         Avg: {salesVelocityData.length > 0 ? (salesVelocityData.reduce((acc, curr) => acc + (curr.conversionRate || 0), 0) / salesVelocityData.length).toFixed(1) : 0}%
                       </span>
                     </div>
@@ -1383,34 +1388,34 @@ export function Dashboard() {
                       <BarChart data={salesVelocityData} margin={{ top: 10, right: 10, bottom: 0, left: -25 }}>
                         <defs>
                           <linearGradient id="colorConversion" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2F69FF" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#2F69FF" stopOpacity={0.15}/>
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.15}/>
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f7" strokeOpacity={0.8} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.6} />
                         <XAxis 
                           dataKey="date" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }} 
+                          tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
                           dy={10} 
                         />
                         <YAxis 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }} 
+                          tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
                           dx={-10}
                           domain={[0, 100]}
                           tickFormatter={(tick) => `${tick}%`}
                         />
                         <Tooltip 
-                          cursor={{ fill: 'rgba(47, 105, 255, 0.05)', radius: 6 }}
+                          cursor={{ fill: 'rgba(59, 130, 246, 0.05)', radius: 6 }}
                           contentStyle={{ 
-                            borderRadius: '10px', 
-                            border: '1px solid #f1f3f7', 
-                            background: 'rgba(255,255,255,0.96)', 
+                            borderRadius: '12px', 
+                            border: '1px solid #e2e8f0', 
+                            background: 'rgba(255,255,255,0.9)', 
                             backdropFilter: 'blur(8px)', 
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.04)', 
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
                             padding: '10px 14px' 
                           }}
                           content={({ active, payload }) => {
@@ -1418,10 +1423,10 @@ export function Dashboard() {
                               const data = payload[0].payload;
                               return (
                                 <div className="space-y-1.5">
-                                  <p className="text-xs font-black text-slate-800 border-b border-slate-100 pb-1 mb-1">{data.date}</p>
-                                  <p className="text-[10px] font-bold text-slate-500">Leads: <span className="font-extrabold text-slate-800">{data.leadsCount}</span></p>
-                                  <p className="text-[10px] font-bold text-slate-500">Converted: <span className="font-extrabold text-emerald-600">{data.convertedCount}</span></p>
-                                  <p className="text-xs font-black text-[#2F69FF] mt-1 pt-1 border-t border-slate-100">Rate: {data.conversionRate}%</p>
+                                  <p className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1 mb-1">{data.date}</p>
+                                  <p className="text-[10px] font-medium text-slate-500">Leads: <span className="font-bold text-slate-800">{data.leadsCount}</span></p>
+                                  <p className="text-[10px] font-medium text-slate-500">Converted: <span className="font-bold text-emerald-600">{data.convertedCount}</span></p>
+                                  <p className="text-xs font-bold text-blue-600 mt-1 pt-1 border-t border-slate-100">Rate: {data.conversionRate}%</p>
                                 </div>
                               );
                             }
@@ -1448,36 +1453,36 @@ export function Dashboard() {
               const averageCompletionRate = totalWeekTickets > 0 ? ((totalWeekTasks / (totalWeekTickets + totalWeekTasks)) * 100).toFixed(1) : '0';
 
               return (
-                <div key="system_activity" className="bg-white dark:bg-slate-900 rounded-[10px] border border-[#eceef3] dark:border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 animate-fadeIn" id="system-activity-card">
+                <div key="system_activity" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group" id="system-activity-card">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
-                      <h3 className="text-base font-extrabold text-[#0e0e11] dark:text-white tracking-tight flex items-center gap-2">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                         <Activity className="text-amber-500 h-5 w-5" />
                         System Activity
                       </h3>
-                      <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold">Support tickets & completed tasks over the last 7 days</p>
+                      <p className="text-slate-500 text-xs font-medium mt-1">Support tickets & completed tasks over the last 7 days</p>
                     </div>
 
                     <div className="flex items-center gap-6 text-[11px] font-bold">
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 rounded-full bg-blue-500" />
                         <div className="flex flex-col">
-                          <span className="text-slate-400 dark:text-slate-500 leading-none">TỔNG YÊU CẦU</span>
-                          <span className="text-slate-800 dark:text-slate-300 font-extrabold mt-0.5">{totalWeekTickets} tickets</span>
+                          <span className="text-slate-500 leading-none">TỔNG YÊU CẦU</span>
+                          <span className="text-slate-900 dark:text-slate-300 font-bold mt-0.5">{totalWeekTickets} tickets</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 rounded-full bg-amber-500" />
                         <div className="flex flex-col">
-                          <span className="text-slate-400 dark:text-slate-500 leading-none">ĐÃ HOÀN THÀNH</span>
-                          <span className="text-slate-800 dark:text-slate-300 font-extrabold mt-0.5">{totalWeekTasks} tasks</span>
+                          <span className="text-slate-500 leading-none">ĐÃ HOÀN THÀNH</span>
+                          <span className="text-slate-900 dark:text-slate-300 font-bold mt-0.5">{totalWeekTasks} tasks</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 rounded-full bg-emerald-500" />
                         <div className="flex flex-col">
-                          <span className="text-slate-400 dark:text-slate-500 leading-none">TỶ LỆ GIẢI QUYẾT</span>
-                          <span className="text-emerald-600 font-extrabold mt-0.5">{averageCompletionRate}%</span>
+                          <span className="text-slate-500 leading-none">TỶ LỆ GIẢI QUYẾT</span>
+                          <span className="text-emerald-600 font-bold mt-0.5">{averageCompletionRate}%</span>
                         </div>
                       </div>
                     </div>
@@ -1501,23 +1506,23 @@ export function Dashboard() {
                           dataKey="date" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }} 
+                          tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
                           dy={10} 
                         />
                         <YAxis 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }} 
+                          tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
                           dx={-10}
                         />
                         <Tooltip 
                           cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '3 3' }}
                           contentStyle={{ 
                             borderRadius: '12px', 
-                            border: '1px solid #f1f3f7', 
-                            background: 'rgba(255,255,255,0.96)', 
+                            border: '1px solid #e2e8f0', 
+                            background: 'rgba(255,255,255,0.9)', 
                             backdropFilter: 'blur(8px)', 
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.08)', 
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
                             padding: '12px 16px' 
                           }}
                           content={({ active, payload }) => {
@@ -1525,16 +1530,16 @@ export function Dashboard() {
                               const data = payload[0].payload;
                               return (
                                 <div className="space-y-1.5 text-xs text-slate-800">
-                                  <p className="font-extrabold text-[#0e0e11] border-b border-slate-100 pb-1 mb-1">{data.fullDateLabel}</p>
-                                  <div className="flex items-center gap-2 text-[11px] font-bold">
+                                  <p className="font-bold text-slate-900 border-b border-slate-100 pb-1 mb-1">{data.fullDateLabel}</p>
+                                  <div className="flex items-center gap-2 text-[11px] font-medium">
                                     <span className="w-2 h-2 rounded-full bg-blue-500" />
                                     <span className="text-slate-500">Yêu cầu nhận được:</span>
-                                    <span className="font-extrabold ml-auto text-slate-900">{data.tickets}</span>
+                                    <span className="font-bold ml-auto text-slate-900">{data.tickets}</span>
                                   </div>
-                                  <div className="flex items-center gap-2 text-[11px] font-bold">
+                                  <div className="flex items-center gap-2 text-[11px] font-medium">
                                     <span className="w-2 h-2 rounded-full bg-amber-500" />
                                     <span className="text-slate-500">Nhiệm vụ hoàn thành:</span>
-                                    <span className="font-extrabold ml-auto text-slate-900">{data.tasks}</span>
+                                    <span className="font-bold ml-auto text-slate-900">{data.tasks}</span>
                                   </div>
                                 </div>
                               );
@@ -1546,7 +1551,7 @@ export function Dashboard() {
                           type="monotone" 
                           dataKey="tickets" 
                           stroke="#3B82F6" 
-                          strokeWidth={2.5} 
+                          strokeWidth={2} 
                           fillOpacity={1} 
                           fill="url(#colorTicketsGrad)" 
                           name="Tickets Volume"
@@ -1555,7 +1560,7 @@ export function Dashboard() {
                           type="monotone" 
                           dataKey="tasks" 
                           stroke="#FBBF24" 
-                          strokeWidth={2.5} 
+                          strokeWidth={2} 
                           fillOpacity={1} 
                           fill="url(#colorTasksGrad)" 
                           name="Task Completion"
@@ -1570,14 +1575,14 @@ export function Dashboard() {
             // 3. Deals Statistics Card
             if (cfg.id === 'deals_statistics') {
               return (
-                <div key="deals_statistics" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 animate-fadeIn">
+                <div key="deals_statistics" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group">
                   <div className="flex justify-between items-center mb-5">
                     <div>
-                      <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Deals Statistics</h3>
-                      <p className="text-slate-400 text-xs font-semibold">Tracking conversion stages of top prospects</p>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Deals Statistics</h3>
+                      <p className="text-slate-500 text-xs font-medium mt-1">Tracking conversion stages of top prospects</p>
                     </div>
                     <div>
-                      <select className="bg-[#f4f6fa]/70 border border-[#e4e7ec] text-[11px] font-bold text-slate-600 rounded-full py-1.5 px-3.5 focus:outline-none transition-colors hover:bg-[#f0f2f7] cursor-pointer">
+                      <select className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300 rounded-lg py-1.5 px-3 focus:outline-none transition-colors hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
                         <option>Sort by</option>
                         <option>Category</option>
                         <option>Date</option>
@@ -1588,7 +1593,7 @@ export function Dashboard() {
                   <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-[#f4f6fa] text-[#8c94a5] text-[10px] uppercase font-bold tracking-wider">
+                        <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-500 text-[10px] uppercase font-bold tracking-wider">
                           <th className="py-3 px-4">Customer</th>
                           <th className="py-3 px-4">Category</th>
                           <th className="py-3 px-4">Location</th>
@@ -1596,61 +1601,61 @@ export function Dashboard() {
                           <th className="py-3 px-4 text-right">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#fcfdfd]">
-                        <tr className="hover:bg-slate-50/40 transition-colors">
+                      <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                           <td className="py-3.5 px-4 flex items-center gap-3">
                             <img 
                               src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80" 
                               alt="Simon Corel" 
-                              className="w-10 h-10 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-slate-100" 
+                              className="w-10 h-10 rounded-full object-cover border border-slate-100 dark:border-slate-700" 
                             />
                             <div>
-                              <p className="font-extrabold text-xs text-slate-800 leading-snug">Simon Corel</p>
-                              <p className="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">simoncorel@gmail.com</p>
+                              <p className="font-bold text-xs text-slate-800 dark:text-slate-200 leading-snug">Simon Corel</p>
+                              <p className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">simoncorel@gmail.com</p>
                             </div>
                           </td>
-                          <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Service</td>
-                          <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Germany</td>
+                          <td className="py-3.5 px-4 text-xs font-bold text-slate-600 dark:text-slate-300">Service</td>
+                          <td className="py-3.5 px-4 text-xs font-bold text-slate-600 dark:text-slate-300">Germany</td>
                           <td className="py-3.5 px-4 text-xs font-bold text-slate-400">Aug 20, 2026</td>
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex justify-end gap-1.5">
-                              <button className="p-1.5 hover:bg-[#f0f2f5] text-slate-500 hover:text-[#2F69FF] rounded-lg transition-colors">
-                                <Edit2 size={13} className="stroke-[2.5]" />
+                              <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-blue-500 rounded-lg transition-colors">
+                                <Edit2 size={13} strokeWidth={2.5} />
                               </button>
-                              <button className="p-1.5 hover:bg-[#ffebee] text-slate-500 hover:text-red-500 rounded-lg transition-colors">
-                                <Trash2 size={13} className="stroke-[2.5]" />
+                              <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 rounded-lg transition-colors">
+                                <Trash2 size={13} strokeWidth={2.5} />
                               </button>
                             </div>
                           </td>
                         </tr>
                         
-                        {mockCustomers.map((cust, i) => (
-                          <tr key={cust.id + i} className="hover:bg-slate-50/40 transition-colors">
+                        {dashboardCustomers.slice(0, 5).map((cust, i) => (
+                          <tr key={cust.id + i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                             <td className="py-3.5 px-4 flex items-center gap-3">
                               <img 
                                 src={cust.avatar || `https://i.pravatar.cc/150?u=${cust.id}`} 
                                 alt={cust.name} 
-                                className="w-10 h-10 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.055)] border border-slate-100" 
+                                className="w-10 h-10 rounded-full object-cover border border-slate-100 dark:border-slate-700" 
                               />
                               <div>
-                                <p className="font-extrabold text-xs text-slate-800 leading-snug">{cust.name}</p>
-                                <p className="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">{cust.email}</p>
+                                <p className="font-bold text-xs text-slate-800 dark:text-slate-200 leading-snug">{cust.name}</p>
+                                <p className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">{cust.email}</p>
                               </div>
                             </td>
-                            <td className="py-3.5 px-4 text-xs font-bold text-slate-600">
+                            <td className="py-3.5 px-4 text-xs font-bold text-slate-600 dark:text-slate-300">
                               {cust.tier || 'Member'}
                             </td>
-                            <td className="py-3.5 px-4 text-xs font-bold text-slate-600">Vietnam</td>
+                            <td className="py-3.5 px-4 text-xs font-bold text-slate-600 dark:text-slate-300">Vietnam</td>
                             <td className="py-3.5 px-4 text-xs font-bold text-slate-400">
                               {new Date(cust.lastInteraction || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </td>
                             <td className="py-3.5 px-4 text-right">
                               <div className="flex justify-end gap-1.5">
-                                <button className="p-1.5 hover:bg-[#f0f2f5] text-slate-500 hover:text-[#2F69FF] rounded-lg transition-colors">
-                                  <Edit2 size={13} className="stroke-[2.5]" />
+                                <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-blue-500 rounded-lg transition-colors">
+                                  <Edit2 size={13} strokeWidth={2.5} />
                                 </button>
-                                <button className="p-1.5 hover:bg-[#ffebee] text-slate-500 hover:text-red-500 rounded-lg transition-colors">
-                                  <Trash2 size={13} className="stroke-[2.5]" />
+                                <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 rounded-lg transition-colors">
+                                  <Trash2 size={13} strokeWidth={2.5} />
                                 </button>
                               </div>
                             </td>
@@ -1675,21 +1680,21 @@ export function Dashboard() {
             // 1. Leads by Source Card
             if (cfg.id === 'leads_source') {
               return (
-                <div key="leads_source" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 animate-fadeIn">
+                <div key="leads_source" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group">
                   <div className="flex flex-col gap-3 mb-5">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">Leads & Pipeline Analytics</h3>
-                      <button className="text-slate-400 hover:text-slate-600 text-xs font-bold tracking-widest">•••</button>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leads & Pipeline Analytics</h3>
+                      <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-xs font-bold tracking-widest">•••</button>
                     </div>
 
                     {/* Styled Pill Selector for Tabs */}
-                    <div className="flex bg-[#f4f6fa] p-1 rounded-xl w-full border border-slate-100/50">
+                    <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-xl w-full border border-slate-200/50 dark:border-slate-700">
                       <button
                         onClick={() => setActiveSourceTab('source')}
                         className={`flex-1 text-center py-2 rounded-lg text-xs font-bold transition-all ${
                           activeSourceTab === 'source'
-                            ? 'bg-white text-slate-900 shadow-sm'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                            : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                         }`}
                       >
                         Leads by Source
@@ -1698,8 +1703,8 @@ export function Dashboard() {
                         onClick={() => setActiveSourceTab('pipeline')}
                         className={`flex-1 text-center py-2 rounded-lg text-xs font-bold transition-all ${
                           activeSourceTab === 'pipeline'
-                            ? 'bg-white text-slate-900 shadow-sm'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                            : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                         }`}
                       >
                         Pipeline Value
@@ -1708,8 +1713,8 @@ export function Dashboard() {
                         onClick={() => setActiveSourceTab('status')}
                         className={`flex-1 text-center py-2 rounded-lg text-xs font-bold transition-all ${
                           activeSourceTab === 'status'
-                            ? 'bg-white text-slate-900 shadow-sm'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                            : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                         }`}
                       >
                         Lead Status
@@ -1739,27 +1744,28 @@ export function Dashboard() {
                             </Pie>
                             <Tooltip
                               contentStyle={{
-                                borderRadius: '8px',
-                                border: '1px solid #f1f3f7',
-                                background: 'rgba(255,255,255,0.96)',
+                                borderRadius: '12px',
+                                border: '1px solid #e2e8f0',
+                                background: 'rgba(255,255,255,0.9)',
                                 backdropFilter: 'blur(8px)',
                                 fontSize: '11px',
-                                fontWeight: 700
+                                fontWeight: 600,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                               }}
                             />
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute text-center pointer-events-none">
                           <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase leading-none">Total</p>
-                          <p className="text-xl font-black text-slate-800 mt-1 leading-none">4,145</p>
+                          <p className="text-xl font-bold text-slate-900 dark:text-white mt-1 leading-none">4,145</p>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4 pt-4 border-t border-[#f8f9fb]">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4 pt-4 border-t border-slate-50 dark:border-slate-800">
                         {realLeadSources.map((src) => (
                           <div key={src.name} className="flex items-center justify-between pl-3 border-l-2 text-[10px] font-bold" style={{ borderColor: src.color }}>
-                            <span className="text-[#8c94a5] truncate max-w-[85px]">{src.name}</span>
-                            <span className="text-slate-800 font-extrabold">{src.value}</span>
+                            <span className="text-slate-500 dark:text-slate-400 truncate max-w-[85px]">{src.name}</span>
+                            <span className="text-slate-800 dark:text-slate-200 font-bold">{src.value}</span>
                           </div>
                         ))}
                       </div>
@@ -1775,27 +1781,28 @@ export function Dashboard() {
                                 <stop offset="95%" stopColor="#4F46E5" stopOpacity={0.0}/>
                               </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f7" strokeOpacity={0.8} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.6} />
                             <XAxis
                               dataKey="month"
                               axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }}
+                              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
                             />
                             <YAxis
                               axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#8c94a5', fontSize: 10, fontWeight: 700 }}
+                              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
                               tickFormatter={(val) => `${val}M`}
                             />
                             <Tooltip
                               contentStyle={{
-                                borderRadius: '8px',
-                                border: '1px solid #f1f3f7',
-                                background: 'rgba(255,255,255,0.96)',
+                                borderRadius: '12px',
+                                border: '1px solid #e2e8f0',
+                                background: 'rgba(255,255,255,0.9)',
                                 backdropFilter: 'blur(8px)',
                                 fontSize: '11px',
-                                fontWeight: 700
+                                fontWeight: 600,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                               }}
                             />
                             <Area
@@ -1856,28 +1863,28 @@ export function Dashboard() {
                         </ResponsiveContainer>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-[#f8f9fb] flex justify-between items-center text-xs">
+                      <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center text-xs">
                         <div>
                           <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">Cách lọc</p>
                           <p className="text-xs font-semibold text-slate-500">Ấn cột biểu đồ để xem chi tiết</p>
                         </div>
                         <div className="text-right">
                           <p className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">Tổng số Lead</p>
-                          <p className="text-xs font-black text-slate-800 mt-0.5">1,420</p>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white mt-0.5">1,420</p>
                         </div>
                       </div>
 
                       {/* Interactive Drill-down List View */}
                       {selectedStatusFilter && (
-                        <div className="mt-4 p-4 bg-slate-50 border border-slate-200/60 rounded-2xl animate-fadeIn text-left">
-                          <div className="flex justify-between items-center pb-2 border-b border-slate-200 mb-2">
-                            <span className="text-xs font-black text-slate-800 flex items-center gap-1">
+                        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl animate-fadeIn text-left">
+                          <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700 mb-2">
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
                               <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping inline-block" />
-                              Leads: <strong className="text-blue-600">{selectedStatusFilter}</strong> ({mockLeadsData.filter(l => l.status === selectedStatusFilter).length})
+                              Leads: <strong className="text-blue-600 dark:text-blue-400">{selectedStatusFilter}</strong> ({mockLeadsData.filter(l => l.status === selectedStatusFilter).length})
                             </span>
                             <button
                               onClick={() => setSelectedStatusFilter(null)}
-                              className="text-[10px] font-black text-rose-500 hover:text-rose-600 uppercase"
+                              className="text-[10px] font-bold text-rose-500 hover:text-rose-600 uppercase"
                             >
                               ✕ Bỏ lọc
                             </button>
@@ -1887,15 +1894,15 @@ export function Dashboard() {
                               <p className="text-[10px] font-bold text-slate-400 text-center py-2">Không tìm thấy leads nào</p>
                             ) : (
                               mockLeadsData.filter(l => l.status === selectedStatusFilter).map(lead => (
-                                <div key={lead.id} className="flex justify-between items-center text-xs p-2.5 bg-white rounded-xl border border-slate-100 hover:bg-slate-50/50 shadow-sm">
+                                <div key={lead.id} className="flex justify-between items-center text-xs p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-700/50 shadow-sm">
                                   <div>
-                                    <p className="font-extrabold text-slate-800">{lead.name}</p>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase">{lead.company} • SĐT: {lead.phone}</p>
+                                    <p className="font-bold text-slate-800 dark:text-slate-200">{lead.name}</p>
+                                    <p className="text-[9px] font-medium text-slate-400 uppercase">{lead.company} • SĐT: {lead.phone}</p>
                                   </div>
                                   <div className="text-right">
-                                    <p className="font-black text-indigo-650">{lead.value.toLocaleString('vi-VN')} đ</p>
-                                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
-                                      lead.priority === 'High' ? 'bg-red-50 text-red-650' : 'bg-slate-100 text-slate-600'
+                                    <p className="font-bold text-blue-600 dark:text-blue-400">{lead.value.toLocaleString('vi-VN')} đ</p>
+                                    <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                                      lead.priority === 'High' ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                                     }`}>{lead.priority}</span>
                                   </div>
                                 </div>
@@ -1913,36 +1920,36 @@ export function Dashboard() {
             // 2. AI Assistant Card
             if (cfg.id === 'ai_assistant') {
               return (
-                <div key="ai_assistant" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-6 flex flex-col justify-between min-h-[300px] animate-fadeIn">
+                <div key="ai_assistant" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between min-h-[300px] animate-fadeIn group">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-base font-extrabold text-[#0e0e11] tracking-tight">AI Assistant</h3>
-                    <button className="text-slate-400 hover:text-slate-600 text-xs font-bold tracking-widest">•••</button>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">AI Assistant</h3>
+                    <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-xs font-bold tracking-widest">•••</button>
                   </div>
 
                   <div className="relative py-8 flex flex-col items-center justify-center">
                     <div className="relative w-32 h-32 flex items-center justify-center">
-                      <div className="absolute inset-0 bg-gradient-to-tr from-[#2F69FF] via-[#5b8eff] to-[#1e40af] rounded-full filter blur-[14px] opacity-35 animate-pulse" />
-                      <div className="absolute inset-2 border-2 border-dashed border-[#2F69FF]/40 rounded-full animate-spin [animation-duration:15s]" />
-                      <div className="w-24 h-24 rounded-[40%] bg-gradient-to-br from-[#2F69FF] via-[#5b8eff] to-[#1e40af] shadow-[0_8px_24px_rgba(47,105,255,0.35)] animate-spin [animation-duration:8s] flex items-center justify-center" />
+                      <div className="absolute inset-0 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 rounded-full filter blur-[14px] opacity-30 animate-pulse" />
+                      <div className="absolute inset-2 border-2 border-dashed border-blue-500/30 rounded-full animate-spin [animation-duration:15s]" />
+                      <div className="w-24 h-24 rounded-[40%] bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 shadow-[0_8px_24px_rgba(59,130,246,0.3)] animate-spin [animation-duration:8s] flex items-center justify-center" />
                       <div className="absolute w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm shadow-inner pointer-events-none" />
                     </div>
                     
-                    <p className="text-[15px] font-bold text-[#4a5568] tracking-tight text-center mt-5">
+                    <p className="text-[15px] font-bold text-slate-700 dark:text-slate-300 tracking-tight text-center mt-5">
                       What Can I Help With?
                     </p>
                   </div>
 
-                  <div className="mt-2 flex items-center bg-[#ebf0ff]/60 border border-[#d2e0ff] rounded-full px-4 py-2 hover:bg-[#e2eaff]/80 transition-all">
-                    <button className="text-[#2F69FF] hover:text-[#1e40af] p-1 bg-white rounded-full h-6 w-6 flex items-center justify-center shadow-sm shrink-0">
-                      <Plus size={14} className="stroke-[3]" />
+                  <div className="mt-2 flex items-center bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-full px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
+                    <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 p-1 bg-white dark:bg-slate-800 rounded-full h-6 w-6 flex items-center justify-center shadow-sm shrink-0">
+                      <Plus size={14} strokeWidth={3} />
                     </button>
                     <input
                       type="text"
                       placeholder="Ask me anything"
-                      className="bg-transparent border-none text-xs text-slate-700 font-bold placeholder-[#9da3bc] focus:outline-none w-full px-3.5"
+                      className="bg-transparent border-none text-xs text-slate-700 dark:text-slate-200 font-medium placeholder-slate-400 focus:outline-none w-full px-3.5"
                     />
-                    <button className="bg-[#2F69FF] text-white p-2 rounded-full hover:bg-opacity-90 shadow-sm transition-all flex items-center justify-center shrink-0 w-8 h-8">
-                      <ArrowUp size={16} className="stroke-[3]" />
+                    <button className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 shadow-sm transition-all flex items-center justify-center shrink-0 w-8 h-8">
+                      <ArrowUp size={16} strokeWidth={3} />
                     </button>
                   </div>
                 </div>
@@ -1952,23 +1959,23 @@ export function Dashboard() {
             // 3. Top Deals Card
             if (cfg.id === 'top_deals') {
               return (
-                <div key="top_deals" className="bg-white rounded-[10px] border border-[#eceef3] shadow-[0_8px_30px_rgba(0,0,0,0.015)] p-5 animate-fadeIn">
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-xs font-bold text-[#0e0e11] uppercase tracking-wider">Top Deals</h3>
-                    <ChevronRight size={16} className="text-slate-400" />
+                <div key="top_deals" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group">
+                  <div className="flex justify-between items-center mb-5">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Top Deals</h3>
+                    <ChevronRight size={16} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer" />
                   </div>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#2F69FF] font-extrabold text-[10px]">
+                    <div className="flex justify-between items-center p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group-hover:border-slate-200 dark:group-hover:border-slate-700">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-[11px]">
                           TC
                         </div>
                         <div>
-                          <h5 className="text-[11px] font-bold text-slate-800">Techcom Corp Contract</h5>
-                          <p className="text-[9px] text-[#2F69FF] font-bold">Proposal Closed</p>
+                          <h5 className="text-xs font-bold text-slate-900 dark:text-white">Techcom Corp Contract</h5>
+                          <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">Proposal Closed</p>
                         </div>
                       </div>
-                      <span className="text-xs font-black text-slate-800">$18,200</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">$18,200</span>
                     </div>
                   </div>
                 </div>
@@ -2039,7 +2046,7 @@ export function Dashboard() {
           className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${
             isFabOpen 
               ? 'bg-rose-500 hover:bg-rose-600 rotate-45 animate-pulse' 
-              : 'bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-700 hover:to-indigo-700 shadow-[#2F69FF]/20 shadow-md'
+              : 'bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-700 hover:to-indigo-700 shadow-blue-600/20 shadow-md'
           }`}
           title="Thực hiện nhanh"
         >

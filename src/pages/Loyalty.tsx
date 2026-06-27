@@ -9,7 +9,7 @@ export function LoyaltyManagement() {
     { name: 'Silver', color: 'bg-slate-200 text-slate-700 w-16', members: 450, points: '0 - 1,000' },
     { name: 'Gold', color: 'bg-amber-100 text-amber-700 w-16', members: 210, points: '1,001 - 5,000' },
     { name: 'Platinum', color: 'bg-rose-100 text-rose-700 w-20', members: 85, points: '5,001 - 10,000' },
-    { name: 'Diamond', color: 'bg-blue-100 text-[#2F69FF] w-20', members: 20, points: '10,000+' }
+    { name: 'Diamond', color: 'bg-blue-100 text-blue-600 w-20', members: 20, points: '10,000+' }
   ];
 
   const members = [
@@ -98,7 +98,7 @@ export function LoyaltyManagement() {
                           <td className="p-4 font-black tracking-tight text-slate-700">{member.points.toLocaleString()}</td>
                           <td className="p-4 text-slate-600 font-medium">{member.joined}</td>
                           <td className="p-4 text-right">
-                            <button className="text-[#2F69FF] font-bold hover:underline text-xs flex items-center justify-end gap-1 ml-auto">
+                            <button className="text-blue-600 font-bold hover:underline text-xs flex items-center justify-end gap-1 ml-auto">
                               Chi tiết <ChevronRight size={14} />
                             </button>
                           </td>
@@ -115,7 +115,7 @@ export function LoyaltyManagement() {
            <div className="space-y-6">
              <div className="bg-white border border-slate-200 rounded-[12px] shadow-sm p-6 max-w-4xl">
                <div className="flex items-center gap-3 mb-6">
-                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#2F69FF]">
+                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                    <Settings size={20} />
                  </div>
                  <div>
@@ -130,7 +130,7 @@ export function LoyaltyManagement() {
                      <p className="font-bold text-slate-800">Tỷ lệ quy đổi cơ bản</p>
                      <p className="text-xs text-slate-500 font-medium mt-1">100,000 VND = 1 Điểm</p>
                    </div>
-                   <button className="text-[#2F69FF] font-bold text-sm bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">Thay đổi</button>
+                   <button className="text-blue-600 font-bold text-sm bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">Thay đổi</button>
                  </div>
                  
                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">

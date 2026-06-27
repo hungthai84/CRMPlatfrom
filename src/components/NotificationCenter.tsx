@@ -180,13 +180,15 @@ export function NotificationCenter({ isCollapsed = false }: { isCollapsed?: bool
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-full flex items-center py-2 rounded-xl hover:bg-slate-200/50 transition-colors dark:hover:bg-slate-800/50 group",
-          isCollapsed ? "justify-center relative" : "justify-between px-3"
+          "w-full flex items-center py-2.5 px-3 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all dark:hover:bg-slate-800 dark:hover:text-slate-300 group outline-none text-slate-500 dark:text-slate-400",
+          isCollapsed ? "justify-center relative" : "justify-between"
         )}
       >
-        <div className="flex items-center gap-2">
-          <Bell size={isCollapsed ? 18 : 16} className="text-slate-400 group-hover:text-[#FBBF24] transition-colors" />
-          {!isCollapsed && <span className="text-xs font-semibold text-slate-500 group-hover:text-[#FBBF24]">Thông báo</span>}
+        <div className="flex items-center gap-3">
+          <div className="shrink-0">
+            <Bell size={18} strokeWidth={2} className="transition-colors" />
+          </div>
+          {!isCollapsed && <span className="text-sm font-medium transition-colors">Thông báo</span>}
         </div>
         {!isCollapsed && unreadCount > 0 && (
           <span className="w-5 h-5 bg-[#FF4560] text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shrink-0">
@@ -194,7 +196,7 @@ export function NotificationCenter({ isCollapsed = false }: { isCollapsed?: bool
           </span>
         )}
         {isCollapsed && unreadCount > 0 && (
-          <span className="absolute top-1 right-2 w-2 h-2 bg-[#FF4560] rounded-full border-2 border-white dark:border-slate-900"></span>
+          <span className="absolute top-1.5 right-2 w-2.5 h-2.5 bg-[#FF4560] rounded-full border-2 border-white dark:border-slate-900"></span>
         )}
       </button>
 

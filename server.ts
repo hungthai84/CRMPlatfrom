@@ -9,6 +9,11 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  app.use((req, res, next) => {
+    console.log(`[REQ] ${req.method} ${req.url}`);
+    next();
+  });
+
   app.use(express.json());
 
   // API Route for AI Chat Assistant
@@ -70,6 +75,11 @@ async function startServer() {
     try {
       const email = req.user.email || 'unknown@example.com';
       const { sessionId, loginTime, logoutTime, activeTime, status } = req.body;
+      
+      if (!sessionId || !loginTime) {
+        return res.status(400).json({ error: "Missing required session synchronization data." });
+      }
+
       const log = await syncSessionLog({
         sessionId,
         email,
@@ -80,6 +90,7 @@ async function startServer() {
       });
       res.json({ success: true, log });
     } catch (error: any) {
+      console.error("Session sync route error:", error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -108,6 +119,12 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  // Global Error Handler
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ error: err.message || 'Internal Server Error' });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);

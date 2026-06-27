@@ -54,8 +54,20 @@ export async function syncSessionLog(log: {
   status: string;
 }) {
   try {
-    const loginDate = new Date(log.loginTime);
-    const logoutDate = log.logoutTime ? new Date(log.logoutTime) : null;
+    if (!log.sessionId) {
+      throw new Error("Session ID is required for sync.");
+    }
+
+    // Ensure we handle numeric strings if they come from the API
+    const loginTs = typeof log.loginTime === 'string' ? parseInt(log.loginTime, 10) : log.loginTime;
+    const logoutTs = typeof log.logoutTime === 'string' ? parseInt(log.logoutTime, 10) : log.logoutTime;
+
+    const loginDate = new Date(loginTs);
+    const logoutDate = logoutTs ? new Date(logoutTs) : null;
+
+    if (isNaN(loginDate.getTime())) {
+      throw new Error(`Invalid login time provided: ${log.loginTime}`);
+    }
 
     const result = await db.insert(sessionLogs)
       .values({
@@ -63,14 +75,14 @@ export async function syncSessionLog(log: {
         email: log.email,
         loginTime: loginDate,
         logoutTime: logoutDate,
-        activeTime: log.activeTime,
+        activeTime: Math.floor(log.activeTime || 0),
         status: log.status,
       })
       .onConflictDoUpdate({
         target: sessionLogs.sessionId,
         set: {
           logoutTime: logoutDate,
-          activeTime: log.activeTime,
+          activeTime: Math.floor(log.activeTime || 0),
           status: log.status,
         },
       })
@@ -78,6 +90,9 @@ export async function syncSessionLog(log: {
     return result[0];
   } catch (error) {
     console.error("Database query failed in syncSessionLog:", error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to synchronize session log: ${error.message}`, { cause: error });
+    }
     throw new Error("Failed to synchronize session logs on cloud server.", { cause: error });
   }
 }

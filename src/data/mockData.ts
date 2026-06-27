@@ -50,6 +50,14 @@ export const mockOpportunities: Opportunity[] = [
   { id: 'OPP-05', title: 'Máy làm lạnh CN khu vực Nam', company: 'CoolingTech', amount: 30000000, stage: 'Lead', probability: 10, expectedClose: '2026-08-10' },
 ];
 
+export const mockLeadsData = [
+  { id: 'LD-101', name: 'Phạm Minh Trí', company: 'TechVina Corp', value: 15000000, priority: 'High', status: 'Mới', phone: '0901234555' },
+  { id: 'LD-102', name: 'Trần Cường', company: 'Đầu tư Á Châu', value: 34000000, priority: 'Medium', status: 'Mới', phone: '0983444222' },
+  { id: 'LD-103', name: 'Lê Kiều Trang', company: 'Sơn Hà Group', value: 12000000, priority: 'Low', status: 'Mới', phone: '0912333211' },
+  { id: 'LD-104', name: 'Đặng Quốc Anh', company: 'BĐS Hải Đường', value: 45000000, priority: 'High', status: 'Đang gọi', phone: '0934111222' },
+  { id: 'LD-105', name: 'Vũ Thị Mai', company: 'Y tế Hoàn Mỹ', value: 25000000, priority: 'Low', status: 'Đang gọi', phone: '0977888999' },
+];
+
 export const mockTickets: Ticket[] = [
   { 
     id: 'TCK-9001', 

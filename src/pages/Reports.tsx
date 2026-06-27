@@ -195,7 +195,7 @@ export function Reports() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white rounded-2xl p-6 border border-slate-200 shadow-sm gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <BarChart3 className="text-[#2F69FF] w-6 h-6" />
+            <BarChart3 className="text-blue-600 w-6 h-6" />
             Báo cáo & Phân tích CRM
           </h1>
           <p className="text-xs text-slate-500 font-semibold mt-1">
@@ -232,7 +232,7 @@ export function Reports() {
             </button>
             <button
               onClick={handleExportPDF}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-white bg-[#2F69FF] hover:bg-[#2050E0] shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-white bg-blue-600 hover:bg-[#2050E0] shadow-sm transition-all cursor-pointer"
               title="In hoặc Lưu báo cáo dưới dạng vector PDF"
             >
               <Download className="w-3.5 h-3.5" />
@@ -354,7 +354,7 @@ export function Reports() {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col">
           <div>
             <h2 className="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#2F69FF] block"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600 block"></span>
               Cơ cấu Hạng thẻ Khách hàng
             </h2>
             <p className="text-[11px] text-slate-500 font-medium">Tỷ lệ phân tán thành viên theo số lượng người dùng thực</p>

@@ -482,12 +482,12 @@ export function Customer360({ customerId, onBack }: { customerId: string | null,
     } else if (score >= 50) {
       return {
         label: 'Warm Lead (Khách hàng Quan tâm)',
-        color: 'text-[#2F69FF] bg-blue-50 border-blue-150',
-        barColor: 'bg-[#2F69FF]',
+        color: 'text-blue-600 bg-blue-50 border-blue-150',
+        barColor: 'bg-blue-600',
         pulseGlow: 'shadow-[0_0_12px_rgba(47,105,255,0.25)]',
         accentText: 'Khách hàng đang tìm hiểu dịch vụ tích cực, khối lượng tương tác ổn định.',
         textColor: 'text-blue-600',
-        badgeColor: 'bg-[#2F69FF]'
+        badgeColor: 'bg-blue-600'
       };
     } else {
       return {
@@ -879,7 +879,7 @@ export function Customer360({ customerId, onBack }: { customerId: string | null,
                 </div>
 
                 <div className="mt-3.5 flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold bg-slate-50 p-2 rounded-lg border border-slate-100">
-                  <AlertCircle size={12} className="text-[#2F69FF] shrink-0" />
+                  <AlertCircle size={12} className="text-blue-600 shrink-0" />
                   <span>
                     Công thức: <code className="font-mono text-slate-700 bg-white px-1 py-0.5 rounded border">LeadScore = Clamp(50 + (Hoạt động * 8) - (Tickets * 10))</code>
                   </span>

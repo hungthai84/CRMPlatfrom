@@ -361,7 +361,7 @@ export function Journey() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Map className="text-[#2F69FF] shrink-0" size={30} />
+            <Map className="text-blue-600 shrink-0" size={30} />
             Hành Trình Khách Hàng (Customer Journey)
           </h1>
           <p className="text-slate-500 text-sm mt-1.5 font-semibold">
@@ -392,7 +392,7 @@ export function Journey() {
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center min-h-[300px]">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2F69FF] mr-3"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mr-3"></div>
           <span className="text-slate-500 font-semibold text-sm">Đang tải dữ liệu hành trình...</span>
         </div>
       ) : customers.length === 0 ? (
@@ -407,7 +407,7 @@ export function Journey() {
           <button 
             onClick={triggerSeed}
             disabled={seeding}
-            className="bg-[#2F69FF] shadow-md shadow-[#2F69FF]/20 text-white px-6 py-3 rounded-xl font-bold text-xs hover:bg-[#1a55eb] transition-all flex items-center gap-2 cursor-pointer"
+            className="bg-blue-600 shadow-md shadow-blue-600/20 text-white px-6 py-3 rounded-xl font-bold text-xs hover:bg-blue-700 transition-all flex items-center gap-2 cursor-pointer"
           >
             {seeding ? 'Đang thiết lập dữ liệu...' : 'Khởi tạo dữ liệu mẫu ngay'}
           </button>
@@ -548,7 +548,7 @@ export function Journey() {
                   <button
                     onClick={startSimulation}
                     disabled={!selectedCustomer}
-                    className="w-full bg-[#2F69FF] hover:bg-blue-600 text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-600 hover:bg-blue-600 text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Zap size={14} /> Kích hoạt Giả lập (Bản Demo)
                   </button>
@@ -620,7 +620,7 @@ export function Journey() {
                   {/* Add touchpoint inline form expansion */}
                   <form onSubmit={handleAddTouchpoint} className="bg-slate-50/70 border border-slate-150 rounded-xl p-4 md:p-5 mb-8 space-y-4">
                     <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <PlusCircle size={14} className="text-[#2F69FF]" /> Ghi nhận điểm chạm mới thủ công
+                      <PlusCircle size={14} className="text-blue-600" /> Ghi nhận điểm chạm mới thủ công
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
@@ -765,7 +765,7 @@ export function Journey() {
           {/* Large Funnel conversion block */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-1">
-              <TrendingUp className="text-[#2F69FF]" size={16} /> Bản đồ Phễu tương tác Hệ thống
+              <TrendingUp className="text-blue-600" size={16} /> Bản đồ Phễu tương tác Hệ thống
             </h2>
             <p className="text-xs text-slate-400 mb-8 font-semibold">
               Biểu diễn tỷ lệ hao hụt rò rỉ khách hàng qua các khâu từ ban đầu đến thành viên Đại sứ thương hiệu liên kết.
@@ -838,7 +838,7 @@ export function Journey() {
 
             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
               <h3 className="font-extrabold text-xs text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-                <HelpCircle size={14} className="text-[#2F69FF]" />
+                <HelpCircle size={14} className="text-blue-600" />
                 Đồng bộ phím tắt & Đánh giá Ghi âm
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed font-semibold">

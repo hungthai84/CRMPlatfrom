@@ -4,17 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
-      // Temporary workaround for polyfills trying to overwrite window.fetch
+      // Temporary workaround for polyfills trying to overwrite window.fetch - modified to allow safe wrappers
       try {
         const originalFetch = window.fetch;
+        let currentFetch = window.fetch;
         Object.defineProperty(window, 'fetch', {
           configurable: true,
           enumerable: true,
           get() {
-            return originalFetch;
+            return currentFetch || originalFetch;
           },
           set(newFetch) {
-            console.warn('Intercepted attempt to overwrite window.fetch. Ignoring.');
+            console.warn('Detected attempt to overwrite window.fetch. Allowing wrapper.');
+            currentFetch = newFetch || originalFetch;
           }
         });
       } catch (e) {

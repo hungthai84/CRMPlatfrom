@@ -150,124 +150,46 @@ function AppContent() {
       }).catch(err => console.error("Session sync failed:", err));
     }
 
-    const interval = setInterval(() => {
-      const logsStr = localStorage.getItem('crm_session_logs') || '[]';
-      try {
-        let currentLogs = JSON.parse(logsStr);
-        if (Array.isArray(currentLogs)) {
-          let updated = false;
-          let activeLogToSync: any = null;
-          currentLogs = currentLogs.map((log: any) => {
-            if (log.id === savedSessId && log.status === 'active') {
-              updated = true;
-              const nextLog = {
-                ...log,
-                activeTime: (log.activeTime || 0) + 1
-              };
-              activeLogToSync = nextLog;
-              return nextLog;
-            }
-            return log;
-          });
-          if (updated) {
-            localStorage.setItem('crm_session_logs', JSON.stringify(currentLogs));
-            // Sync intermediate updates to Cloud SQL
-            if (activeLogToSync) {
-              syncSessionWithDb({
-                sessionId: activeLogToSync.id,
-                loginTime: activeLogToSync.loginTime,
-                logoutTime: null,
-                activeTime: activeLogToSync.activeTime,
-                status: activeLogToSync.status
-              }).catch(err => console.error("Session tick sync failed:", err));
+      const interval = setInterval(() => {
+        const logsStr = localStorage.getItem('crm_session_logs') || '[]';
+        try {
+          let currentLogs = JSON.parse(logsStr);
+          if (Array.isArray(currentLogs)) {
+            let updated = false;
+            let activeLogToSync: any = null;
+            currentLogs = currentLogs.map((log: any) => {
+              if (log.id === savedSessId && log.status === 'active') {
+                updated = true;
+                const nextLog = {
+                  ...log,
+                  activeTime: (log.activeTime || 0) + 1
+                };
+                activeLogToSync = nextLog;
+                return nextLog;
+              }
+              return log;
+            });
+            if (updated) {
+              localStorage.setItem('crm_session_logs', JSON.stringify(currentLogs));
+              // Sync intermediate updates to Cloud SQL every 15 seconds
+              if (activeLogToSync && activeLogToSync.activeTime % 15 === 0) {
+                syncSessionWithDb({
+                  sessionId: activeLogToSync.id,
+                  loginTime: activeLogToSync.loginTime,
+                  logoutTime: null,
+                  activeTime: activeLogToSync.activeTime,
+                  status: activeLogToSync.status
+                }).catch(err => console.error("Session tick sync failed:", err));
+              }
             }
           }
-        }
-      } catch (e) {}
-    }, 1000);
+        } catch (e) {}
+      }, 1000);
 
     return () => clearInterval(interval);
   }, [user]);
 
-  // Idle session expiration states
-  const [isIdleWarningOpen, setIsIdleWarningOpen] = useState(false);
-  const [countdown, setCountdown] = useState(30);
-  const [isTestMode, setIsTestMode] = useState(false);
 
-  const IDLE_LIMIT = 120 * 1000; // 2 minutes (120s)
-  const currentIdleLimit = isTestMode ? 10 * 1000 : IDLE_LIMIT; // 10s for demo/test mode
-
-  // Log activities or inputs to reset the timer
-  useEffect(() => {
-    if (!user) return;
-
-    let activityTimeout: NodeJS.Timeout;
-
-    const resetIdleTimer = () => {
-      if (isIdleWarningOpen) return;
-      clearTimeout(activityTimeout);
-      
-      activityTimeout = setTimeout(() => {
-        setIsIdleWarningOpen(true);
-        setCountdown(30);
-      }, currentIdleLimit);
-    };
-
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    events.forEach(event => {
-      window.addEventListener(event, resetIdleTimer);
-    });
-
-    // Initialize timer
-    resetIdleTimer();
-
-    return () => {
-      clearTimeout(activityTimeout);
-      events.forEach(event => {
-        window.removeEventListener(event, resetIdleTimer);
-      });
-    };
-  }, [user, isIdleWarningOpen, currentIdleLimit]);
-
-  // Countdown timer tick when warn dialog is displayed
-  useEffect(() => {
-    let countdownInterval: NodeJS.Timeout;
-
-    if (isIdleWarningOpen && countdown > 0) {
-      countdownInterval = setInterval(() => {
-        setCountdown(prev => prev - 1);
-      }, 1000);
-    }
-
-    return () => {
-      if (countdownInterval) clearInterval(countdownInterval);
-    };
-  }, [isIdleWarningOpen, countdown]);
-
-  // Handle session expiration when countdown hits 0
-  useEffect(() => {
-    if (isIdleWarningOpen && countdown === 0) {
-      setIsIdleWarningOpen(false);
-      addToast(
-        'Phiên làm việc hết hạn',
-        'Bạn đã tự động đăng xuất do không hoạt động trong thời gian dài.',
-        'warning',
-        'system'
-      );
-      localStorage.setItem('crm_is_timeout_logout', 'true');
-      authLogout();
-    }
-  }, [isIdleWarningOpen, countdown, authLogout, addToast]);
-
-  const handleExtendSession = () => {
-    setIsIdleWarningOpen(false);
-    addToast(
-      'Gia hạn phiên làm việc',
-      'Tiến trình làm việc của bạn đã được bảo vệ và gia hạn thành công.',
-      'success',
-      'system'
-    );
-  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -323,7 +245,7 @@ function AppContent() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F69FF]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -389,9 +311,9 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-[#FBBF24] overflow-hidden font-sans relative p-[5px]">
-      {/* Main Container styled as a modern sleek canvas layout */}
-      <div className="relative z-10 flex h-full w-full overflow-hidden bg-[#F4F5F9] dark:bg-slate-950 no-scrollbar rounded-[10px] shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <div className="flex h-screen w-screen bg-primary p-[5px] overflow-hidden font-sans relative">
+      {/* Main Container styled as a modern sleek canvas layout with rounded corners */}
+      <div className="relative z-10 flex h-full w-full overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[10px] shadow-2xl">
         <Sidebar 
           currentTab={currentTab} 
           setCurrentTab={setCurrentTab} 
@@ -399,7 +321,7 @@ function AppContent() {
           onClose={() => setIsMobileMenuOpen(false)} 
           onSearchClick={() => setIsSearchOpen(true)}
         />
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden p-2 sm:p-4 gap-[5px]" style={{ width: '130px' }}>
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           {/* Mobile Menu Button - shows only on small screens when sidebar is hidden */}
           {!isMobileMenuOpen && (
             <button 
@@ -409,15 +331,15 @@ function AppContent() {
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
           )}
-          <main className="flex-1 overflow-hidden flex flex-col pb-1 relative">
-            <div className="flex-1 overflow-hidden flex flex-col relative rounded-[10px]">
+          <main className="flex-1 overflow-hidden flex flex-col relative">
+            <div className="flex-1 overflow-hidden flex flex-col relative">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentTab}
-                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.15 } }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10, transition: { duration: 0.15 } }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                   className="flex-1 h-full w-full overflow-auto no-scrollbar"
                 >
                   {renderContent()}
@@ -438,87 +360,7 @@ function AppContent() {
       <AIChatWidget />
       <QuickNoteWidget />
 
-      {/* Session Expiry Warning Dialog */}
-      <AnimatePresence>
-        {isIdleWarningOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-slate-900 rounded-3xl border border-rose-100 dark:border-rose-950/60 shadow-[0_20px_50px_rgba(0,0,0,0.15)] max-w-md w-full overflow-hidden p-6 relative"
-            >
-              <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-slate-50 dark:bg-slate-850 p-1.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                <span className="text-[9px] font-black uppercase text-slate-450 dark:text-slate-400">Chế độ Test (10s)</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsTestMode(!isTestMode);
-                    setIsIdleWarningOpen(false);
-                    addToast('Cấu hình thử nghiệm', `Đã chuyển sang chế độ ${!isTestMode ? 'Thử nghiệm nhanh (10 giây rảnh)' : 'Thường (2 phút rảnh)'}.`, 'info', 'system');
-                  }}
-                  className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-250 relative ${isTestMode ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-800'}`}
-                >
-                  <div className={`w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-250 ${isTestMode ? 'translate-x-4' : 'translate-x-0'}`} />
-                </button>
-              </div>
 
-              <div className="flex flex-col items-center text-center mt-6">
-                <div className="w-16 h-16 bg-rose-50 dark:bg-rose-950/30 rounded-2xl flex items-center justify-center mb-4 text-rose-500 dark:text-rose-450 shadow-inner">
-                  <ShieldAlert size={32} className="animate-bounce" />
-                </div>
-                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
-                  Cảnh báo bảo mật hệ thống
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-semibold max-w-xs mb-6">
-                  Khoảng thời gian rảnh rỗi đã đạt hạn mức. Phiên làm việc sẽ đóng tự động để bảo vệ tiến trình và tài khoản.
-                </p>
-
-                {/* Circular countdown visualization */}
-                <div className="relative flex items-center justify-center mb-6">
-                  <div className="text-3xl font-black text-rose-600 dark:text-rose-400 font-mono tracking-tight">
-                    {countdown}s
-                  </div>
-                  <div className="absolute -inset-4 border-2 border-slate-100 dark:border-slate-800 rounded-full" />
-                </div>
-
-                {/* Progress bar countdown */}
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mb-6">
-                  <div 
-                    style={{ width: `${(countdown / 30) * 100}%` }} 
-                    className="bg-gradient-to-r from-rose-500 to-amber-500 h-full transition-all duration-1000"
-                  />
-                </div>
-
-                <div className="flex gap-3 w-full">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      authLogout();
-                      setIsIdleWarningOpen(false);
-                    }}
-                    className="flex-1 py-2.5 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-xl font-bold text-xs transition-all text-center border border-slate-200 dark:border-slate-800 outline-none"
-                  >
-                    Đăng xuất
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleExtendSession}
-                    className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs transition-all shadow-md shadow-blue-500/10 hover:shadow-lg flex items-center justify-center gap-1.5 outline-none"
-                  >
-                    <Sparkles size={14} /> Gia hạn phiên
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

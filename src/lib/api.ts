@@ -1,4 +1,4 @@
-import { auth } from "./firebase.ts";
+import { auth } from "./firebase";
 
 /**
  * Retrieves the authorization token for backend API requests.
@@ -48,6 +48,7 @@ export async function syncUserWithDb(): Promise<boolean> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         "Authorization": `Bearer ${token}`
       }
     });
@@ -75,6 +76,7 @@ export async function fetchSessionLogsFromDb() {
     const res = await fetch("/api/sessions", {
       method: "GET",
       headers: {
+        "Accept": "application/json",
         "Authorization": `Bearer ${token}`
       }
     });
@@ -109,6 +111,7 @@ export async function syncSessionWithDb(log: {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(log)
@@ -138,6 +141,7 @@ export async function clearSessionLogsInDb(): Promise<boolean> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         "Authorization": `Bearer ${token}`
       }
     });

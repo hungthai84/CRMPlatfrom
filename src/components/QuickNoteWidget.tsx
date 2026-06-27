@@ -352,7 +352,7 @@ export function QuickNoteWidget() {
                           <button
                             type="button"
                             onClick={() => handleCopyText(note)}
-                            className="p-1 text-slate-400 hover:text-[#2F69FF] hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded relative"
+                            className="p-1 text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded relative"
                             title="Copy"
                           >
                             {copiedId === note.id ? (

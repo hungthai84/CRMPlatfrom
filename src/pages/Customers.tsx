@@ -36,6 +36,30 @@ export function Customers({ onSelect }: CustomersProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  const triggerDriveSync = async () => {
+    setSyncing(true);
+    try {
+      const { syncDataToDrive } = await import('../lib/syncService');
+      const id = await syncDataToDrive(user?.uid, isAdmin);
+      addToast(
+        'Đồng bộ thành công',
+        `Dữ liệu đã được sao lưu lên Google Drive! ID bảng tính: ${id.substring(0, 10)}...`,
+        'success',
+        'system'
+      );
+    } catch (e: any) {
+      addToast(
+        'Lỗi đồng bộ',
+        `Không thể đồng bộ dữ liệu: ${e.message}`,
+        'error',
+        'system'
+      );
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   // Filter criteria states
   const [filterTier, setFilterTier] = useState<string>('All');
@@ -373,7 +397,7 @@ export function Customers({ onSelect }: CustomersProps) {
       <span>
         {parts.map((part, i) => 
           part.toLowerCase() === search.toLowerCase() ? (
-            <mark key={i} className="bg-yellow-200 text-slate-900 font-extrabold px-1.5 py-0.5 rounded shadow-xs">
+            <mark key={i} className="bg-blue-100 text-blue-900 font-bold px-0.5 rounded">
               {part}
             </mark>
           ) : (
@@ -385,29 +409,39 @@ export function Customers({ onSelect }: CustomersProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/40 relative p-4 lg:p-6 overflow-y-auto w-full no-scrollbar space-y-6">
+    <div className="flex flex-col h-full bg-transparent relative p-6 overflow-y-auto w-full no-scrollbar space-y-8">
       <div className="flex justify-between items-center mb-8 shrink-0">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Danh sách Khách hàng</h1>
-          <p className="text-slate-500 text-sm mt-1.5 font-semibold">Quản lý và theo dõi thông tin khách hàng.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Danh sách Khách hàng</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1.5 font-medium">Quản lý và theo dõi thông tin khách hàng chi tiết.</p>
         </div>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-[#2F69FF] shadow-md shadow-[#2F69FF]/20 text-white px-5 py-2.5 rounded-[10px] font-bold text-sm hover:bg-[#1a55eb] transition-all flex items-center gap-2"
-        >
-          <Plus size={18} /> Thêm khách hàng mới
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={triggerDriveSync}
+            disabled={syncing}
+            className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 shadow-md shadow-emerald-500/20 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ Drive'}
+          </button>
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-blue-600 shadow-md shadow-blue-500/20 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Plus size={18} /> Thêm khách hàng
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-4 mb-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
-            placeholder="Tìm kiếm khách hàng theo tên, email, SDT..." 
+            placeholder="Tìm kiếm khách hàng..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-[10px] text-sm outline-none focus:border-[#2F69FF] focus:ring-2 focus:ring-blue-100 transition-all font-medium" 
+            className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium" 
           />
         </div>
         <div className="flex gap-2">
@@ -416,11 +450,11 @@ export function Customers({ onSelect }: CustomersProps) {
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
             className={`flex items-center gap-2 text-sm font-bold border rounded-[10px] shadow-sm px-4 py-2 transition-all ${
               isSettingsOpen 
-                ? 'bg-blue-50 border-[#2F69FF] text-[#2F69FF] dark:bg-indigo-950/20 dark:border-indigo-800/80 dark:text-indigo-400' 
+                ? 'bg-blue-50 border-blue-600 text-blue-600 dark:bg-indigo-950/20 dark:border-indigo-800/80 dark:text-indigo-400' 
                 : 'text-gray-700 border-gray-300 bg-white hover:bg-gray-50 dark:bg-slate-900 dark:border-slate-850 dark:text-slate-300 dark:hover:bg-slate-800/70'
             }`}
           >
-            <SlidersHorizontal className="w-4 h-4 text-[#2F69FF] dark:text-indigo-400" /> Cài đặt hiển thị
+            <SlidersHorizontal className="w-4 h-4 text-blue-600 dark:text-indigo-400" /> Cài đặt hiển thị
           </button>
           <button 
             type="button"
@@ -489,7 +523,7 @@ export function Customers({ onSelect }: CustomersProps) {
             <select
               value={filterTier}
               onChange={(e) => setFilterTier(e.target.value)}
-              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:border-[#2F69FF] transition-all cursor-pointer shadow-xs"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:border-blue-600 transition-all cursor-pointer shadow-xs"
             >
               <option value="All">Tất cả hạng thẻ</option>
               <option value="Diamond">Diamond</option>
@@ -506,7 +540,7 @@ export function Customers({ onSelect }: CustomersProps) {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:border-[#2F69FF] transition-all cursor-pointer shadow-xs"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:border-blue-600 transition-all cursor-pointer shadow-xs"
             >
               <option value="All">Tất cả phân loại</option>
               <option value="Tiềm năng">Tiềm năng</option>
@@ -522,7 +556,7 @@ export function Customers({ onSelect }: CustomersProps) {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:border-[#2F69FF] transition-all cursor-pointer shadow-xs"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:border-blue-600 transition-all cursor-pointer shadow-xs"
             >
               <option value="All">Tất cả trạng thái</option>
               <option value="Hoạt động">Hoạt động</option>
@@ -539,7 +573,7 @@ export function Customers({ onSelect }: CustomersProps) {
                 value={filterMinLtv === 0 ? '' : filterMinLtv}
                 placeholder="Ví dụ: 50.000.000 đ"
                 onChange={(e) => setFilterMinLtv(Number(e.target.value) || 0)}
-                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs font-bold text-slate-755 dark:text-slate-300 outline-none focus:border-[#2F69FF] transition-all shadow-xs"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs font-bold text-slate-755 dark:text-slate-300 outline-none focus:border-blue-600 transition-all shadow-xs"
               />
               {filterMinLtv > 0 && (
                 <button
@@ -558,7 +592,7 @@ export function Customers({ onSelect }: CustomersProps) {
         <div className="flex items-center justify-between gap-4 mt-1 border-t border-slate-150 dark:border-slate-850 pt-3">
           <div>
             <span className="text-xs text-slate-500 dark:text-slate-450 font-semibold">
-              Khai thác tìm thấy: <strong className="font-extrabold text-[#2F69FF]">{filteredCustomers.length}</strong> khách hàng trong cấu hình hiện tại.
+              Khai thác tìm thấy: <strong className="font-extrabold text-blue-600">{filteredCustomers.length}</strong> khách hàng trong cấu hình hiện tại.
             </span>
           </div>
 
@@ -567,7 +601,7 @@ export function Customers({ onSelect }: CustomersProps) {
               <button
                 type="button"
                 onClick={() => setShowSaveAsPresetInput(true)}
-                className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[#2F69FF] text-xs font-bold rounded-xl transition-all shadow-xs"
+                className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-600 text-xs font-bold rounded-xl transition-all shadow-xs"
               >
                 💾 Lưu bộ lọc này làm mẫu tiện ích
               </button>
@@ -604,8 +638,8 @@ export function Customers({ onSelect }: CustomersProps) {
         <div className="mb-6 p-5 bg-slate-50 dark:bg-slate-900/65 border border-slate-200 dark:border-slate-850 rounded-2xl shadow-md animate-fadeIn text-slate-850 dark:text-slate-200 transition-all">
           <div className="flex justify-between items-center mb-4 border-b border-slate-200/60 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4 text-[#2F69FF]" />
-              <span className="text-sm font-extrabold uppercase tracking-widest text-[#2F69FF]">Cấu hình danh sách khách hàng</span>
+              <SlidersHorizontal className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-extrabold uppercase tracking-widest text-blue-600">Cấu hình danh sách khách hàng</span>
             </div>
             <button 
               onClick={() => setIsSettingsOpen(false)}
@@ -635,7 +669,7 @@ export function Customers({ onSelect }: CustomersProps) {
                     onClick={() => setSortCriteria(option.value)}
                     className={`text-left px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
                       sortCriteria === option.value
-                        ? 'bg-blue-50 border-[#2F69FF] text-[#2F69FF] dark:bg-blue-950/40 dark:border-blue-900 dark:text-blue-400 shadow-xs'
+                        ? 'bg-blue-50 border-blue-600 text-blue-600 dark:bg-blue-950/40 dark:border-blue-900 dark:text-blue-400 shadow-xs'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -799,13 +833,13 @@ export function Customers({ onSelect }: CustomersProps) {
       <div className="flex-1 overflow-auto rounded-[10px] border border-gray-200 bg-white shadow-sm no-scrollbar">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2F69FF]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : sortedAndFilteredCustomers.length > 0 ? (
           <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50/80 sticky top-0 z-10 backdrop-blur-sm">
+            <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10 backdrop-blur-md">
               <tr>
-                <th className="px-4 py-4 w-12 text-center border-b border-gray-200">
+                <th className="px-4 py-4 w-12 text-center border-b border-slate-100 dark:border-slate-800">
                   <input 
                     type="checkbox" 
                     checked={sortedAndFilteredCustomers.length > 0 && selectedCustomerIds.length === sortedAndFilteredCustomers.length}
@@ -816,30 +850,30 @@ export function Customers({ onSelect }: CustomersProps) {
                         setSelectedCustomerIds([]);
                       }
                     }}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-[#2F69FF] focus:ring-0 cursor-pointer"
+                    className="h-4 w-4 rounded-md border-slate-300 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
                   />
                 </th>
                 {visibleColumns.customer && (
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Khách hàng</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">Khách hàng</th>
                 )}
                 {visibleColumns.contact && (
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Liên hệ</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">Liên hệ</th>
                 )}
                 {visibleColumns.tier && (
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Hạng thẻ</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">Hạng thẻ</th>
                 )}
                 {visibleColumns.ltv && (
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Giá trị LTV</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">Giá trị LTV</th>
                 )}
                 {visibleColumns.status && (
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Trạng thái</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">Trạng thái</th>
                 )}
                 {visibleColumns.type && (
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Loại</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">Loại</th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
               {sortedAndFilteredCustomers.map(customer => (
                 <tr 
                   key={customer.id} 
@@ -857,7 +891,7 @@ export function Customers({ onSelect }: CustomersProps) {
                           setSelectedCustomerIds(prev => prev.filter(id => id !== customer.id!));
                         }
                       }}
-                      className="h-3.5 w-3.5 rounded border-slate-300 text-[#2F69FF] focus:ring-0 cursor-pointer"
+                      className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-0 cursor-pointer"
                     />
                   </td>
                   {visibleColumns.customer && (
@@ -866,12 +900,12 @@ export function Customers({ onSelect }: CustomersProps) {
                         {customer.avatar ? (
                           <img src={customer.avatar} alt="" className="w-10 h-10 rounded-[10px] border border-gray-200 object-cover" />
                         ) : (
-                          <div className="w-10 h-10 rounded-[10px] bg-blue-100 text-[#2F69FF] flex items-center justify-center font-bold">
+                          <div className="w-10 h-10 rounded-[10px] bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
                             {customer.name.charAt(0)}
                           </div>
                         )}
                         <div>
-                          <div className="font-bold text-gray-900 group-hover:text-[#2F69FF] transition-colors">
+                          <div className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                             {highlightText(customer.name, searchTerm)}
                           </div>
                         </div>
@@ -938,7 +972,7 @@ export function Customers({ onSelect }: CustomersProps) {
               <button 
                 onClick={triggerSeed}
                 disabled={seeding}
-                className="bg-[#2F69FF] shadow-md shadow-[#2F69FF]/20 hover:bg-[#1a55eb] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer"
+                className="bg-blue-600 shadow-md shadow-blue-600/20 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer"
               >
                 {seeding ? 'Đang khởi tạo...' : 'Khởi tạo dữ liệu mẫu CRM'}
               </button>

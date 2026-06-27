@@ -58,7 +58,7 @@ export function Omnichannel() {
   // Channels Config local states
   const [channels, setChannels] = useState<ChannelConnection[]>([
     { id: '1', type: 'hotline', name: 'Tổng đài Hotline SIP', status: 'connected', config: { hotline: '1900 6789', gateway: 'sip.powerservice.vn' } },
-    { id: '2', type: 'livechat', name: 'Live Chat Website', status: 'connected', config: { widgetId: 'pub_livechat_8412', themeColor: '#2F69FF' } },
+    { id: '2', type: 'livechat', name: 'Live Chat Website', status: 'connected', config: { widgetId: 'pub_livechat_8412', themeColor: '#2563eb' } },
     { id: '3', type: 'facebook', name: 'Facebook Fanpage', status: 'disconnected', config: { pageId: '', pageToken: '' } },
     { id: '4', type: 'tiktok', name: 'TikTok Shop Inbox', status: 'disconnected', config: { sellerId: '', shopKey: '' } },
     { id: '5', type: 'zalo', name: 'Zalo OA (Official Account)', status: 'connected', config: { oaId: '228312004245', token: 'zalo_oa_live_token_sec' } },

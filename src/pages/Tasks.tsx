@@ -297,7 +297,7 @@ export function Tasks() {
           {/* Kanban upper tool lane */}
           <div className="flex justify-between items-center mb-5 shrink-0">
             <h2 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
-              <Layers className="text-[#2F69FF] w-4.5 h-4.5" />
+              <Layers className="text-blue-600 w-4.5 h-4.5" />
               Bảng kiểm soát Kanban
             </h2>
             <button
@@ -657,7 +657,7 @@ export function Tasks() {
                         </span>
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-[#2F69FF] transition-colors">
+                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
                           {event.summary || '(Không có tiêu đề)'}
                         </h3>
                         <div className="flex items-center gap-2 mt-1.5 text-xs font-semibold text-slate-500">

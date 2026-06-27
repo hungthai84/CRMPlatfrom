@@ -31,6 +31,8 @@ export const loginWithGoogle = async (remember = true, withScopes = false) => {
       provider.addScope('https://www.googleapis.com/auth/drive.readonly');
       provider.addScope('https://www.googleapis.com/auth/calendar.events');
       provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+      provider.addScope('https://www.googleapis.com/auth/drive.file');
+      provider.addScope('https://www.googleapis.com/auth/spreadsheets');
     }
     provider.setCustomParameters({
       prompt: 'select_account'

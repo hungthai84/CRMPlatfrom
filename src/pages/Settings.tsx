@@ -7,6 +7,7 @@ import { KnowledgeBase } from './KnowledgeBase';
 import { AuditLogs } from './Users';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 import { fetchSessionLogsFromDb, clearSessionLogsInDb } from '../lib/api';
 
 interface SettingsPageProps {
@@ -16,6 +17,7 @@ interface SettingsPageProps {
 export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
   const { user, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<'general' | 'knowledge' | 'permissions' | 'session_logs'>(initialTab);
   const [copiedKey, setCopiedKey] = useState(false);
   const [securityWarningEnabled, setSecurityWarningEnabled] = useState(false);
@@ -107,7 +109,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
       <div className="bg-white dark:bg-slate-950 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Settings className="text-[#2F69FF] w-6 h-6 animate-spin-slow" />
+            <Settings className="text-blue-600 w-6 h-6 animate-spin-slow" />
             Cài đặt Hệ thống (System Settings)
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
@@ -122,7 +124,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
           onClick={() => setActiveTab('general')}
           className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 px-2 transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'general'
-              ? 'border-[#2F69FF] text-[#2F69FF]'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
           }`}
         >
@@ -133,7 +135,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
           onClick={() => setActiveTab('knowledge')}
           className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 px-2 transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'knowledge'
-              ? 'border-[#2F69FF] text-[#2F69FF]'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
           }`}
         >
@@ -144,7 +146,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
           onClick={() => setActiveTab('session_logs')}
           className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 px-2 transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'session_logs'
-              ? 'border-[#2F69FF] text-[#2F69FF]'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
           }`}
         >
@@ -156,7 +158,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
             onClick={() => setActiveTab('permissions')}
             className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 px-2 transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'permissions'
-                ? 'border-[#2F69FF] text-[#2F69FF]'
+                ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
             }`}
           >
@@ -183,7 +185,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
                   {user?.photoURL ? (
                     <img src={user.photoURL} referrerPolicy="no-referrer" className="w-16 h-16 rounded-full object-cover ring-2 ring-blue-500/10" alt="Avatar" />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-[#2F69FF] text-white flex items-center justify-center font-bold text-xl ring-2 ring-blue-500/10">
+                    <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl ring-2 ring-blue-500/10">
                       {user?.email?.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -242,6 +244,37 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
                     )}
                   </button>
                 </div>
+
+                <div className="mt-6 border-t border-slate-200 dark:border-slate-800 pt-6">
+                  <h4 className="text-[11px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-2">Google Drive Database</h4>
+                  <p className="text-xs text-slate-400 mb-4">Kết nối CRM trực tiếp với Google Drive và Sheets để làm cơ sở dữ liệu lưu trữ mở rộng và sao lưu thông tin khách hàng.</p>
+                  
+                  <button
+                    onClick={async () => {
+                      try {
+                        const { syncDataToDrive } = await import('../lib/syncService');
+                        const id = await syncDataToDrive(user?.uid, isAdmin);
+                        addToast(
+                          'Đồng bộ thành công',
+                          `Dữ liệu đã được đồng bộ lên Google Drive! ID bảng tính: ${id.substring(0, 10)}...`,
+                          'success',
+                          'system'
+                        );
+                      } catch (e: any) {
+                        addToast(
+                          'Lỗi đồng bộ',
+                          `Không thể đồng bộ dữ liệu: ${e.message}`,
+                          'error',
+                          'system'
+                        );
+                      }
+                    }}
+                    className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <RefreshCw size={14} />
+                    Khởi tạo / Đồng bộ Database lên Drive
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -286,9 +319,34 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
                     </button>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800/60">
                     <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Database Engine</span>
                     <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded">Cloud Firestore</span>
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
+                    <h4 className="text-[11px] font-black text-rose-600 dark:text-rose-500 uppercase tracking-wide mb-2">Làm mới dữ liệu mẫu (Reset Demo Data)</h4>
+                    <p className="text-xs text-slate-400 mb-4">Xóa toàn bộ dữ liệu mẫu hiện tại trong LocalStorage và Cloud Firestore, sau đó khởi tạo lại dữ liệu mẫu gốc.</p>
+                    
+                    <button
+                      onClick={async () => {
+                        const confirmed = window.confirm("Bạn có chắc chắn muốn xóa và làm mới dữ liệu mẫu? Hành động này không thể hoàn tác.");
+                        if (confirmed && user) {
+                          try {
+                            const { resetDemoData } = await import('../lib/generateDemoData');
+                            await resetDemoData(user.uid);
+                            alert("Đã làm mới dữ liệu thành công. Vui lòng tải lại trang (F5) để thấy thay đổi.");
+                            window.location.reload();
+                          } catch (e: any) {
+                            alert(`Lỗi khi làm mới dữ liệu: ${e.message}`);
+                          }
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
+                    >
+                      <Trash2 size={14} />
+                      Xóa & Khởi tạo lại Dữ liệu Mẫu
+                    </button>
                   </div>
                 </div>
               </div>
@@ -351,7 +409,7 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
               {/* Quick instructions widget */}
               <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 text-left space-y-3">
                 <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-xs">
-                  <HelpCircle className="text-[#2F69FF]" size={16} />
+                  <HelpCircle className="text-blue-600" size={16} />
                   <span>Cần hỗ trợ vận hành?</span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">

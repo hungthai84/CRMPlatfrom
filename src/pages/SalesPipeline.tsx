@@ -121,7 +121,7 @@ function DraggableCard({ op, onClick }: { op: Opportunity, onClick: () => void }
                  key={idx}
                  className={cn(
                    "h-1.5 flex-1 rounded-full transition-colors",
-                   isCompleted || isCurrent ? (isSuccessStage && isCurrent ? "bg-emerald-500" : "bg-[#2F69FF]") : "bg-slate-200",
+                   isCompleted || isCurrent ? (isSuccessStage && isCurrent ? "bg-emerald-500" : "bg-blue-600") : "bg-slate-200",
                    isCurrent && !isSuccessStage ? "opacity-100" : (isCompleted ? "opacity-45" : "opacity-100")
                  )}
                  title={stageName}

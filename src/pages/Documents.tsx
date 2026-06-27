@@ -67,7 +67,7 @@ export function Documents() {
             <Folder size={18} className="text-amber-500" />
             {isPicking ? 'Đang mở...' : 'Chọn từ Drive'}
           </button>
-          <button className="bg-[#2F69FF] text-white px-5 py-2.5 rounded-[10px] font-bold text-sm hover:bg-blue-600 transition-all shadow-sm flex items-center gap-2">
+          <button className="bg-blue-600 text-white px-5 py-2.5 rounded-[10px] font-bold text-sm hover:bg-blue-600 transition-all shadow-sm flex items-center gap-2">
             <UploadCloud size={18} />
             Tải lên tài liệu
           </button>
@@ -85,11 +85,11 @@ export function Documents() {
                   onClick={() => setActiveFolder(folder)}
                   className={`w-full text-left px-4 py-2.5 rounded-[8px] text-sm font-semibold flex items-center gap-3 transition-colors ${
                     activeFolder === folder
-                      ? 'bg-blue-50 text-[#2F69FF]'
+                      ? 'bg-blue-50 text-blue-600'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <Folder size={16} className={activeFolder === folder ? 'text-[#2F69FF]' : 'text-slate-400'} />
+                  <Folder size={16} className={activeFolder === folder ? 'text-blue-600' : 'text-slate-400'} />
                   {folder}
                   <span className="ml-auto bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[10px]">
                      {folder === 'All' ? documents.length : documents.filter(d => d.folder === folder).length}
@@ -139,7 +139,7 @@ export function Documents() {
 
                   {/* Hover Overlay */}
                   <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-white via-white/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4 pointer-events-none">
-                     <button className="bg-slate-900 text-white rounded-full p-2.5 pointer-events-auto transform translate-y-2 group-hover:translate-y-0 transition-transform shadow-lg hover:bg-[#2F69FF]">
+                     <button className="bg-slate-900 text-white rounded-full p-2.5 pointer-events-auto transform translate-y-2 group-hover:translate-y-0 transition-transform shadow-lg hover:bg-blue-600">
                         <Download size={16} />
                      </button>
                   </div>

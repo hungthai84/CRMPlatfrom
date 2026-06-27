@@ -109,12 +109,12 @@ export function D3AnalyticsChart() {
 
     linearGradient.append('stop')
       .attr('offset', '0%')
-      .attr('stop-color', '#2F69FF')
+      .attr('stop-color', '#2563eb')
       .attr('stop-opacity', 0.4);
 
     linearGradient.append('stop')
       .attr('offset', '100%')
-      .attr('stop-color', '#2F69FF')
+      .attr('stop-color', '#2563eb')
       .attr('stop-opacity', 0.0);
 
     // Area generator
@@ -140,7 +140,7 @@ export function D3AnalyticsChart() {
     g.append('path')
       .datum(conversionDataset)
       .attr('fill', 'none')
-      .attr('stroke', '#2F69FF')
+      .attr('stroke', '#2563eb')
       .attr('stroke-width', 3)
       .attr('d', line);
 
@@ -167,7 +167,7 @@ export function D3AnalyticsChart() {
       .attr('cy', d => y(d.rate))
       .attr('r', 5)
       .attr('fill', '#ffffff')
-      .attr('stroke', '#2F69FF')
+      .attr('stroke', '#2563eb')
       .attr('stroke-width', 2.5)
       .style('cursor', 'pointer')
       .on('mouseover', function(event, d) {
@@ -328,7 +328,7 @@ export function D3AnalyticsChart() {
         </div>
         <div className="flex items-center gap-4 text-xs font-bold shrink-0">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#2F69FF]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
             <span className="text-slate-600">Tỷ lệ chốt Lead (%)</span>
           </div>
           <div className="flex items-center gap-1.5">

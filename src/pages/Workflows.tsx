@@ -579,7 +579,7 @@ export function Workflows() {
               ) : (
                 logs.map((log, idx) => (
                   <div key={idx} className="leading-relaxed font-semibold">
-                    <span className="text-[#2F69FF]">&gt;</span> {log}
+                    <span className="text-blue-600">&gt;</span> {log}
                   </div>
                 ))
               )}

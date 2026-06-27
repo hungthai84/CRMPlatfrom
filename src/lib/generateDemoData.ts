@@ -1,4 +1,4 @@
-import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 export const generateDemoCustomers = async (userId: string) => {
@@ -344,4 +344,57 @@ export const generateDemoCustomers = async (userId: string) => {
     console.error('Error generating demo data:', err);
     throw err;
   }
+};
+
+export const clearAllDemoData = async () => {
+  const collectionsToClear = [
+    'customers',
+    'tickets',
+    'campaigns',
+    'audit_logs',
+    'sales_velocity'
+  ];
+
+  try {
+    for (const colName of collectionsToClear) {
+      const querySnapshot = await getDocs(collection(db, colName));
+      const batch = writeBatch(db);
+      
+      for (const document of querySnapshot.docs) {
+        if (colName === 'customers') {
+          // Clear touchpoints subcollection
+          const tpSnapshot = await getDocs(collection(db, 'customers', document.id, 'touchpoints'));
+          for (const tp of tpSnapshot.docs) {
+            batch.delete(tp.ref);
+          }
+        }
+        batch.delete(document.ref);
+      }
+      
+      if (!batch['_mutations'] || batch['_mutations'].length > 0 || (batch as any)._mutations?.length > 0 || (batch as any)._ops?.length > 0) {
+        try {
+          await batch.commit();
+        } catch(e) {}
+      }
+    }
+    
+    // Clear localStorage
+    const keysToKeep = ['theme', 'auth_token', 'user_id', 'google_access_token'];
+    const allKeys = Object.keys(localStorage);
+    for (const key of allKeys) {
+      if (key.includes('crm_') || key.includes('local_')) {
+        localStorage.removeItem(key);
+      }
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Error clearing demo data:', err);
+    throw err;
+  }
+};
+
+export const resetDemoData = async (userId: string) => {
+  await clearAllDemoData();
+  await generateDemoCustomers(userId);
 };

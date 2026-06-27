@@ -428,7 +428,7 @@ export function EmailTemplates() {
         </div>
         <button 
           onClick={handleOpenCreate}
-          className="px-4 py-2.5 bg-[#2F69FF] hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 flex items-center gap-1.5 transition-all"
+          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 flex items-center gap-1.5 transition-all"
         >
           <Plus className="w-4 h-4" />
           Tạo Mẫu Mới
@@ -553,7 +553,7 @@ export function EmailTemplates() {
               </div>
               <div className="flex items-center gap-3 text-xs font-extrabold pb-2.5 border-b border-slate-100 text-slate-700">
                 <span className="w-16 text-slate-400 font-semibold">Chủ đề:</span>
-                <span className="text-[#2F69FF] font-black">{compiled.subject || '(Trống)'}</span>
+                <span className="text-blue-600 font-black">{compiled.subject || '(Trống)'}</span>
               </div>
             </div>
 

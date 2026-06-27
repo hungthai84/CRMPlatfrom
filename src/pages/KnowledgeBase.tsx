@@ -80,7 +80,7 @@ export function KnowledgeBase() {
       <div className="w-80 bg-white border border-slate-200 rounded-[12px] shadow-sm flex flex-col mr-6 shrink-0 h-full overflow-hidden">
         <div className="p-5 border-b border-slate-100 bg-slate-50/50 shrink-0">
            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-             <BookOpen size={20} className="text-[#2F69FF]" /> Kho Tri Thức
+             <BookOpen size={20} className="text-blue-600" /> Kho Tri Thức
            </h2>
            <p className="text-xs font-semibold text-slate-500 mt-1">Wiki nội bộ & Tài liệu</p>
            
@@ -91,7 +91,7 @@ export function KnowledgeBase() {
                placeholder="Tìm kiếm bài viết..." 
                value={searchTerm}
                onChange={(e) => setSearchTerm(e.target.value)}
-               className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#2F69FF] font-medium"
+               className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600 font-medium"
              />
            </div>
            
@@ -115,7 +115,7 @@ export function KnowledgeBase() {
               onClick={() => { setSelectedArticle(article); setIsEditing(false); }}
               className={cn(
                 "w-full text-left p-3 rounded-lg transition-all",
-                (!isEditing && selectedArticle?.id === article.id) ? "bg-[#2F69FF] text-white shadow-md shadow-blue-500/20" : "bg-transparent text-slate-700 hover:bg-slate-50"
+                (!isEditing && selectedArticle?.id === article.id) ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" : "bg-transparent text-slate-700 hover:bg-slate-50"
               )}
             >
               <div className="flex justify-between items-start mb-1 text-xs">
@@ -133,7 +133,7 @@ export function KnowledgeBase() {
         </div>
 
         <div className="p-4 border-t border-slate-100 shrink-0">
-          <button onClick={handleNew} className="w-full flex items-center justify-center gap-2 bg-[#2F69FF] text-white py-2.5 rounded-[8px] font-bold hover:bg-blue-600 shadow-sm transition-all text-sm">
+          <button onClick={handleNew} className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-[8px] font-bold hover:bg-blue-600 shadow-sm transition-all text-sm">
             <Plus size={16} /> Tạo tài liệu mới
           </button>
         </div>
@@ -147,7 +147,7 @@ export function KnowledgeBase() {
               <h3 className="font-bold text-slate-900">{editForm.id ? "Chỉnh sửa tài liệu" : "Tạo mới tài liệu"}</h3>
               <div className="flex gap-2">
                 <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-slate-500 hover:text-slate-700 font-bold text-sm bg-slate-100 hover:bg-slate-200 rounded-[8px] transition-colors"><X className="inline-block mr-1" size={16} /> Hủy</button>
-                <button onClick={handleSave} className="px-5 py-2 bg-[#2F69FF] hover:bg-blue-600 text-white font-bold text-sm rounded-[8px] flex items-center gap-2 shadow-sm transition-colors"><Save size={16} /> Lưu</button>
+                <button onClick={handleSave} className="px-5 py-2 bg-blue-600 hover:bg-blue-600 text-white font-bold text-sm rounded-[8px] flex items-center gap-2 shadow-sm transition-colors"><Save size={16} /> Lưu</button>
               </div>
             </div>
             
@@ -155,11 +155,11 @@ export function KnowledgeBase() {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Tiêu đề</label>
-                  <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full border border-slate-300 rounded-[8px] px-4 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#2F69FF] shadow-sm" />
+                  <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full border border-slate-300 rounded-[8px] px-4 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-600 shadow-sm" />
                 </div>
                 <div className="w-64">
                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Danh mục</label>
-                   <select value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="w-full border border-slate-300 rounded-[8px] px-4 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#2F69FF] shadow-sm bg-white cursor-pointer">
+                   <select value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="w-full border border-slate-300 rounded-[8px] px-4 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-600 shadow-sm bg-white cursor-pointer">
                      {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                    </select>
                 </div>
@@ -196,7 +196,7 @@ export function KnowledgeBase() {
             </div>
             
             <div className="p-8 overflow-y-auto flex-1">
-               <div className="prose prose-slate prose-headings:font-extrabold prose-headings:tracking-tight max-w-4xl prose-a:text-[#2F69FF]">
+               <div className="prose prose-slate prose-headings:font-extrabold prose-headings:tracking-tight max-w-4xl prose-a:text-blue-600">
                  <div className="markdown-body">
                    <ReactMarkdown>{selectedArticle.content}</ReactMarkdown>
                  </div>

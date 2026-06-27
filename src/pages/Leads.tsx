@@ -397,30 +397,39 @@ export function Leads() {
   };
 
   const updateLeadStatus = (leadId: string, newStatus: Lead['status']) => {
-    setLeads(prev => prev.map(l => {
-      if (l.id === leadId) {
-        if (l.status !== newStatus) {
-          const isCritical = ['Hẹn gặp', 'Thẩm định', 'Không đạt'].includes(newStatus);
-          if (isCritical) {
-            const notifType = newStatus === 'Không đạt' ? 'warning' : 'success';
-            addNotificationToDb(
-              `🎯 Cột mốc Lead quan trọng: ${newStatus}`,
-              `Khách hàng "${l.name}" (${l.company}) vừa được chuyển trạng thái sang "${newStatus}".`,
-              notifType
-            );
-          }
+    let triggeredToast = false;
+    let criticalNotification: { title: string; message: string; type: 'info' | 'success' | 'warning' | 'error' } | null = null;
+    let leadName = '';
+
+    setLeads(prev => {
+      const leadItem = prev.find(l => l.id === leadId);
+      if (leadItem && leadItem.status !== newStatus) {
+        leadName = leadItem.name;
+        const isCritical = ['Hẹn gặp', 'Thẩm định', 'Không đạt'].includes(newStatus);
+        if (isCritical) {
+          const notifType = newStatus === 'Không đạt' ? 'warning' : 'success';
+          criticalNotification = {
+            title: `🎯 Cột mốc Lead quan trọng: ${newStatus}`,
+            message: `Khách hàng "${leadItem.name}" (${leadItem.company}) vừa được chuyển trạng thái sang "${newStatus}".`,
+            type: notifType
+          };
         }
-        // Drop success dialog or toast if converted to qualified metrics
-        if (newStatus === 'Hẹn gặp' && l.status !== 'Hẹn gặp') {
-          addToast('Cột mốc Đạt hẹn gặp', `Đã lên lịch đón tiếp Khách tiềm năng "${l.name}"`, 'success', 'crm');
+        if (newStatus === 'Hẹn gặp') {
+          triggeredToast = true;
         }
-        return { ...l, status: newStatus };
       }
-      return l;
-    }));
+      return prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l);
+    });
 
     if (selectedLead && selectedLead.id === leadId) {
       setSelectedLead(prev => prev ? { ...prev, status: newStatus } : null);
+    }
+
+    if (criticalNotification) {
+      addNotificationToDb(criticalNotification.title, criticalNotification.message, criticalNotification.type);
+    }
+    if (triggeredToast) {
+      addToast('Cột mốc Đạt hẹn gặp', `Đã lên lịch đón tiếp Khách tiềm năng "${leadName}"`, 'success', 'crm');
     }
   };
 
@@ -456,23 +465,26 @@ export function Leads() {
 
   const handleBulkUpdateLeadsStatus = (newStatus: Lead['status']) => {
     if (selectedLeadIds.length === 0) return;
-    setLeads(prev => prev.map(l => {
-      if (selectedLeadIds.includes(l.id)) {
-        if (l.status !== newStatus) {
+    
+    const notificationsToTrigger: { title: string; message: string; type: 'info' | 'success' | 'warning' | 'error' }[] = [];
+
+    setLeads(prev => {
+      prev.forEach(l => {
+        if (selectedLeadIds.includes(l.id) && l.status !== newStatus) {
           const isCritical = ['Hẹn gặp', 'Thẩm định', 'Không đạt'].includes(newStatus);
           if (isCritical) {
             const notifType = newStatus === 'Không đạt' ? 'warning' : 'success';
-            addNotificationToDb(
-              `🎯 Cột mốc Lead quan trọng: ${newStatus}`,
-              `Khách hàng "${l.name}" (${l.company}) vừa được chuyển trạng thái sang "${newStatus}" (Hàng loạt).`,
-              notifType
-            );
+            notificationsToTrigger.push({
+              title: `🎯 Cột mốc Lead quan trọng: ${newStatus}`,
+              message: `Khách hàng "${l.name}" (${l.company}) vừa được chuyển trạng thái sang "${newStatus}" (Hàng loạt).`,
+              type: notifType
+            });
           }
         }
-        return { ...l, status: newStatus };
-      }
-      return l;
-    }));
+      });
+      return prev.map(l => selectedLeadIds.includes(l.id) ? { ...l, status: newStatus } : l);
+    });
+
     setSelectedLeadIds([]);
     addToast(
       'Cập nhật thành công',
@@ -480,6 +492,10 @@ export function Leads() {
       'success',
       'crm'
     );
+
+    notificationsToTrigger.forEach(notif => {
+      addNotificationToDb(notif.title, notif.message, notif.type);
+    });
   };
 
   const convertLeadToDeal = (lead: Lead) => {
