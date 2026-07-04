@@ -37,6 +37,36 @@ export async function getAuthToken(): Promise<string | null> {
 }
 
 /**
+ * Helper to fetch JSON from the backend with auto-retries for resiliency
+ * during server wake-up/initialization periods.
+ */
+async function fetchJson(url: string, options: RequestInit, retries = 3, delayMs = 1500): Promise<any> {
+  let lastError: any;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok) {
+        throw new Error(`Sync failed with status code: ${res.status}`);
+      }
+      
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("text/html") || contentType.includes("application/xhtml+xml")) {
+        throw new Error("Server returned HTML page. The API server may still be initializing.");
+      }
+      
+      return await res.json();
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[API FETCH TRY ${i + 1}/${retries} FAILED for ${url}]:`, err.message);
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  throw lastError;
+}
+
+/**
  * Synchronize the current user profile on login.
  */
 export async function syncUserWithDb(): Promise<boolean> {
@@ -44,7 +74,7 @@ export async function syncUserWithDb(): Promise<boolean> {
     const token = await getAuthToken();
     if (!token) return false;
 
-    const res = await fetch("/api/users/sync", {
+    const data = await fetchJson("/api/users/sync", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,14 +83,9 @@ export async function syncUserWithDb(): Promise<boolean> {
       }
     });
 
-    if (!res.ok) {
-      throw new Error(`Sync failed with status code: ${res.status}`);
-    }
-
-    const data = await res.json();
     return data.success === true;
-  } catch (error) {
-    console.error("Failed to sync user with Cloud SQL:", error);
+  } catch (error: any) {
+    console.error("Failed to sync user with Cloud SQL:", error.message || error);
     return false;
   }
 }
@@ -73,7 +98,7 @@ export async function fetchSessionLogsFromDb() {
     const token = await getAuthToken();
     if (!token) return [];
 
-    const res = await fetch("/api/sessions", {
+    const data = await fetchJson("/api/sessions", {
       method: "GET",
       headers: {
         "Accept": "application/json",
@@ -81,14 +106,9 @@ export async function fetchSessionLogsFromDb() {
       }
     });
 
-    if (!res.ok) {
-      throw new Error(`Failed code: ${res.status}`);
-    }
-
-    const data = await res.json();
     return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("Failed to fetch session logs from Cloud SQL:", error);
+  } catch (error: any) {
+    console.error("Failed to fetch session logs from Cloud SQL:", error.message || error);
     return [];
   }
 }
@@ -107,7 +127,7 @@ export async function syncSessionWithDb(log: {
     const token = await getAuthToken();
     if (!token) return false;
 
-    const res = await fetch("/api/sessions/sync", {
+    const data = await fetchJson("/api/sessions/sync", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -117,14 +137,9 @@ export async function syncSessionWithDb(log: {
       body: JSON.stringify(log)
     });
 
-    if (!res.ok) {
-      throw new Error(`Sync session failed status: ${res.status}`);
-    }
-
-    const data = await res.json();
     return data.success === true;
-  } catch (error) {
-    console.error("Failed to sync session with Cloud SQL:", error);
+  } catch (error: any) {
+    console.error("Failed to sync session with Cloud SQL:", error.message || error);
     return false;
   }
 }
@@ -137,7 +152,7 @@ export async function clearSessionLogsInDb(): Promise<boolean> {
     const token = await getAuthToken();
     if (!token) return false;
 
-    const res = await fetch("/api/sessions/clear", {
+    const data = await fetchJson("/api/sessions/clear", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -146,10 +161,9 @@ export async function clearSessionLogsInDb(): Promise<boolean> {
       }
     });
 
-    const data = await res.json();
     return data.success === true;
-  } catch (error) {
-    console.error("Failed to clear session logs in Cloud SQL:", error);
+  } catch (error: any) {
+    console.error("Failed to clear session logs in Cloud SQL:", error.message || error);
     return false;
   }
 }

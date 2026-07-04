@@ -34,7 +34,9 @@ import {
   Layers,
   Network,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  ShoppingBag,
+  Briefcase
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { NavItem } from '../types';
@@ -49,71 +51,25 @@ type NavGroupInfo = {
   items: NavItem[];
 }
 
-const navGroups: NavGroupInfo[] = [
-  {
-    id: 'overview',
-    name: 'Bảng điều khiển',
-    icon: 'LayoutDashboard',
-    items: [
-      { name: 'Bảng điều khiển', icon: 'LayoutDashboard', id: 'dashboard' },
-    ]
-  },
-  {
-    id: 'sales',
-    name: 'Bán hàng',
-    icon: 'Target',
-    items: [
-      { name: 'Khách tiềm năng', icon: 'Magnet', id: 'leads' },
-      { name: 'Quản lý Bán hàng', icon: 'Target', id: 'sales' },
-      { name: 'Hành trình trải nghiệm', icon: 'Map', id: 'journey' },
-    ]
-  },
-  {
-    id: 'marketing',
-    name: 'Marketing',
-    icon: 'Megaphone',
-    items: [
-      { name: 'Tiếp thị tự động', icon: 'Megaphone', id: 'marketing', adminOnly: true },
-      { name: 'Khảo sát khách hàng', icon: 'SmilePlus', id: 'surveys' },
-      { name: 'Hệ thống Loyalty', icon: 'Award', id: 'loyalty' },
-    ]
-  },
-  {
-    id: 'support',
-    name: 'Chăm sóc KH',
-    icon: 'Users',
-    items: [
-      { name: 'Khách hàng 360', icon: 'Users', id: 'customers' },
-      { name: 'Giao tiếp Đa kênh', icon: 'MessageSquare', id: 'omnichannel' },
-      { name: 'Trung tâm hỗ trợ', icon: 'TicketIcon', id: 'tickets' },
-    ]
-  },
-  {
-    id: 'operations',
-    name: 'Vận hành',
-    icon: 'CheckSquare',
-    items: [
-      { name: 'Lịch hẹn & Công việc', icon: 'Calendar', id: 'tasks' },
-      { name: 'Kho tài liệu số', icon: 'Files', id: 'documents' },
-      { name: 'Báo cáo doanh thu', icon: 'BarChart3', id: 'reports', adminOnly: true },
-    ]
-  },
-  {
-    id: 'system',
-    name: 'Hệ thống',
-    icon: 'Settings',
-    items: [
-      { name: 'AI & Quy trình', icon: 'Workflow', id: 'workflows', adminOnly: true },
-      { name: 'Kiến trúc Doanh nghiệp', icon: 'Layers', id: 'enterprise-arch' },
-      { name: 'Cài đặt hệ thống', icon: 'Settings', id: 'settings' },
-    ]
-  }
+const navItems: NavItem[] = [
+  { name: 'Dashboard', icon: 'LayoutDashboard', id: 'dashboard' },
+  { name: 'Công việc', icon: 'CheckSquare', id: 'tasks' },
+  { name: 'Danh bạ', icon: 'Users', id: 'customers' },
+  { name: 'Tiềm năng', icon: 'Magnet', id: 'leads' },
+  { name: 'Lịch hẹn', icon: 'Calendar', id: 'appointments' },
+  { name: 'Bán hàng', icon: 'Target', id: 'sales' },
+  { name: 'Đơn hàng', icon: 'ShoppingBag', id: 'orders' },
+  { name: 'Công ty', icon: 'Building2', id: 'companies' },
+  { name: 'Cơ hội', icon: 'Briefcase', id: 'deals' },
+  { name: 'Nhật ký chăm sóc', icon: 'MessageSquare', id: 'activities' },
+  { name: 'Báo cáo', icon: 'BarChart3', id: 'reports' },
+  { name: 'Cấu hình', icon: 'Settings', id: 'settings' },
 ];
 
 const icons: Record<string, any> = {
   LayoutDashboard, Users, Target, TicketIcon, Megaphone, FileText, Building2, Database, Settings, BrainCircuit,
   Magnet, MessageSquare, BookOpen, Award, Map, CheckSquare, SmilePlus, BarChart3, Workflow, Files, ShieldCheck, Mail, Layers,
-  Network, Calendar, TrendingUp
+  Network, Calendar, TrendingUp, ShoppingBag, Briefcase
 };
 
 interface SidebarProps {
@@ -121,15 +77,13 @@ interface SidebarProps {
   setCurrentTab: (id: string) => void;
   isMobileOpen?: boolean;
   onClose?: () => void;
-  onSearchClick?: () => void;
 }
 
-export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSearchClick }: SidebarProps) {
+export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose }: SidebarProps) {
   const { user, isAdmin, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
   return (
     <>
@@ -142,9 +96,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
       )}
 
       {/* Optional: invisible backdrop to close active popup */}
-      {activeGroup && (
-        <div className="fixed inset-0 z-[40]" onClick={() => setActiveGroup(null)} />
-      )}
+
 
       <div className={cn(
         "relative fixed lg:static inset-y-0 left-0 z-50 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-white text-slate-800 dark:text-slate-200 flex flex-col shrink-0 py-6 lg:py-8 h-full",
@@ -178,107 +130,43 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
           </div>
         </div>
 
-      <div className={cn("mb-6 shrink-0 transition-all", isCollapsed ? "px-1" : "px-2")}>
-        <button
-          onClick={onSearchClick}
-          className={cn(
-            "w-full flex items-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl leading-5 bg-slate-50/50 dark:bg-slate-800/50 text-slate-500 hover:text-blue-600 hover:border-blue-200 dark:hover:border-blue-900 transition-all cursor-pointer shadow-sm group",
-            isCollapsed ? "justify-center px-0 py-2.5" : "pl-3 pr-2 py-2.5"
-          )}
-          title={isCollapsed ? "Tìm kiếm" : undefined}
-        >
-          <Search size={isCollapsed ? 20 : 16} className="text-slate-400 group-hover:text-blue-500 transition-colors" />
-          {!isCollapsed && (
-            <>
-              <span className="text-sm font-medium">Tìm kiếm...</span>
-              <span className="ml-auto text-[10px] font-bold text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md">⌘ K</span>
-            </>
-          )}
-        </button>
-      </div>
-      
       {/* Navigation Items */}
       <div className={cn(
         "flex-1 no-scrollbar overflow-y-visible relative z-10", 
         isCollapsed ? "flex flex-col items-center" : ""
       )}>
         <nav className="space-y-1 w-full">
-          {navGroups.map((group) => {
-            const groupItems = group.items.filter(item => !(item.adminOnly && !isAdmin));
-            if (groupItems.length === 0) return null;
-
-            const Icon = icons[group.icon];
-            const isGroupActive = groupItems.some(item => item.id === currentTab) || activeGroup === group.id;
-
+          {navItems.filter(item => !(item.adminOnly && !isAdmin)).map((item) => {
+            const Icon = icons[item.icon as string];
+            const isActive = currentTab === item.id;
+            
             return (
-              <div key={group.id} className="relative group/nav">
-                <button
-                  onClick={() => {
-                     setActiveGroup(activeGroup === group.id ? null : group.id);
-                  }}
-                  className={cn(
-                    "w-full flex items-center rounded-xl transition-all relative",
-                    isCollapsed ? "justify-center py-3 mb-1" : "px-3 py-2.5",
-                    isGroupActive 
-                      ? "bg-blue-50/80 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold shadow-sm" 
-                      : "text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
-                  )}
-                  title={isCollapsed ? group.name : undefined}
-                >
-                  <Icon 
-                    size={isCollapsed ? 24 : 20} 
-                    strokeWidth={isGroupActive ? 2.5 : 2} 
-                    className={cn(
-                      "transition-colors shrink-0", 
-                      isGroupActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white",
-                      !isCollapsed && "mr-3"
-                    )} 
-                  />
-                  {!isCollapsed && (
-                    <>
-                      <span className="text-[14px] truncate">{group.name}</span>
-                      <ChevronRight size={16} className={cn("ml-auto transition-transform", activeGroup === group.id && "rotate-90")} />
-                    </>
-                  )}
-                  {isGroupActive && !isCollapsed && (
-                    <div className="absolute left-0 w-1 h-6 bg-blue-600 dark:bg-blue-500 rounded-r-full" />
-                  )}
-                </button>
-
-                {/* Popup menu overlay */}
-                {activeGroup === group.id && (
-                  <div 
-                    className={cn(
-                      "absolute z-[100] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl p-2 min-w-[220px] flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-200",
-                      isCollapsed ? "left-full top-0 ml-2" : "left-0 top-full mt-1 w-full"
-                    )}
-                  >
-                    {groupItems.map(item => {
-                      const ItemIcon = icons[item.icon as string];
-                      const isActive = currentTab === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => {
-                            setCurrentTab(item.id);
-                            setActiveGroup(null);
-                            if (onClose) onClose();
-                          }}
-                          className={cn(
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full text-left",
-                            isActive 
-                              ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold" 
-                              : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white"
-                          )}
-                        >
-                          {ItemIcon && <ItemIcon size={18} className={isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400"} />}
-                          {item.name}
-                        </button>
-                      );
-                    })}
-                  </div>
+              <button
+                key={item.id}
+                onClick={() => {
+                  setCurrentTab(item.id);
+                  if (onClose) onClose();
+                }}
+                className={cn(
+                  "w-full flex items-center rounded-r-full rounded-l-md transition-all relative",
+                  isCollapsed ? "justify-center py-3 mb-1" : "px-3 py-2.5",
+                  isActive 
+                    ? "bg-gradient-to-r from-blue-500 to-blue-400 text-white shadow-md shadow-blue-500/30 font-semibold" 
+                    : "text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white"
                 )}
-              </div>
+                title={isCollapsed ? item.name : undefined}
+              >
+                <Icon 
+                  size={isCollapsed ? 24 : 20} 
+                  strokeWidth={isActive ? 2.5 : 2} 
+                  className={cn(
+                    "transition-colors shrink-0", 
+                    isActive ? "text-white" : "text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white",
+                    !isCollapsed && "mr-3"
+                  )} 
+                />
+                {!isCollapsed && <span className="text-[14px] truncate">{item.name}</span>}
+              </button>
             );
           })}
         </nav>
@@ -368,7 +256,7 @@ export function Sidebar({ currentTab, setCurrentTab, isMobileOpen, onClose, onSe
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className={cn(
-              "w-full flex items-center justify-between rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all overflow-hidden cursor-pointer outline-none select-none text-left relative z-40 group border-2 border-gray-200 dark:border-slate-700 shadow-[0px_100px_80px_rgba(41,72,152,0.05),0px_20px_13px_rgba(41,72,152,0.025)]", 
+              "w-full flex items-center justify-between rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all overflow-hidden cursor-pointer outline-none select-none text-left relative z-40 group border-2 border-slate-100 dark:border-slate-700 shadow-md", 
               isCollapsed ? "justify-center p-0 h-10 border-transparent shadow-none hover:bg-transparent dark:hover:bg-transparent" : "p-2"
             )}
           >

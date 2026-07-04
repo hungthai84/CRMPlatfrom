@@ -386,12 +386,12 @@ export function Dashboard() {
   const [kpiConfigs, setKpiConfigs] = useState(() => {
     const saved = localStorage.getItem('crm_kpi_configs');
     const defaultKpis = [
-      { id: 'active_customers', label: 'Active Customers (Khách hàng hoạt động)', visible: true },
-      { id: 'pending_tickets', label: 'Pending Support Tickets (Yêu cầu chưa xử lý)', visible: true },
-      { id: 'sales_growth', label: 'Current Month Sales Growth (Tăng trưởng doanh số)', visible: true },
-      { id: 'total_customers', label: 'Total Customers (Tổng số khách hàng CRM)', visible: false },
-      { id: 'total_ltv', label: 'Total Customer Lifetime Value (Tổng số LTV)', visible: false },
-      { id: 'average_sla', label: 'Average Resolution SLA (Thời gian phản hồi SLA)', visible: false }
+      { id: 'revenue', label: 'Doanh thu (Revenue)', visible: true },
+      { id: 'new_orders', label: 'Đơn hàng mới (New Orders)', visible: true },
+      { id: 'new_contacts', label: 'Liên hệ mới (New Contacts)', visible: true },
+      { id: 'conversion_rate', label: 'Tỉ lệ chuyển đổi (Conversion Rate)', visible: true },
+      { id: 'active_customers', label: 'Active Customers (Khách hàng hoạt động)', visible: false },
+      { id: 'pending_tickets', label: 'Pending Support Tickets (Yêu cầu chưa xử lý)', visible: false }
     ];
 
     if (saved) {
@@ -413,11 +413,10 @@ export function Dashboard() {
   const [panelConfigs, setPanelConfigs] = useState(() => {
     const saved = localStorage.getItem('crm_panel_configs');
     const defaultPanels = [
-      { id: 'revenue_analytics', label: 'Revenue Analytics (Doanh thu)', visible: true },
+      { id: 'revenue_analytics', label: 'Báo cáo doanh thu (Revenue Analytics)', visible: true },
       { id: 'sales_velocity', label: 'Sales Velocity (Tỷ lệ chuyển đổi)', visible: true },
-      { id: 'system_activity', label: 'System Activity (Hoạt động hệ thống)', visible: true },
       { id: 'deals_statistics', label: 'Deals Statistics (Danh sách giao dịch)', visible: true },
-      { id: 'leads_source', label: 'Leads by Source (Nguồn lượng truy cập)', visible: true },
+      { id: 'leads_source', label: 'Cơ cấu doanh thu theo nguồn (Revenue by Source)', visible: true },
       { id: 'ai_assistant', label: 'AI Assistant (Trợ lý AI)', visible: true },
       { id: 'top_deals', label: 'Top Deals (Giao dịch hot nhất)', visible: true }
     ];
@@ -477,18 +476,18 @@ export function Dashboard() {
 
   const handleResetDashboard = () => {
     const defaultKpis = [
-      { id: 'active_customers', label: 'Active Customers (Khách hàng hoạt động)', visible: true },
-      { id: 'pending_tickets', label: 'Pending Support Tickets (Yêu cầu chưa xử lý)', visible: true },
-      { id: 'sales_growth', label: 'Current Month Sales Growth (Tăng trưởng doanh số)', visible: true },
-      { id: 'total_customers', label: 'Total Customers (Tổng số khách hàng CRM)', visible: false },
-      { id: 'total_ltv', label: 'Total Customer Lifetime Value (Tổng số LTV)', visible: false },
-      { id: 'average_sla', label: 'Average Resolution SLA (Thời gian phản hồi SLA)', visible: false }
+      { id: 'revenue', label: 'Doanh thu (Revenue)', visible: true },
+      { id: 'new_orders', label: 'Đơn hàng mới (New Orders)', visible: true },
+      { id: 'new_contacts', label: 'Liên hệ mới (New Contacts)', visible: true },
+      { id: 'conversion_rate', label: 'Tỉ lệ chuyển đổi (Conversion Rate)', visible: true },
+      { id: 'active_customers', label: 'Active Customers (Khách hàng hoạt động)', visible: false },
+      { id: 'pending_tickets', label: 'Pending Support Tickets (Yêu cầu chưa xử lý)', visible: false }
     ];
     const defaultPanels = [
-      { id: 'revenue_analytics', label: 'Revenue Analytics (Doanh thu)', visible: true },
+      { id: 'revenue_analytics', label: 'Báo cáo doanh thu (Revenue Analytics)', visible: true },
       { id: 'sales_velocity', label: 'Sales Velocity (Tỷ lệ chuyển đổi)', visible: true },
       { id: 'deals_statistics', label: 'Deals Statistics (Danh sách giao dịch)', visible: true },
-      { id: 'leads_source', label: 'Leads by Source (Nguồn lượng truy cập)', visible: true },
+      { id: 'leads_source', label: 'Cơ cấu doanh thu theo nguồn (Revenue by Source)', visible: true },
       { id: 'ai_assistant', label: 'AI Assistant (Trợ lý AI)', visible: true },
       { id: 'top_deals', label: 'Top Deals (Giao dịch hot nhất)', visible: true }
     ];
@@ -1185,6 +1184,67 @@ export function Dashboard() {
             const currentDelay = visibleCount * 0.12;
             visibleCount++;
 
+            if (cfg.id === 'revenue') {
+              return (
+                <PremiumStatCard 
+                  key="revenue"
+                  title="Doanh thu" 
+                  value="196.120.000 đ" 
+                  change="↑ 63%" 
+                  timeframe="So với tháng trước" 
+                  theme="blue" 
+                  icon={DollarSign}
+                  miniHeights={[35, 60, 45, 100]}
+                  glowIndex={3}
+                  delay={currentDelay}
+                />
+              );
+            }
+            if (cfg.id === 'new_orders') {
+              return (
+                <PremiumStatCard 
+                  key="new_orders"
+                  title="Đơn hàng mới" 
+                  value="19" 
+                  change="↑ 58%" 
+                  timeframe="So với tuần trước" 
+                  theme="green" 
+                  icon={Briefcase}
+                  miniHeights={[40, 60, 50, 80]}
+                  delay={currentDelay}
+                />
+              );
+            }
+            if (cfg.id === 'new_contacts') {
+              return (
+                <PremiumStatCard 
+                  key="new_contacts"
+                  title="Liên hệ mới" 
+                  value="15" 
+                  change="↑ 25%" 
+                  timeframe="Hôm nay" 
+                  theme="orange" 
+                  icon={Users}
+                  miniHeights={[30, 45, 95, 55]}
+                  delay={currentDelay}
+                />
+              );
+            }
+            if (cfg.id === 'conversion_rate') {
+              return (
+                <PremiumStatCard 
+                  key="conversion_rate"
+                  title="Tỉ lệ chuyển đổi" 
+                  value="18,67%" 
+                  change="↑ 8%" 
+                  timeframe="Trung bình hệ thống" 
+                  theme="purple" 
+                  icon={TrendingUp}
+                  miniHeights={[20, 45, 60, 90]}
+                  delay={currentDelay}
+                />
+              );
+            }
             if (cfg.id === 'active_customers') {
               return (
                 <PremiumStatCard 
@@ -1291,7 +1351,7 @@ export function Dashboard() {
             // 1. Revenue Analytics Card
             if (cfg.id === 'revenue_analytics') {
               return (
-                <div key="revenue_analytics" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 flex flex-col animate-fadeIn group">
+                <div key="revenue_analytics" className="bg-white dark:bg-slate-900 rounded-2xl card-shadow p-6 flex flex-col animate-fadeIn group">
                   <div className="flex justify-between items-center mb-6">
                     <div>
                       <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Revenue Analytics</h3>
@@ -1368,7 +1428,7 @@ export function Dashboard() {
             // 2. Sales Velocity Card
             if (cfg.id === 'sales_velocity') {
               return (
-                <div key="sales_velocity" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group" id="sales-velocity-card">
+                <div key="sales_velocity" className="bg-white dark:bg-slate-900 rounded-2xl card-shadow p-6 animate-fadeIn group" id="sales-velocity-card">
                   <div className="flex justify-between items-center mb-6">
                     <div>
                       <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
@@ -1453,7 +1513,7 @@ export function Dashboard() {
               const averageCompletionRate = totalWeekTickets > 0 ? ((totalWeekTasks / (totalWeekTickets + totalWeekTasks)) * 100).toFixed(1) : '0';
 
               return (
-                <div key="system_activity" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group" id="system-activity-card">
+                <div key="system_activity" className="bg-white dark:bg-slate-900 rounded-2xl card-shadow p-6 animate-fadeIn group" id="system-activity-card">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
                       <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
@@ -1575,7 +1635,7 @@ export function Dashboard() {
             // 3. Deals Statistics Card
             if (cfg.id === 'deals_statistics') {
               return (
-                <div key="deals_statistics" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group">
+                <div key="deals_statistics" className="bg-white dark:bg-slate-900 rounded-2xl card-shadow p-6 animate-fadeIn group">
                   <div className="flex justify-between items-center mb-5">
                     <div>
                       <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Deals Statistics</h3>
@@ -1680,7 +1740,7 @@ export function Dashboard() {
             // 1. Leads by Source Card
             if (cfg.id === 'leads_source') {
               return (
-                <div key="leads_source" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group">
+                <div key="leads_source" className="bg-white dark:bg-slate-900 rounded-2xl card-shadow p-6 animate-fadeIn group">
                   <div className="flex flex-col gap-3 mb-5">
                     <div className="flex justify-between items-center">
                       <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leads & Pipeline Analytics</h3>
@@ -1920,7 +1980,7 @@ export function Dashboard() {
             // 2. AI Assistant Card
             if (cfg.id === 'ai_assistant') {
               return (
-                <div key="ai_assistant" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between min-h-[300px] animate-fadeIn group">
+                <div key="ai_assistant" className="bg-white dark:bg-slate-900 rounded-2xl card-shadow p-6 flex flex-col justify-between min-h-[300px] animate-fadeIn group">
                   <div className="flex justify-between items-center">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">AI Assistant</h3>
                     <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-xs font-bold tracking-widest">•••</button>
@@ -1959,7 +2019,7 @@ export function Dashboard() {
             // 3. Top Deals Card
             if (cfg.id === 'top_deals') {
               return (
-                <div key="top_deals" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 animate-fadeIn group">
+                <div key="top_deals" className="bg-white dark:bg-slate-900 rounded-2xl card-shadow p-6 animate-fadeIn group">
                   <div className="flex justify-between items-center mb-5">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Top Deals</h3>
                     <ChevronRight size={16} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer" />

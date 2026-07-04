@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Settings, BookOpen, ShieldCheck, HelpCircle, User, Activity, 
-  Trash2, RefreshCw, Key, LogOut, Info, Shield, Check, FileText, Download, Clock
+  Trash2, RefreshCw, Key, LogOut, Info, Shield, Check, FileText, Download, Clock, Image as ImageIcon
 } from 'lucide-react';
 import { KnowledgeBase } from './KnowledgeBase';
 import { AuditLogs } from './Users';
@@ -9,16 +9,17 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import { fetchSessionLogsFromDb, clearSessionLogsInDb } from '../lib/api';
+import { imageWallpapers, specialAndVideoWallpapers, darkGradientWallpapers } from '../data/wallpapers';
 
 interface SettingsPageProps {
-  initialTab?: 'general' | 'knowledge' | 'permissions' | 'session_logs';
+  initialTab?: 'general' | 'knowledge' | 'permissions' | 'session_logs' | 'background';
 }
 
 export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
   const { user, isAdmin } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, background, setBackground, opacity, setOpacity } = useTheme();
   const { addToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'general' | 'knowledge' | 'permissions' | 'session_logs'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'general' | 'knowledge' | 'permissions' | 'session_logs' | 'background'>(initialTab);
   const [copiedKey, setCopiedKey] = useState(false);
   const [securityWarningEnabled, setSecurityWarningEnabled] = useState(false);
   const [sessionLogs, setSessionLogs] = useState<any[]>([]);
@@ -152,6 +153,17 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
         >
           <Clock size={14} />
           Nhật ký Phiên (Session Logs)
+        </button>
+        <button
+          onClick={() => setActiveTab('background')}
+          className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 px-2 transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === 'background'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
+          }`}
+        >
+          <ImageIcon size={14} />
+          Hình nền
         </button>
         {isAdmin && (
           <button
@@ -667,6 +679,42 @@ export function SettingsPage({ initialTab = 'general' }: SettingsPageProps) {
         {activeTab === 'knowledge' && (
           <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden h-[700px]">
             <KnowledgeBase />
+          </div>
+        )}
+
+        {/* Background Settings Tab */}
+        {activeTab === 'background' && (
+          <div className="p-4 space-y-6">
+            <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Cấu hình hình nền</h2>
+            
+            <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">Độ trong suốt của thẻ ({opacity}%)</label>
+              <input 
+                type="range" 
+                min="10" 
+                max="100" 
+                value={opacity} 
+                onChange={(e) => setOpacity(parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+
+            <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400">Hình nền (Wallpapers)</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {imageWallpapers.map((url, i) => (
+                <button key={i} onClick={() => setBackground(`url(${url})`)} className="rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500">
+                  <img src={url} alt="Wallpaper" className="h-24 w-full object-cover" />
+                </button>
+              ))}
+              {specialAndVideoWallpapers.map((item, i) => (
+                <button key={i} onClick={() => setBackground(`url(${item.url})`)} className="rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 relative">
+                  {item.thumbnail ? <img src={item.thumbnail} alt="Thumbnail" className="h-24 w-full object-cover" /> : <div className="h-24 bg-slate-800 flex items-center justify-center text-white text-xs">Video</div>}
+                </button>
+              ))}
+              {darkGradientWallpapers.map((grad, i) => (
+                <button key={i} onClick={() => setBackground(grad)} className="h-24 rounded-lg border-2 border-transparent hover:border-blue-500" style={{ background: grad }} />
+              ))}
+            </div>
           </div>
         )}
 

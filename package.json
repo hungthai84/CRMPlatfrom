@@ -27,6 +27,7 @@
     "express": "^4.21.2",
     "firebase": "^12.14.0",
     "firebase-admin": "^14.0.0",
+    "flyonui": "^2.4.1",
     "framer-motion": "^12.40.0",
     "googleapis": "^173.0.0",
     "lucide-react": "^0.546.0",
@@ -40,6 +41,8 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
+    "@iconify-json/tabler": "^1.2.35",
+    "@iconify/tailwind4": "^1.2.3",
     "@types/d3": "^7.4.3",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",

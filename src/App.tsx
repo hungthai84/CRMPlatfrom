@@ -5,39 +5,26 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ShieldAlert, Sparkles } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { Customer360 } from './pages/Customer360';
 import { Customers } from './pages/Customers';
-import { SupportTickets } from './pages/SupportModule';
-import { MarketingAI } from './pages/MarketingAI';
 import { SalesPipeline } from './pages/SalesPipeline';
-import { ArchitectureDocs } from './pages/ArchitectureDocs';
+import { Leads } from './pages/Leads';
+import { Appointments } from './pages/Appointments';
+import { Orders } from './pages/Orders';
+import { Companies } from './pages/Companies';
+import { Deals } from './pages/Deals';
+import { Activities } from './pages/Activities';
+import { Tasks } from './pages/Tasks';
+import { SettingsPage } from './pages/Settings';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
 import { AuthScreen } from './pages/Auth';
-
 import { AIChatWidget } from './components/AIChatWidget';
 import { QuickNoteWidget } from './components/QuickNoteWidget';
-
-import { Tasks } from './pages/Tasks';
-import { AuditLogs } from './pages/Users';
-
-import { Documents } from './pages/Documents';
-import { LoyaltyManagement } from './pages/Loyalty';
-import { KnowledgeBase } from './pages/KnowledgeBase';
-import { Journey } from './pages/Journey';
-import { Omnichannel } from './pages/Omnichannel';
-import { Leads } from './pages/Leads';
-import { Surveys } from './pages/Surveys';
-import { SettingsPage } from './pages/Settings';
-import { GlobalSearchOverlay } from './components/GlobalSearchOverlay';
 import { Reports } from './pages/Reports';
-import { Workflows } from './pages/Workflows';
-import { EmailTemplates } from './pages/EmailTemplates';
-import { EnterpriseArchitecture } from './pages/EnterpriseArchitecture';
 import { syncSessionWithDb } from './lib/api';
 
 export default function App() {
@@ -56,11 +43,20 @@ function AppContent() {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { user, loading, logout: authLogout } = useAuth();
+  const { user, loading } = useAuth();
   const { addToast } = useToast();
+  const { theme, toggleTheme, background, opacity } = useTheme();
 
-  // Session tracking logic to log logins, logouts, timeouts, and calculate total active seconds
+  const [borderColor, setBorderColor] = useState('#9155fd');
+  useEffect(() => {
+    const colors = ['#9155fd', '#f72585', '#7209b7', '#3a0ca3', '#4361ee', '#4cc9f0'];
+    const interval = setInterval(() => {
+      setBorderColor(colors[Math.floor(Math.random() * colors.length)]);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Session tracking logic...
   useEffect(() => {
     if (!user) {
       const savedSessId = localStorage.getItem('crm_current_session_id');
@@ -80,7 +76,6 @@ function AppContent() {
                   status: finalStatus,
                   logoutTime: Date.now()
                 };
-                // Sync session completion to Cloud SQL
                 syncSessionWithDb({
                   sessionId: finalLog.id,
                   loginTime: finalLog.loginTime,
@@ -115,7 +110,6 @@ function AppContent() {
       logs = logs.map((l: any) => {
         if (l.status === 'active') {
           const finishedLog = { ...l, status: 'completed', logoutTime: l.logoutTime || Date.now() };
-          // Sync completion to Cloud SQL
           syncSessionWithDb({
             sessionId: finishedLog.id,
             loginTime: finishedLog.loginTime,
@@ -140,7 +134,6 @@ function AppContent() {
       localStorage.setItem('crm_session_logs', JSON.stringify(logs));
       localStorage.setItem('crm_current_session_id', savedSessId);
 
-      // Sync initialization to Cloud SQL
       syncSessionWithDb({
         sessionId: currentSess.id,
         loginTime: currentSess.loginTime,
@@ -171,7 +164,6 @@ function AppContent() {
             });
             if (updated) {
               localStorage.setItem('crm_session_logs', JSON.stringify(currentLogs));
-              // Sync intermediate updates to Cloud SQL every 15 seconds
               if (activeLogToSync && activeLogToSync.activeTime % 15 === 0) {
                 syncSessionWithDb({
                   sessionId: activeLogToSync.id,
@@ -189,25 +181,14 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [user]);
 
-
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-
-      // Cmd+K or Ctrl+K for search
-      if ((e.metaKey || e.ctrlKey) && key === 'k') {
-        e.preventDefault();
-        setIsSearchOpen(true);
-      }
-      // Cmd+N or Ctrl+N for new record (e.g., Quick Add User)
       if ((e.metaKey || e.ctrlKey) && key === 'n') {
         e.preventDefault();
         setCurrentTab('customers');
-        // This will navigate to customers where the 'New Customer' button can be focused or a modal could open
       }
 
-      // Switch to Sales Pipeline: Cmd/Ctrl + Shift + S OR Alt + S
       if (
         ((e.metaKey || e.ctrlKey) && e.shiftKey && key === 's') ||
         (e.altKey && key === 's')
@@ -222,7 +203,6 @@ function AppContent() {
         );
       }
 
-      // Switch to Support Tickets: Cmd/Ctrl + Shift + T OR Alt + T
       if (
         ((e.metaKey || e.ctrlKey) && e.shiftKey && key === 't') ||
         (e.altKey && key === 't')
@@ -256,54 +236,23 @@ function AppContent() {
 
   const renderContent = () => {
     switch (currentTab) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'customers':
-        return <Customers onSelect={(id) => { setSelectedCustomerId(id); setCurrentTab('customer360'); }} />;
-      case 'customer360':
-        return <Customer360 customerId={selectedCustomerId} onBack={() => { setCurrentTab('customers'); setSelectedCustomerId(null); }} />;
-      case 'tickets':
-        return <SupportTickets />;
-      case 'omnichannel':
-        return <Omnichannel />;
-      case 'marketing':
-        return <MarketingAI />;
-      case 'sales':
-        return <SalesPipeline />;
-      case 'leads':
-        return <Leads />;
-      case 'surveys':
-        return <Surveys />;
-      case 'tasks':
-        return <Tasks />;
-      case 'users':
-        return <SettingsPage initialTab="permissions" />;
-      case 'documents':
-        return <Documents />;
-      case 'loyalty':
-        return <LoyaltyManagement />;
-      case 'journey':
-        return <Journey />;
-      case 'knowledge':
-        return <SettingsPage initialTab="knowledge" />;
-      case 'settings':
-        return <SettingsPage initialTab="general" />;
-      case 'reports':
-        return <Reports />;
-      case 'workflows':
-        return <Workflows />;
-      case 'email-templates':
-        return <EmailTemplates />;
-      case 'enterprise-arch':
-        return <EnterpriseArchitecture />;
-      case 'docs':
-        return <ArchitectureDocs />;
-      default:
-        return (
+      case 'dashboard': return <Dashboard />;
+      case 'tasks': return <Tasks />;
+      case 'customers': return <Customers onSelect={(id) => { setSelectedCustomerId(id); setCurrentTab('customer360'); }} />;
+      case 'customer360': return <Customer360 customerId={selectedCustomerId} onBack={() => { setCurrentTab('customers'); setSelectedCustomerId(null); }} />;
+      case 'leads': return <Leads />;
+      case 'appointments': return <Appointments />;
+      case 'sales': return <SalesPipeline />;
+      case 'orders': return <Orders />;
+      case 'companies': return <Companies />;
+      case 'deals': return <Deals />;
+      case 'activities': return <Activities />;
+      case 'reports': return <Reports />;
+      case 'settings': return <SettingsPage initialTab="general" />;
+      default: return (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center bg-white/40 backdrop-blur-lg border border-white/50 p-10 rounded-[10px] shadow-xl">
-              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Module đang trong quá trình phát triển</h2>
-              <p className="text-slate-600 mt-2 font-medium">Tính năng này dự kiến triển khai trong Giai đoạn 2.</p>
+              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Module không tồn tại</h2>
             </div>
           </div>
         );
@@ -311,56 +260,39 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-primary p-[5px] overflow-hidden font-sans relative">
-      {/* Main Container styled as a modern sleek canvas layout with rounded corners */}
-      <div className="relative z-10 flex h-full w-full overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[10px] shadow-2xl">
+    <div 
+      className="h-screen w-screen p-[15px] overflow-hidden font-sans"
+      style={{ backgroundImage: background, backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: 'cover' }}
+    >
+      <div 
+        className="relative z-10 flex h-full w-full overflow-hidden bg-white dark:bg-slate-900 rounded-[10px] shadow-2xl border-3d"
+        style={{ borderColor, opacity: opacity / 100 }}
+      >
         <Sidebar 
           currentTab={currentTab} 
           setCurrentTab={setCurrentTab} 
           isMobileOpen={isMobileMenuOpen} 
           onClose={() => setIsMobileMenuOpen(false)} 
-          onSearchClick={() => setIsSearchOpen(true)}
         />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          {/* Mobile Menu Button - shows only on small screens when sidebar is hidden */}
-          {!isMobileMenuOpen && (
-            <button 
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden absolute top-4 left-4 z-20 w-10 h-10 flex items-center justify-center text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-[#e4e7ec] dark:border-slate-800 shadow-sm rounded-full shrink-0"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
-          )}
-          <main className="flex-1 overflow-hidden flex flex-col relative">
-            <div className="flex-1 overflow-hidden flex flex-col relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentTab}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10, transition: { duration: 0.15 } }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="flex-1 h-full w-full overflow-auto no-scrollbar"
-                >
-                  {renderContent()}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+          <main className="flex-1 overflow-hidden flex flex-col relative no-scrollbar">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10, transition: { duration: 0.15 } }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="flex-1 h-full w-full overflow-auto no-scrollbar"
+              >
+                {renderContent()}
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
       </div>
-      <GlobalSearchOverlay 
-        isOpen={isSearchOpen} 
-        onClose={() => setIsSearchOpen(false)} 
-        onNavigate={(tab, customerId) => {
-          setCurrentTab(tab);
-          if (customerId) setSelectedCustomerId(customerId);
-        }}
-      />
       <AIChatWidget />
       <QuickNoteWidget />
-
-
     </div>
   );
 }
