@@ -81,20 +81,6 @@ const CRMWorkspace: React.FC = () => {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-[#f4f7fc] dark:bg-[#0b1730] flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          <LoadingSkeleton rows={4} />
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <AuthPage />;
-  }
-
   const renderActiveModule = () => {
     if (!can(activeModule, 'view')) {
       return <PermissionDeniedState moduleName={MODULE_TITLES[activeModule]} />;
@@ -145,56 +131,80 @@ const CRMWorkspace: React.FC = () => {
     }
   };
 
-  return (
-    <div className="h-screen w-full flex overflow-hidden bg-[#f4f7fc] dark:bg-[#0b1730] text-[#172b4d] dark:text-slate-100">
-      <Sidebar
-        activeModule={activeModule}
-        onSelectModule={setActiveModule}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
-        mobileOpen={mobileMenuOpen}
-        onCloseMobile={() => setMobileMenuOpen(false)}
-      />
+  const renderShellContent = () => {
+    if (authLoading) {
+      return (
+        <div className="h-full w-full bg-[#f4f7fc] dark:bg-[#0b1730] flex items-center justify-center p-6">
+          <div className="w-full max-w-md">
+            <LoadingSkeleton rows={4} />
+          </div>
+        </div>
+      );
+    }
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header
-          onOpenMobileMenu={() => setMobileMenuOpen(true)}
-          onOpenSearch={() => setSearchOpen(true)}
-          onOpenQuickCreate={() => setQuickCreateOpen(true)}
-          onToggleAiDrawer={() => setAiDrawerOpen((v) => !v)}
-          onToggleInsightPanel={() => setInsightOpen((v) => !v)}
-          onNavigateModule={setActiveModule}
-          onOpenHelp={() => setHelpOpen(true)}
+    if (!user) {
+      return <AuthPage />;
+    }
+
+    return (
+      <div className="h-full w-full flex overflow-hidden bg-[#f4f7fc] dark:bg-[#0b1730] text-[#172b4d] dark:text-slate-100">
+        <Sidebar
+          activeModule={activeModule}
+          onSelectModule={setActiveModule}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+          mobileOpen={mobileMenuOpen}
+          onCloseMobile={() => setMobileMenuOpen(false)}
         />
 
-        <div className="flex-1 flex min-h-0 overflow-hidden">
-          <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
-            <div className="max-w-[1600px] mx-auto">{renderActiveModule()}</div>
-          </main>
-
-          <RightInsightPanel
-            open={insightOpen}
-            onClose={() => setInsightOpen(false)}
-            onNavigate={setActiveModule}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Header
+            onOpenMobileMenu={() => setMobileMenuOpen(true)}
+            onOpenSearch={() => setSearchOpen(true)}
+            onOpenQuickCreate={() => setQuickCreateOpen(true)}
+            onToggleAiDrawer={() => setAiDrawerOpen((v) => !v)}
+            onToggleInsightPanel={() => setInsightOpen((v) => !v)}
+            onNavigateModule={setActiveModule}
+            onOpenHelp={() => setHelpOpen(true)}
           />
+
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+            <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
+              <div className="max-w-[1600px] mx-auto">{renderActiveModule()}</div>
+            </main>
+
+            <RightInsightPanel
+              open={insightOpen}
+              onClose={() => setInsightOpen(false)}
+              onNavigate={setActiveModule}
+            />
+          </div>
+
+          <Footer onOpenHelp={() => setHelpOpen(true)} />
         </div>
 
-        <Footer onOpenHelp={() => setHelpOpen(true)} />
+        <GlobalSearchModal
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          onNavigate={(mod) => setActiveModule(mod)}
+        />
+        <QuickCreateModal open={quickCreateOpen} onClose={() => setQuickCreateOpen(false)} />
+        <CsvImportModal
+          open={Boolean(csvImportTarget)}
+          onClose={() => setCsvImportTarget(null)}
+          target={csvImportTarget || 'customers'}
+        />
+        <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+        <FloatingAiDrawer open={aiDrawerOpen} onClose={() => setAiDrawerOpen(false)} />
       </div>
+    );
+  };
 
-      <GlobalSearchModal
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onNavigate={(mod) => setActiveModule(mod)}
-      />
-      <QuickCreateModal open={quickCreateOpen} onClose={() => setQuickCreateOpen(false)} />
-      <CsvImportModal
-        open={Boolean(csvImportTarget)}
-        onClose={() => setCsvImportTarget(null)}
-        target={csvImportTarget || 'customers'}
-      />
-      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
-      <FloatingAiDrawer open={aiDrawerOpen} onClose={() => setAiDrawerOpen(false)} />
+  return (
+    <div className="h-screen w-screen overflow-hidden p-[15px] bg-slate-200/90 dark:bg-[#050b18] box-border">
+      <div className="relative h-full w-full rounded-[24px] overflow-hidden border border-slate-300/80 dark:border-white/15 shadow-2xl bg-[#f4f7fc] dark:bg-[#0b1730]">
+        {renderShellContent()}
+      </div>
     </div>
   );
 };

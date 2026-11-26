@@ -141,14 +141,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/60 lg:hidden"
+          className="absolute inset-0 z-40 bg-slate-950/60 lg:hidden"
           onClick={onCloseMobile}
         />
       )}
 
       <aside
         className={cn(
-          'fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-[#0b1730] text-slate-200 border-r border-white/10 transition-all duration-200 shrink-0',
+          'absolute lg:static inset-y-0 left-0 z-50 flex flex-col bg-[#0b1730] text-slate-200 border-r border-white/10 transition-all duration-200 shrink-0',
           collapsed ? 'w-[72px]' : 'w-[264px]',
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}

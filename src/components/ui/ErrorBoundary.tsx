@@ -23,8 +23,9 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#f4f7fc] dark:bg-[#0b1730] p-6">
-          <div className="max-w-lg w-full glass-card rounded-2xl p-8 text-center">
+        <div className="h-screen w-screen overflow-hidden p-[15px] bg-slate-200/90 dark:bg-[#050b18] box-border">
+          <div className="h-full w-full rounded-[24px] overflow-hidden border border-slate-300/80 dark:border-white/15 shadow-2xl flex items-center justify-center bg-[#f4f7fc] dark:bg-[#0b1730] p-6">
+            <div className="max-w-lg w-full glass-card rounded-2xl p-8 text-center">
             <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-6 h-6" />
             </div>
@@ -41,6 +42,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
               <RefreshCw className="w-4 h-4" />
               Tải lại ứng dụng
             </button>
+            </div>
           </div>
         </div>
       );

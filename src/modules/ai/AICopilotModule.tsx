@@ -388,7 +388,7 @@ export const FloatingAiDrawer: React.FC<{ open: boolean; onClose: () => void }> 
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-[75] w-full max-w-md bg-white dark:bg-[#0f2142] border-l border-slate-200 dark:border-slate-700 shadow-2xl flex flex-col">
+    <div className="absolute inset-y-0 right-0 z-[75] w-full max-w-md bg-white dark:bg-[#0f2142] border-l border-slate-200 dark:border-slate-700 shadow-2xl flex flex-col">
       <div className="h-14 px-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <span className="font-semibold text-sm text-slate-900 dark:text-white flex items-center gap-2">
           <Bot className="w-4 h-4 text-[#1951fc] dark:text-[#22c7e8]" />

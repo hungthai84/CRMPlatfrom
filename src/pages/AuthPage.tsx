@@ -7,7 +7,7 @@ export const AuthPage: React.FC = () => {
   const { signInWithGoogle, authError } = useAuth();
 
   return (
-    <div className="min-h-screen ocean-gradient flex items-center justify-center p-4 sm:p-8 text-white">
+    <div className="h-full w-full overflow-y-auto ocean-gradient flex items-center justify-center p-4 sm:p-8 text-white">
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 rounded-2xl overflow-hidden border border-white/15 bg-[#0b1730]/85 backdrop-blur-xl shadow-2xl">
         {/* Left Brand Overview */}
         <div className="p-8 sm:p-10 flex flex-col justify-between bg-gradient-to-br from-[#102a56] to-[#0b1730] border-b lg:border-b-0 lg:border-r border-white/10">
