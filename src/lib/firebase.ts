@@ -1,91 +1,70 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
-
-// Note: Ensure firebase-applet-config.json exists
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import {
+  getFirestore,
+  doc,
+  getDocFromServer,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig as any);
-export const db = initializeFirestore(app, {
-  databaseId: (firebaseConfig as any).firestoreDatabaseId || undefined,
-  localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
-} as any);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig as Record<string, string>);
+
+const databaseId = (firebaseConfig as { firestoreDatabaseId?: string }).firestoreDatabaseId;
+
+export const db = (() => {
+  try {
+    return initializeFirestore(
+      app,
+      {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+      },
+      databaseId || undefined
+    );
+  } catch {
+    return databaseId ? getFirestore(app, databaseId) : getFirestore(app);
+  }
+})();
+
 export const auth = getAuth(app);
 
-// In-memory token cache with local/session storage restore for persistent sessions
-export let cachedAccessToken: string | null = typeof window !== 'undefined'
-  ? (localStorage.getItem('google_access_token') || sessionStorage.getItem('google_access_token'))
-  : null;
-export let isSigningIn = false;
+let isSigningIn = false;
 
-// Use popup for AI Studio compatibility
-export const loginWithGoogle = async (remember = true, withScopes = false) => {
-  if (isSigningIn) {
-    console.warn('Sign in already in progress.');
-    return;
-  }
+export async function loginWithGoogle() {
+  if (isSigningIn) return null;
   try {
     isSigningIn = true;
     const provider = new GoogleAuthProvider();
-    if (withScopes) {
-      provider.addScope('https://www.googleapis.com/auth/drive.readonly');
-      provider.addScope('https://www.googleapis.com/auth/calendar.events');
-      provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
-      provider.addScope('https://www.googleapis.com/auth/drive.file');
-      provider.addScope('https://www.googleapis.com/auth/spreadsheets');
-    }
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
-    
-    const result = await signInWithPopup(auth, provider);
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    if (!credential?.accessToken) {
-      console.warn('Failed to get access token from Firebase Auth');
-    } else {
-      cachedAccessToken = credential.accessToken;
-      if (remember) {
-        localStorage.setItem('google_access_token', credential.accessToken);
-      } else {
-        sessionStorage.setItem('google_access_token', credential.accessToken);
-      }
-    }
-    return result;
+    provider.setCustomParameters({ prompt: 'select_account' });
+    return await signInWithPopup(auth, provider);
   } finally {
     isSigningIn = false;
   }
-};
+}
 
-export const logout = async () => {
-  cachedAccessToken = null;
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('google_access_token');
-    sessionStorage.removeItem('google_access_token');
-  }
+export async function logoutFirebase() {
   return signOut(auth);
-};
+}
 
-export const getAccessToken = () => {
-  return cachedAccessToken;
-};
-
-// Validate Connection
-async function testConnection() {
+export async function testFirestoreConnection(): Promise<{ connected: boolean; error?: string }> {
   try {
-    // Try to get a non-existent doc to test connectivity
-    await getDocFromServer(doc(db, '_connection_test_', 'ping'));
+    await getDocFromServer(doc(db, 'test', 'connection'));
+    return { connected: true };
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn("Firebase connection test failed: mechanical offline state detected or client is offline.", error);
-      console.warn("Please check your Firebase configuration. The client appears to be offline.");
-    } else {
-      console.warn("Firebase connection test completed with expected permission error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes('the client is offline')) {
+      console.error('Firestore appears offline. Please verify Firebase configuration.');
+      return { connected: false, error: msg };
     }
+    // Expected permission error on unauthenticated ping confirms server reachability
+    return { connected: true };
   }
 }
-testConnection();
 
-// Error handler utility
+testFirestoreConnection();
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -105,10 +84,18 @@ export interface FirestoreErrorInfo {
     emailVerified?: boolean | null;
     isAnonymous?: boolean | null;
     tenantId?: string | null;
-  }
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
 }
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+export function handleFirestoreError(
+  error: unknown,
+  operationType: OperationType,
+  path: string | null
+): never {
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
@@ -117,10 +104,15 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
       emailVerified: auth.currentUser?.emailVerified,
       isAnonymous: auth.currentUser?.isAnonymous,
       tenantId: auth.currentUser?.tenantId,
+      providerInfo:
+        auth.currentUser?.providerData?.map((provider) => ({
+          providerId: provider.providerId,
+          email: provider.email,
+        })) || [],
     },
     operationType,
-    path
-  }
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
+    path,
+  };
+  console.error('Firestore Error:', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }

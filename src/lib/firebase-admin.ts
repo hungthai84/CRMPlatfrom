@@ -2,9 +2,9 @@ import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-const app = getApps().length === 0
-  ? initializeApp({ projectId: firebaseConfig.projectId })
-  : getApp();
+const app = getApps().length
+  ? getApp()
+  : initializeApp({ projectId: firebaseConfig.projectId });
 
 export const adminAuth = getAuth(app);
 export default app;

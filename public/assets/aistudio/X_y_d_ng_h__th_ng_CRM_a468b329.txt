@@ -1,0 +1,1813 @@
+Rà soát và update các tính năng của 
+
+sau đó tạo mới : 
+
+# MASTER PROMPT – BUILD ALL-IN-ONE AI CRM ENTERPRISE PLATFORM
+
+## 1. VAI TRÒ VÀ NHIỆM VỤ
+
+Bạn là một đội ngũ chuyên gia bao gồm:
+
+- Enterprise CRM Product Architect.
+- Senior Full-stack Developer.
+- Database Architect.
+- UI/UX Product Designer.
+- Business Process Analyst.
+- AI Engineer.
+- Cybersecurity Engineer.
+- Quality Assurance Engineer.
+
+Nhiệm vụ: Xây dựng một WEBSITE APP CRM doanh nghiệp toàn diện, có khả năng vận hành thực tế, mở rộng thành nền tảng SaaS và tích hợp trí tuệ nhân tạo.
+
+Tên sản phẩm mặc định: **ONECRM – ALL-IN-ONE AI CUSTOMER RELATIONSHIP MANAGEMENT**.
+
+Tên hiển thị: **Hệ thống Quản trị Quan hệ Khách hàng Thông minh**.
+
+Đây là ứng dụng WEB APP chạy trên trình duyệt, responsive trên máy tính, tablet và điện thoại. Không xây dựng ứng dụng Android native ở giai đoạn này.
+
+Không chỉ tạo bản prototype, landing page hoặc giao diện minh họa. Hãy xây dựng hệ thống có cấu trúc frontend, backend, cơ sở dữ liệu, xác thực, phân quyền, nghiệp vụ và khả năng lưu trữ dữ liệu thực tế.
+
+## 2. MỤC TIÊU SẢN PHẨM
+
+Xây dựng CRM theo mô hình All-in-One CRM, tích hợp các lĩnh vực:
+
+1. Customer Relationship Management.
+2. Customer 360° Management.
+3. Lead Management.
+4. Sales CRM.
+5. Marketing CRM.
+6. Customer Service CRM.
+7. Contact Center Management.
+8. Omnichannel Communication.
+9. Task & Workflow Management.
+10. Customer Success Management.
+11. Product, Order & Contract Management.
+12. Employee & Team Management.
+13. Automation & Business Process.
+14. AI Assistant & AI Agent.
+15. Business Intelligence & Analytics.
+16. Document & Knowledge Management.
+17. Customer Portal & Self-Service.
+18. Administration & Security.
+19. Customer Loyalty & Retention.
+20. Integration & API Management.
+
+Mục tiêu là tạo một nền tảng tập trung để doanh nghiệp quản trị toàn bộ vòng đời khách hàng:
+
+**Tiếp cận → Thu thập → Phân loại → Tư vấn → Bán hàng → Giao dịch → Chăm sóc → Duy trì → Phát triển khách hàng.**
+
+## 3. NGUYÊN TẮC XÂY DỰNG
+
+Bắt buộc tuân thủ:
+
+- Không chỉ dựng giao diện tĩnh.
+- Không tạo các nút bấm không có chức năng.
+- Không sử dụng dữ liệu giả để báo cáo như dữ liệu thực.
+- Các chức năng thêm, sửa, xóa, xem và tìm kiếm phải hoạt động.
+- Các trang sử dụng chung một mô hình dữ liệu.
+- Thông tin khách hàng phải được đồng bộ giữa các phân hệ.
+- Không tạo nhiều bản ghi khách hàng trùng lặp khi chuyển Lead thành Customer.
+- Tất cả dữ liệu phải có cấu trúc, định danh và quan hệ rõ ràng.
+- Không viết toàn bộ ứng dụng trong một file duy nhất.
+- Không tự ý xóa hoặc phá vỡ những chức năng đã hoàn thành khi cập nhật.
+- Không thay đổi cấu trúc dữ liệu mà không có kế hoạch migration.
+- Không hard-code API Key, mật khẩu hoặc thông tin bí mật vào frontend.
+- Các tích hợp bên ngoài chưa được cấp quyền phải hiển thị trạng thái chưa kết nối.
+- Không tuyên bố chức năng đã tích hợp thành công khi chưa có kết nối thật.
+- Các thao tác quan trọng phải có xác nhận và nhật ký.
+- Tối ưu hiệu năng và khả năng mở rộng ngay từ đầu.
+
+Nếu một chức năng không thể hoàn thành ngay do thiếu tài khoản, API hoặc quyền truy cập, hãy tạo adapter và giao diện cấu hình thực tế, có trạng thái rõ ràng để hoàn thiện sau.
+
+## 4. CÔNG NGHỆ VÀ KIẾN TRÚC HỆ THỐNG
+
+Ưu tiên sử dụng công nghệ tương thích với môi trường Google AI Studio Build mode.
+
+### 4.1. Frontend
+
+- React.
+- TypeScript.
+- Component-based Architecture.
+- Responsive Layout.
+- React Router hoặc giải pháp định tuyến tương thích.
+- Tailwind CSS.
+- Lucide Icons.
+- Chart library phù hợp.
+- React Hook Form hoặc giải pháp quản lý biểu mẫu phù hợp.
+- Schema validation bằng Zod hoặc giải pháp tương đương.
+
+Nếu AI Studio đã tạo sẵn một bộ công nghệ phù hợp, hãy tái sử dụng thay vì thay đổi toàn bộ dự án không cần thiết.
+
+### 4.2. Backend
+
+- Node.js server runtime.
+- REST API.
+- Business Logic Layer.
+- Service Layer.
+- Data Access Layer.
+- Validation Middleware.
+- Authentication Middleware.
+- Authorization Middleware.
+- Error Handling.
+- Logging.
+- API Rate Limiting.
+- Webhook Handler.
+
+Không đặt các logic nghiệp vụ quan trọng, kiểm tra quyền hoặc xử lý bí mật chỉ ở phía client.
+
+### 4.3. Database
+
+Ưu tiên sử dụng:
+
+- Firebase Authentication.
+- Cloud Firestore.
+- Firebase Security Rules.
+- Cloud Run khi triển khai.
+
+Yêu cầu:
+
+- Lưu dữ liệu lâu dài.
+- Đọc và ghi dữ liệu có kiểm soát.
+- Đồng bộ dữ liệu.
+- Phân tách dữ liệu theo tổ chức.
+- Hỗ trợ truy vấn, lọc và phân trang.
+- Quản lý lịch sử thay đổi.
+- Có cơ chế sao lưu và khôi phục.
+- Thiết kế dữ liệu có thể mở rộng.
+
+Nếu cần các truy vấn quan hệ hoặc báo cáo phức tạp, thiết kế lớp dịch vụ và khả năng chuyển sang PostgreSQL trong tương lai, không làm phụ thuộc cứng vào một loại database.
+
+### 4.4. AI Integration
+
+Sử dụng Gemini API thông qua server-side runtime.
+
+- Không để lộ GEMINI_API_KEY trong trình duyệt.
+- Tạo một AI Service Layer riêng.
+- Có kiểm soát quyền truy cập dữ liệu AI.
+- Có lịch sử sử dụng AI.
+- Hỗ trợ cấu hình model và giới hạn sử dụng.
+- Không để AI tự ý thay đổi dữ liệu quan trọng khi chưa có xác nhận của người dùng.
+
+## 5. THIẾT KẾ GIAO DIỆN UI/UX
+
+### 5.1. Định hướng thẩm mỹ
+
+Thiết kế theo phong cách:
+
+**Modern Enterprise CRM + Ocean Navy + Glass UI + AI-Native Dashboard.**
+
+Màu sắc:
+
+- Primary: #1951FC.
+- Ocean Navy: #102A56.
+- Deep Navy: #0B1730.
+- Cyan: #22C7E8.
+- Blue: #3B82F6.
+- Green: #16A34A.
+- Orange: #F59E0B.
+- Purple: #8B5CF6.
+- Background sáng: #F4F7FC.
+- Surface: #FFFFFF.
+- Text chính: #172B4D.
+
+Thiết kế theo hướng chuyên nghiệp, dễ đọc, thân thiện, trực quan, không quá nhiều hiệu ứng gây mất tập trung.
+
+### 5.2. Hệ thống giao diện
+
+Cung cấp hai chế độ:
+
+- Light Mode.
+- Dark Mode.
+
+Hỗ trợ chủ đề Ocean Navy, Glass UI đa màu sắc, Gradient Blue-Cyan và các màu trạng thái theo nghiệp vụ.
+
+Sử dụng Glass UI có kiểm soát:
+
+- Header có hiệu ứng kính nhẹ.
+- Card có nhiều lớp bề mặt.
+- Border mỏng.
+- Shadow mềm.
+- Blur vừa phải.
+- Gradient tinh tế.
+- Hover và micro-interaction.
+- Không làm nội dung bảng dữ liệu bị mờ hoặc khó đọc.
+
+### 5.3. Cấu trúc tổng thể
+
+Tạo 3 khu vực chính:
+
+**A. HEADER**
+
+- Logo ONECRM.
+- Tên tổ chức.
+- Global Search.
+- Quick Create.
+- Notifications.
+- AI Assistant.
+- Help Center.
+- Theme Switch.
+- Language Switch.
+- User Profile.
+
+**B. MAIN WORKSPACE**
+
+- Sidebar điều hướng bên trái.
+- Nội dung chính ở giữa.
+- Right Insight Panel có thể bật/tắt.
+- Breadcrumb.
+- Page Toolbar.
+- Filter Bar.
+- Content Area.
+
+**C. FOOTER**
+
+- Phiên bản ứng dụng.
+- Trạng thái kết nối.
+- Thời gian đồng bộ.
+- Hướng dẫn.
+- Thông tin hệ thống.
+
+Header, main và footer phải có sự phân cấp thị giác cân đối. Sidebar có thể thu gọn. Nội dung chính phải tự điều chỉnh theo không gian còn lại.
+
+### 5.4. Responsive
+
+Desktop:
+- Sidebar cố định, có thể thu gọn.
+- Dashboard nhiều cột.
+- Bảng dữ liệu có đầy đủ bộ lọc.
+
+Tablet:
+- Thu gọn menu.
+- Điều chỉnh số cột.
+- Hỗ trợ thao tác bằng cảm ứng.
+
+Mobile:
+- Navigation dạng Drawer hoặc Bottom Navigation phù hợp.
+- Card chuyển thành một cột.
+- Bảng dữ liệu chuyển sang dạng Card/List khi cần.
+- Nút thao tác dễ nhấn.
+- Không xuất hiện scroll ngang toàn trang ngoài các vùng dữ liệu có chủ đích.
+
+### 5.5. Thành phần UI dùng chung
+
+Tạo bộ Design System và Component Library:
+
+- Button.
+- Icon Button.
+- Input.
+- Textarea.
+- Select.
+- Multi Select.
+- Date Picker.
+- Date Range Picker.
+- Checkbox.
+- Radio.
+- Switch.
+- Tabs.
+- Badge.
+- Tooltip.
+- Dropdown.
+- Popover.
+- Modal.
+- Drawer.
+- Toast.
+- Alert.
+- Confirmation Dialog.
+- Breadcrumb.
+- Pagination.
+- Data Table.
+- Kanban Board.
+- Calendar.
+- Timeline.
+- Charts.
+- KPI Card.
+- Statistic Card.
+- Empty State.
+- Loading Skeleton.
+- Error State.
+- File Upload.
+- Avatar.
+- Activity Feed.
+
+Tất cả component phải thống nhất về màu sắc, font, kích thước, khoảng cách, border, radius và trạng thái tương tác.
+
+## 6. CẤU TRÚC MENU VÀ CÁC PHÂN HỆ CHÍNH
+
+Tạo sidebar có 18 phân hệ chính. Các nhóm menu có thể thu gọn/mở rộng.
+
+### MODULE 01 – DASHBOARD & OVERVIEW
+
+Trang điều hành tổng quan.
+
+Chức năng:
+
+1. Dashboard tổng quan doanh nghiệp.
+2. Tổng số khách hàng.
+3. Khách hàng mới.
+4. Khách hàng đang hoạt động.
+5. Tổng Lead.
+6. Lead đủ điều kiện.
+7. Tỷ lệ chuyển đổi.
+8. Cơ hội bán hàng.
+9. Doanh thu.
+10. Đơn hàng.
+11. Hợp đồng.
+12. Ticket đang mở.
+13. Ticket quá hạn.
+14. SLA Compliance.
+15. CSAT.
+16. NPS.
+17. FCR.
+18. AHT.
+19. Backlog.
+20. Hiệu suất nhân viên.
+21. Biểu đồ doanh thu.
+22. Biểu đồ khách hàng.
+23. Biểu đồ chuyển đổi.
+24. Biểu đồ chăm sóc.
+25. Hoạt động gần đây.
+26. Công việc cần xử lý.
+27. Cảnh báo quan trọng.
+28. Dashboard tùy chỉnh.
+29. Kéo thả Widget.
+30. Lọc theo thời gian, phòng ban, nhóm và nhân viên.
+
+Cho phép người dùng tùy biến dashboard theo quyền truy cập.
+
+### MODULE 02 – CUSTOMER 360° MANAGEMENT
+
+Quản lý hồ sơ khách hàng tập trung.
+
+Chức năng:
+
+1. Danh sách tất cả khách hàng.
+2. Khách hàng cá nhân.
+3. Khách hàng doanh nghiệp.
+4. Thêm khách hàng.
+5. Chỉnh sửa khách hàng.
+6. Xóa hoặc lưu trữ khách hàng theo chính sách.
+7. Hồ sơ cá nhân.
+8. Hồ sơ doanh nghiệp.
+9. Tên khách hàng.
+10. Số điện thoại.
+11. Email.
+12. Địa chỉ.
+13. Ngày sinh hoặc ngày thành lập khi cần.
+14. Mã khách hàng.
+15. Mã số thuế khi cần.
+16. Nguồn khách hàng.
+17. Nhóm khách hàng.
+18. Phân khúc.
+19. Nhãn Tag.
+20. Nhân viên phụ trách.
+21. Lịch sử giao dịch.
+22. Lịch sử chăm sóc.
+23. Lịch sử gọi điện.
+24. Lịch sử email.
+25. Lịch sử chat.
+26. Ticket.
+27. Hợp đồng.
+28. Đơn hàng.
+29. Công việc.
+30. Ghi chú.
+31. File đính kèm.
+32. Customer Timeline.
+33. Customer 360 Profile.
+34. Customer Scoring.
+35. Customer Lifetime Value.
+36. Customer Health Score.
+37. Phát hiện trùng lặp.
+38. Hợp nhất khách hàng.
+39. Import Excel/CSV.
+40. Export Excel/CSV.
+41. Tùy chỉnh trường dữ liệu.
+42. Lịch sử chỉnh sửa.
+43. Quản lý sự đồng ý sử dụng dữ liệu.
+
+Khi mở một khách hàng, hiển thị hồ sơ dạng 360 độ với các Tab:
+
+- Tổng quan.
+- Thông tin.
+- Lịch sử tương tác.
+- Bán hàng.
+- Đơn hàng.
+- Hợp đồng.
+- Chăm sóc.
+- Ticket.
+- Công việc.
+- Tài liệu.
+- Ghi chú.
+- Lịch sử thay đổi.
+
+Dữ liệu của một khách hàng phải được liên kết với toàn hệ thống.
+
+### MODULE 03 – LEAD MANAGEMENT
+
+Quản lý khách hàng tiềm năng.
+
+Chức năng:
+
+1. Danh sách Lead.
+2. Tạo Lead.
+3. Sửa Lead.
+4. Xóa Lead.
+5. Nguồn Lead.
+6. Website Lead.
+7. Advertising Lead.
+8. Social Lead.
+9. Referral Lead.
+10. Import Lead.
+11. Lead Pool.
+12. Lead Assignment.
+13. Auto Assignment.
+14. Lead Scoring.
+15. Lead Qualification.
+16. Lead Status.
+17. Lead Tag.
+18. Lead Owner.
+19. Lead Activity.
+20. Lead Follow-up.
+21. Lead Nurturing.
+22. Lead Conversion.
+23. Lead Lost.
+24. Lost Reason.
+25. Lead Aging.
+26. Lead Warning.
+27. Báo cáo nguồn Lead.
+28. Báo cáo chuyển đổi.
+
+Trạng thái mặc định:
+
+New → Assigned → Contacted → Qualified → Opportunity → Converted hoặc Lost.
+
+Cho phép thay đổi trạng thái theo cấu hình nghiệp vụ.
+
+Khi chuyển Lead thành khách hàng, phải kiểm tra dữ liệu trùng lặp và tái sử dụng hồ sơ phù hợp.
+
+### MODULE 04 – SALES CRM
+
+Quản trị bán hàng.
+
+Chức năng:
+
+1. Sales Pipeline.
+2. Opportunity Management.
+3. Deal Management.
+4. Sales Kanban.
+5. Sales Stage.
+6. Sales Forecast.
+7. Sales Target.
+8. Quản lý cơ hội.
+9. Quản lý giá trị giao dịch.
+10. Xác suất thành công.
+11. Ngày dự kiến chốt.
+12. Sales Owner.
+13. Sales Activities.
+14. Quản lý báo giá.
+15. Quote Builder.
+16. Price List.
+17. Discount.
+18. Approval.
+19. Sales Order.
+20. Quản lý hợp đồng.
+21. Quản lý doanh thu.
+22. Hoa hồng.
+23. Lost Deal.
+24. Win Rate.
+25. Conversion Rate.
+26. Sales Cycle.
+27. Average Deal Size.
+28. Sales Performance.
+29. Sales Forecast Report.
+
+Hỗ trợ chế độ Kanban, Table và Pipeline View.
+
+### MODULE 05 – TASK & CALENDAR MANAGEMENT
+
+Quản lý công việc và lịch làm việc.
+
+Chức năng:
+
+1. Task List.
+2. Create Task.
+3. Edit Task.
+4. Delete Task.
+5. Assign Task.
+6. Task Owner.
+7. Subtask.
+8. Checklist.
+9. Priority.
+10. Deadline.
+11. Recurring Task.
+12. Task Status.
+13. Task Comment.
+14. File Attachment.
+15. Task Timeline.
+16. Progress Tracking.
+17. Overdue Task.
+18. Reminder.
+19. Appointment.
+20. Customer Follow-up.
+21. Meeting Schedule.
+22. Calendar Day.
+23. Calendar Week.
+24. Calendar Month.
+25. Kanban Task.
+26. Task Reports.
+27. Employee Workload.
+
+Liên kết mỗi Task với Customer, Lead, Deal hoặc Ticket tương ứng.
+
+### MODULE 06 – OMNICHANNEL INBOX
+
+Hộp thư giao tiếp đa kênh.
+
+Chức năng:
+
+1. Unified Inbox.
+2. Website Live Chat.
+3. Zalo OA.
+4. Facebook Messenger.
+5. Instagram.
+6. Email.
+7. SMS.
+8. WhatsApp.
+9. Contact Center.
+10. Call Logging.
+11. Call Recording.
+12. Conversation Management.
+13. Conversation Assignment.
+14. Agent Routing.
+15. Transfer Conversation.
+16. Internal Notes.
+17. Quick Reply.
+18. Canned Responses.
+19. File Attachment.
+20. Message Search.
+21. Conversation Tags.
+22. Customer History.
+23. SLA Timer.
+24. Conversation Rating.
+25. Chatbot.
+26. Agent Status.
+27. Queue Management.
+
+Thiết kế giao diện ba cột:
+
+- Cột trái: danh sách hội thoại và bộ lọc.
+- Cột giữa: cửa sổ nội dung trao đổi.
+- Cột phải: hồ sơ khách hàng và lịch sử 360°.
+
+Các tích hợp Zalo, Facebook, WhatsApp và tổng đài phải có trang cấu hình riêng. Không giả lập kết nối thật khi chưa có API và quyền truy cập.
+
+### MODULE 07 – CUSTOMER SERVICE & TICKET MANAGEMENT
+
+Quản lý hoạt động dịch vụ khách hàng.
+
+Chức năng:
+
+1. Ticket Management.
+2. Create Ticket.
+3. Ticket Category.
+4. Ticket Priority.
+5. Ticket Status.
+6. Ticket Assignment.
+7. Ticket Queue.
+8. SLA Management.
+9. SLA Warning.
+10. Escalation.
+11. Complaint Management.
+12. Incident Management.
+13. Root Cause Analysis.
+14. Resolution.
+15. Ticket Timeline.
+16. Internal Notes.
+17. Ticket Comment.
+18. Ticket Merge.
+19. Ticket Reopen.
+20. Ticket Attachment.
+21. CSAT Survey.
+22. NPS Survey.
+23. CES Survey.
+24. FCR.
+25. AHT.
+26. ART.
+27. Backlog.
+28. Agent Performance.
+29. Quality Score.
+30. Ticket Reports.
+
+Trạng thái mặc định:
+
+New → Open → Pending → Resolved → Closed.
+
+Hỗ trợ cấu hình SLA theo độ ưu tiên, loại yêu cầu, giờ làm việc và nhóm xử lý.
+
+### MODULE 08 – MARKETING CRM
+
+Quản trị hoạt động Marketing.
+
+Chức năng:
+
+1. Campaign Management.
+2. Campaign Calendar.
+3. Email Marketing.
+4. SMS Marketing.
+5. Zalo Campaign.
+6. Audience Segmentation.
+7. Customer Journey.
+8. Marketing Automation.
+9. Email Template.
+10. Landing Page.
+11. Web Forms.
+12. Lead Capture.
+13. Lead Nurturing.
+14. A/B Testing.
+15. UTM Tracking.
+16. Campaign Analytics.
+17. Conversion Tracking.
+18. ROI Marketing.
+19. Unsubscribe Management.
+20. Consent Management.
+
+Hỗ trợ phân khúc theo nguồn, hành vi, giá trị và trạng thái khách hàng.
+
+Không gửi chiến dịch thật khi chưa xác nhận cấu hình kênh gửi và sự đồng ý cần thiết.
+
+### MODULE 09 – PRODUCT, ORDER & CONTRACT
+
+Quản lý sản phẩm, dịch vụ và giao dịch.
+
+Chức năng:
+
+1. Product Catalog.
+2. Service Catalog.
+3. Product Category.
+4. Product Attributes.
+5. Product Pricing.
+6. Price List.
+7. Discount Rule.
+8. Quotation.
+9. Sales Order.
+10. Order Status.
+11. Invoice.
+12. Payment Tracking.
+13. Contract Management.
+14. Contract Template.
+15. Contract Approval.
+16. E-signature Integration.
+17. Subscription Management.
+18. Renewal.
+19. Warranty.
+20. Return.
+21. Refund.
+22. Revenue Tracking.
+
+Không giả lập giao dịch thanh toán hoặc ký số thực tế. Cung cấp adapter kết nối nhà cung cấp khi có thông tin tích hợp.
+
+### MODULE 10 – AUTOMATION & WORKFLOW BUILDER
+
+Xây dựng bộ máy tự động hóa.
+
+Chức năng:
+
+1. Workflow List.
+2. Create Workflow.
+3. Visual Workflow Builder.
+4. Trigger.
+5. Condition.
+6. Action.
+7. Branch.
+8. Delay.
+9. Scheduled Trigger.
+10. Auto Assignment.
+11. Auto Reply.
+12. Auto Reminder.
+13. Auto Follow-up.
+14. Auto Tag.
+15. Auto Scoring.
+16. SLA Automation.
+17. Escalation Rule.
+18. Approval Workflow.
+19. Webhook Action.
+20. Workflow Testing.
+21. Workflow Logs.
+22. Error Handling.
+23. Enable/Disable Workflow.
+24. Workflow Version.
+
+Ví dụ workflow:
+
+Khi có Lead mới → kiểm tra trùng → chấm điểm → phân loại → tự động phân công → tạo Task → thông báo nhân viên → theo dõi thời gian tiếp cận.
+
+Phải có khả năng kiểm tra và xem nhật ký trước khi triển khai quy trình thật.
+
+### MODULE 11 – AI CRM & AI COPILOT
+
+Xây dựng trung tâm trí tuệ nhân tạo.
+
+Chức năng:
+
+1. AI Assistant.
+2. AI Chat.
+3. AI Copilot.
+4. Customer Summary.
+5. Conversation Summary.
+6. Call Summary.
+7. Email Assistant.
+8. Reply Suggestion.
+9. Smart Search.
+10. Lead Scoring AI.
+11. Churn Prediction.
+12. Customer Sentiment.
+13. Intent Detection.
+14. Next Best Action.
+15. Sales Forecast AI.
+16. Ticket Classification.
+17. Knowledge Search.
+18. AI Chatbot.
+19. AI Agent.
+20. AI Report.
+21. Speech-to-Text.
+22. Auto QA.
+23. AI Translation.
+24. Product Recommendation.
+25. AI Workflow Builder.
+26. AI Insights.
+
+Yêu cầu giao diện:
+
+- AI Assistant dạng Floating Button.
+- AI Workspace riêng.
+- Khung Chat AI.
+- Lịch sử hội thoại.
+- Chọn ngữ cảnh khách hàng.
+- Chọn phân hệ dữ liệu AI được phép truy cập.
+- Hiển thị nguồn dữ liệu được sử dụng khi trả lời.
+- Gợi ý hành động tiếp theo.
+- Xác nhận trước khi thực hiện hành động ghi dữ liệu.
+
+AI phải tuân thủ quyền truy cập của người dùng hiện tại. Không được suy đoán hoặc tự tạo thông tin khách hàng, số liệu, giao dịch hay lịch sử không tồn tại.
+
+### MODULE 12 – REPORTS & BUSINESS INTELLIGENCE
+
+Quản lý báo cáo.
+
+Chức năng:
+
+1. Executive Report.
+2. Customer Report.
+3. Lead Report.
+4. Sales Report.
+5. Revenue Report.
+6. Marketing Report.
+7. Service Report.
+8. Ticket Report.
+9. SLA Report.
+10. CSAT Report.
+11. NPS Report.
+12. FCR Report.
+13. AHT Report.
+14. Agent Performance.
+15. Team Performance.
+16. Conversion Report.
+17. Retention Report.
+18. Churn Report.
+19. Profitability Report.
+20. Custom Report.
+21. Report Builder.
+22. Report Scheduler.
+23. Drill-down.
+24. Export Excel.
+25. Export CSV.
+26. Export PDF.
+27. Business Intelligence.
+
+Cho phép người dùng tùy chọn khoảng thời gian, phòng ban, đội nhóm, nhân viên, nguồn dữ liệu và trạng thái.
+
+### MODULE 13 – EMPLOYEE & TEAM MANAGEMENT
+
+Quản lý nhân sự tham gia CRM.
+
+Chức năng:
+
+1. Employee Profile.
+2. User Management.
+3. Department.
+4. Team Management.
+5. Job Position.
+6. User Assignment.
+7. Working Schedule.
+8. Shift Management.
+9. Agent Status.
+10. Workload.
+11. Performance.
+12. KPI Management.
+13. Target Management.
+14. Commission.
+15. Attendance Integration.
+16. Training Management.
+17. Quality Monitoring.
+18. Internal Collaboration.
+19. Staff Productivity.
+
+Hỗ trợ tổ chức nhiều phòng ban và phân công nhân sự theo nhóm nghiệp vụ.
+
+### MODULE 14 – DOCUMENT & KNOWLEDGE MANAGEMENT
+
+Quản lý tài liệu và kho tri thức.
+
+Chức năng:
+
+1. Document Library.
+2. File Management.
+3. Folder Management.
+4. Document Version.
+5. Document Sharing.
+6. Access Permission.
+7. Knowledge Base.
+8. FAQ Management.
+9. SOP Management.
+10. Article Management.
+11. Knowledge Search.
+12. Internal Wiki.
+13. Customer Help Center.
+14. Document Approval.
+15. AI Knowledge Retrieval.
+
+Mọi tài liệu phải kiểm soát được người tạo, người sửa, phiên bản và quyền truy cập.
+
+### MODULE 15 – CUSTOMER PORTAL & SELF-SERVICE
+
+Cổng thông tin dành riêng cho khách hàng.
+
+Chức năng:
+
+1. Customer Login.
+2. Customer Profile.
+3. My Orders.
+4. My Contracts.
+5. My Tickets.
+6. Submit Request.
+7. Track Request.
+8. Knowledge Center.
+9. Chat Support.
+10. Feedback.
+11. Appointment Booking.
+12. Customer Notification.
+13. Document Download.
+14. Account Security.
+
+Khách hàng chỉ được xem dữ liệu của chính họ và dữ liệu được phép chia sẻ.
+
+### MODULE 16 – INTEGRATION, API & WEBHOOK
+
+Quản lý tích hợp hệ thống.
+
+Chức năng:
+
+1. API Management.
+2. REST API.
+3. Webhook.
+4. OAuth 2.0.
+5. API Keys.
+6. API Logs.
+7. Import Data.
+8. Export Data.
+9. Database Sync.
+10. Email Integration.
+11. Calendar Integration.
+12. Telephony Integration.
+13. Payment Gateway.
+14. Accounting Integration.
+15. E-commerce Integration.
+16. Social Integration.
+17. Zalo OA Integration.
+18. Cloud Storage.
+19. BI Integration.
+20. Integration Monitoring.
+
+Mỗi tích hợp cần có:
+
+- Trạng thái kết nối.
+- Cấu hình.
+- Kiểm tra kết nối.
+- Log.
+- Lịch sử đồng bộ.
+- Thông báo lỗi.
+- Retry.
+- Hướng dẫn thiết lập.
+
+Không lưu token bí mật ở client. Các thông tin bí mật phải được quản lý ở server-side secrets.
+
+### MODULE 17 – ADMINISTRATION & SECURITY
+
+Quản trị hệ thống và bảo mật.
+
+Chức năng:
+
+1. User Management.
+2. Role Management.
+3. Permission Management.
+4. RBAC.
+5. Organization Management.
+6. Department Management.
+7. Team Management.
+8. Data Access Control.
+9. Login Management.
+10. MFA.
+11. SSO Integration.
+12. Session Management.
+13. Audit Logs.
+14. Data Encryption.
+15. Backup & Restore.
+16. Data Retention.
+17. Consent Management.
+18. Data Export Control.
+19. IP Restriction.
+20. Login History.
+21. Security Alerts.
+22. System Configuration.
+23. Multi-language.
+24. Multi-currency.
+25. Timezone.
+26. Custom Fields.
+27. Custom Modules.
+28. Data Dictionary.
+
+### MODULE 18 – CUSTOMER LOYALTY & RETENTION
+
+Quản trị khách hàng thân thiết.
+
+Chức năng:
+
+1. Loyalty Program.
+2. Member Management.
+3. Membership Tiers.
+4. Reward Points.
+5. Voucher Management.
+6. Promotion Management.
+7. Customer Retention.
+8. Win-back Campaign.
+9. Customer Churn.
+10. Referral Program.
+11. Customer Lifetime Value.
+12. Customer Satisfaction Survey.
+13. Feedback Analysis.
+14. Loyalty Analytics.
+
+## 7. CÁC MODULE MỞ RỘNG CHUYÊN NGÀNH
+
+Thiết kế kiến trúc để có thể mở rộng thêm:
+
+- Field Service Management.
+- Partner Management.
+- Dealer Management.
+- Subscription CRM.
+- Contract Lifecycle Management.
+- Customer Success Management.
+- Contact Center Management.
+- Workforce Management.
+- Quality Management.
+- Revenue Operations.
+- Campaign Intelligence.
+- Technical Support Management.
+- Service Appointment Management.
+
+Những module này có thể được kích hoạt theo gói tính năng và nhu cầu doanh nghiệp.
+
+## 8. CẤU TRÚC DATABASE VÀ MÔ HÌNH DỮ LIỆU
+
+Thiết kế Data Model trước khi triển khai các trang nghiệp vụ.
+
+Các nhóm dữ liệu bắt buộc:
+
+### 8.1. Organization & Security
+
+- organizations
+- organizationSettings
+- users
+- userProfiles
+- memberships
+- roles
+- permissions
+- departments
+- teams
+- invitations
+- auditLogs
+- sessions
+
+### 8.2. Customer Data
+
+- customers
+- contacts
+- accounts
+- customerGroups
+- customerSegments
+- customerTags
+- customerActivities
+- customerNotes
+- customerAttachments
+- customerConsents
+- customerTimeline
+
+### 8.3. Sales Data
+
+- leads
+- leadSources
+- leadActivities
+- opportunities
+- pipelines
+- pipelineStages
+- deals
+- quotes
+- quoteItems
+- orders
+- orderItems
+- products
+- services
+- priceLists
+- contracts
+- invoices
+- payments
+
+### 8.4. Customer Service
+
+- tickets
+- ticketCategories
+- ticketComments
+- ticketAttachments
+- ticketAssignments
+- ticketQueues
+- slaPolicies
+- incidents
+- complaints
+- resolutions
+- surveys
+- surveyResponses
+
+### 8.5. Communication
+
+- channels
+- conversations
+- messages
+- callLogs
+- callRecordings
+- inboxAssignments
+- quickReplies
+- communicationTemplates
+
+### 8.6. Marketing
+
+- campaigns
+- audiences
+- campaignRecipients
+- segments
+- journeys
+- marketingEvents
+- emailTemplates
+- landingPages
+- trackingEvents
+
+### 8.7. Task & Workflow
+
+- tasks
+- subtasks
+- appointments
+- activities
+- reminders
+- workflows
+- workflowVersions
+- workflowRuns
+- workflowLogs
+- approvalRequests
+
+### 8.8. AI
+
+- aiConversations
+- aiMessages
+- aiUsageLogs
+- aiInsights
+- aiRecommendations
+- aiEvaluations
+- knowledgeDocuments
+
+### 8.9. Analytics
+
+- reportDefinitions
+- savedReports
+- dashboardLayouts
+- dashboardWidgets
+- metricDefinitions
+- analyticsSnapshots
+
+### 8.10. Integrations & Documents
+
+- integrations
+- integrationCredentials
+- webhookEndpoints
+- webhookLogs
+- syncJobs
+- documents
+- folders
+- documentVersions
+- knowledgeArticles
+
+### 8.11. Loyalty
+
+- loyaltyPrograms
+- memberships
+- loyaltyTransactions
+- rewards
+- vouchers
+- redemptionRecords
+
+### 8.12. Quy tắc dữ liệu chung
+
+Những bản ghi nghiệp vụ cần sử dụng các trường thống nhất:
+
+- id.
+- organizationId.
+- createdAt.
+- createdBy.
+- updatedAt.
+- updatedBy.
+- status.
+- archivedAt nếu cần.
+- ownerId nếu có.
+- assignedTo nếu có.
+- source nếu có.
+- metadata khi cần.
+
+Không nhất thiết mọi collection đều phải có toàn bộ trường. Thiết kế theo đúng nghiệp vụ từng đối tượng.
+
+Bắt buộc:
+
+- Có ID duy nhất.
+- Có organizationId để phân biệt dữ liệu tổ chức.
+- Có quan hệ giữa các đối tượng.
+- Có kiểm tra dữ liệu đầu vào.
+- Có quy tắc xử lý bản ghi trùng.
+- Có migration hoặc kế hoạch nâng cấp schema.
+- Có chiến lược truy vấn và index.
+- Có pagination.
+- Có soft delete hoặc cơ chế lưu trữ phù hợp.
+
+Không lưu thông tin mật khẩu thô. Sử dụng Firebase Authentication để quản lý xác thực.
+
+## 9. QUẢN LÝ TỔ CHỨC VÀ PHÂN QUYỀN
+
+Hỗ trợ mô hình Multi-tenant.
+
+Một hệ thống có nhiều tổ chức. Mỗi tổ chức có dữ liệu, người dùng và cấu hình riêng.
+
+Các vai trò mặc định:
+
+1. Super Admin.
+2. Organization Owner.
+3. Organization Admin.
+4. CRM Manager.
+5. Sales Manager.
+6. Sales Staff.
+7. Customer Service Manager.
+8. Customer Service Agent.
+9. Marketing Manager.
+10. Marketing Staff.
+11. Analyst.
+12. Read-only User.
+13. Customer Portal User.
+
+Phân quyền theo:
+
+- Module.
+- Menu.
+- Trang.
+- Record.
+- Field.
+- Hành động.
+- Phòng ban.
+- Nhóm.
+- Người phụ trách.
+
+Các quyền:
+
+- View.
+- Create.
+- Edit.
+- Delete.
+- Assign.
+- Approve.
+- Export.
+- Import.
+- Manage Settings.
+
+Không chỉ ẩn menu bằng frontend. Phải kiểm tra quyền tại backend và Firebase Security Rules.
+
+Người dùng thuộc một tổ chức chỉ được truy cập dữ liệu của tổ chức đó, trừ những vai trò hệ thống có quyền được xác định rõ.
+
+## 10. CÁC QUY TẮC NGHIỆP VỤ CỐT LÕI
+
+1. Một khách hàng có thể có nhiều Lead, Opportunity, Order, Contract, Ticket và Activity.
+2. Một Lead khi chuyển đổi phải liên kết với Customer và Opportunity tương ứng.
+3. Một Ticket phải liên kết với khách hàng hoặc một đối tượng tiếp nhận được xác định.
+4. Một cuộc hội thoại có thể liên kết với nhiều tin nhắn và một hồ sơ khách hàng.
+5. Một Task có thể liên kết Customer, Lead, Opportunity hoặc Ticket.
+6. Một nhân viên có thể phụ trách nhiều khách hàng và công việc.
+7. Một khách hàng có thể tương tác qua nhiều kênh nhưng vẫn dùng chung hồ sơ.
+8. Thông tin lịch sử không được mất khi thay đổi nhân viên phụ trách.
+9. Các hành động quan trọng phải được lưu Audit Log.
+10. Chuyển trạng thái phải kiểm tra điều kiện hợp lệ.
+11. Workflow không được chạy lặp vô hạn.
+12. AI không tự động thực hiện giao dịch tài chính hoặc hành động nhạy cảm.
+13. Các báo cáo phải được tính từ dữ liệu nguồn có thật.
+14. Quyền truy cập phải được kiểm tra ở cả frontend và backend.
+
+## 11. QUẢN LÝ KPI VÀ CHỈ SỐ DOANH NGHIỆP
+
+Cấu hình bộ KPI dùng chung.
+
+### Customer KPI
+
+- Total Customers.
+- New Customers.
+- Active Customers.
+- Customer Growth.
+- Customer Retention.
+- Customer Churn.
+- Customer Lifetime Value.
+- Customer Health Score.
+
+### Sales KPI
+
+- Total Leads.
+- Qualified Leads.
+- Conversion Rate.
+- Win Rate.
+- Sales Revenue.
+- Average Deal Size.
+- Sales Cycle.
+- Forecast Accuracy.
+
+### Service KPI
+
+- Total Tickets.
+- Open Tickets.
+- Resolved Tickets.
+- SLA Compliance.
+- CSAT.
+- NPS.
+- CES.
+- FCR.
+- AHT.
+- ART.
+- Backlog.
+- Reopen Rate.
+
+### Employee KPI
+
+- Productivity.
+- Attendance.
+- Quality Score.
+- Workload.
+- Occupancy khi có dữ liệu phù hợp.
+- Task Completion.
+- Performance Score.
+
+Mỗi KPI phải có:
+
+- Tên.
+- Mô tả.
+- Công thức.
+- Đơn vị.
+- Nguồn dữ liệu.
+- Chu kỳ tính.
+- Thời gian cập nhật.
+- Quyền xem.
+
+## 12. DỮ LIỆU DEMO VÀ CHẾ ĐỘ DÙNG THỬ
+
+Tạo môi trường Demo Mode với dữ liệu mẫu.
+
+Đưa vào:
+
+- 25 khách hàng mẫu.
+- 20 Lead.
+- 12 cơ hội bán hàng.
+- 20 công việc.
+- 20 Ticket.
+- 15 sản phẩm/dịch vụ.
+- 10 hợp đồng mẫu.
+- 10 chiến dịch Marketing.
+- 10 nhân viên mẫu.
+- 5 phòng ban.
+- 5 nhóm nghiệp vụ.
+- Các hoạt động và tương tác liên quan.
+
+Dữ liệu demo phải liên kết với nhau để các dashboard và báo cáo có dữ liệu hiển thị nhất quán.
+
+Yêu cầu:
+
+- Hiển thị nhãn DEMO trên môi trường mẫu.
+- Không nhầm dữ liệu mẫu với dữ liệu sản xuất.
+- Có chức năng Reset Demo Data.
+- Có thể xóa dữ liệu mẫu để chuyển sang vận hành thật.
+- Không sử dụng dữ liệu cá nhân thật hoặc thông tin nhận dạng thật trong dữ liệu mẫu.
+
+Khi người dùng thêm một dữ liệu mới, dữ liệu phải được lưu vào database và hiển thị lại sau khi tải trang.
+
+## 13. GLOBAL SEARCH VÀ ADVANCED FILTER
+
+Tạo một công cụ tìm kiếm toàn CRM.
+
+Tìm kiếm theo:
+
+- Mã khách hàng.
+- Tên khách hàng.
+- Số điện thoại.
+- Email.
+- Mã Lead.
+- Mã Deal.
+- Mã Ticket.
+- Mã Order.
+- Mã Contract.
+- Tên nhân viên.
+- Từ khóa hội thoại.
+
+Bộ lọc nâng cao hỗ trợ:
+
+- Điều kiện AND/OR.
+- Khoảng thời gian.
+- Trạng thái.
+- Nhóm.
+- Người phụ trách.
+- Nguồn.
+- Nhãn.
+- Giá trị.
+- Các trường tùy chỉnh.
+
+Có thể lưu bộ lọc thành Saved Views và chia sẻ theo quyền.
+
+## 14. IMPORT, EXPORT VÀ DATA MANAGEMENT
+
+Hỗ trợ:
+
+- Import CSV.
+- Import Excel.
+- Export CSV.
+- Export Excel.
+- Export PDF đối với báo cáo phù hợp.
+- Field Mapping.
+- Data Preview.
+- Validation.
+- Duplicate Detection.
+- Import Error Report.
+- Import History.
+- Export Permission.
+
+Khi import, phải hiển thị dữ liệu xem trước và các lỗi trước khi xác nhận lưu.
+
+Không tự động ghi đè thông tin đang có nếu chưa có quy tắc hợp nhất rõ ràng.
+
+## 15. THÔNG BÁO VÀ CẢNH BÁO
+
+Hệ thống Notification Center:
+
+- Thông báo được giao khách hàng.
+- Lead mới.
+- Ticket mới.
+- Ticket gần quá SLA.
+- Ticket quá hạn.
+- Task mới.
+- Task quá hạn.
+- Cuộc hẹn sắp tới.
+- Quy trình cần phê duyệt.
+- Giao dịch mới.
+- Hợp đồng sắp hết hạn.
+- Workflow lỗi.
+- API lỗi.
+- Cảnh báo bảo mật.
+
+Hỗ trợ:
+
+- In-app Notification.
+- Read/Unread.
+- Notification Preferences.
+- Email Notification khi được cấu hình.
+- Push Notification nếu triển khai hỗ trợ.
+- Notification History.
+
+## 16. BẢO MẬT VÀ QUẢN TRỊ DỮ LIỆU
+
+Xây dựng các cơ chế bảo mật:
+
+- Firebase Authentication.
+- Google Sign-in khi khả dụng.
+- RBAC.
+- Organization-level data isolation.
+- Firestore Security Rules.
+- Server-side authorization.
+- Session Control.
+- Audit Logs.
+- Data Validation.
+- XSS Protection.
+- CSRF Protection phù hợp kiến trúc.
+- Rate Limiting.
+- Secure API.
+- Input Sanitization.
+- Secret Management.
+- Data Backup.
+- Data Retention.
+- Secure File Access.
+
+Đối với dữ liệu cá nhân tại Việt Nam, cần thiết kế hỗ trợ:
+
+- Lưu thông tin sự đồng ý.
+- Ghi nhận mục đích sử dụng dữ liệu.
+- Quản lý thời điểm và nguồn đồng ý.
+- Quản lý yêu cầu cập nhật dữ liệu.
+- Quản lý yêu cầu rút lại sự đồng ý khi phù hợp.
+- Quyền truy cập và xuất dữ liệu.
+- Chính sách lưu trữ và xóa dữ liệu.
+- Kiểm soát chia sẻ với bên thứ ba.
+- Audit Trail.
+- Quyền sử dụng dữ liệu cho AI.
+
+Không mặc định sự đồng ý cho một mục đích đồng nghĩa với sự đồng ý cho mọi mục đích khác.
+
+Thiết kế để hỗ trợ đáp ứng quy định bảo vệ dữ liệu cá nhân hiện hành tại Việt Nam. Việc triển khai production cần được đánh giá pháp lý và an toàn thông tin riêng.
+
+## 17. ADMIN CONFIGURATION
+
+Tạo trang cấu hình trung tâm:
+
+- General Settings.
+- Company Profile.
+- Organization Settings.
+- Branding.
+- User Settings.
+- Role & Permission.
+- Department.
+- Team.
+- Customer Fields.
+- Lead Fields.
+- Ticket Fields.
+- Sales Pipeline.
+- Ticket Categories.
+- SLA Policies.
+- Notification Settings.
+- Workflow Settings.
+- Email Configuration.
+- Integration Settings.
+- AI Settings.
+- Theme Settings.
+- Language Settings.
+- Currency Settings.
+- Timezone Settings.
+- Data Import.
+- Data Export.
+- Backup & Restore.
+- Audit Logs.
+
+Cho phép quản trị viên tùy chỉnh danh mục, trạng thái, nhãn và các trường dữ liệu mà không phải sửa trực tiếp mã nguồn khi có thể.
+
+## 18. KIẾN TRÚC SOURCE CODE
+
+Tổ chức code rõ ràng, dễ bảo trì.
+
+Đề xuất:
+
+src/
+- app/
+  - routes/
+  - providers/
+  - layouts/
+- components/
+  - ui/
+  - common/
+  - forms/
+  - tables/
+  - charts/
+  - dialogs/
+- modules/
+  - dashboard/
+  - customers/
+  - leads/
+  - sales/
+  - tasks/
+  - omnichannel/
+  - service/
+  - marketing/
+  - products/
+  - workflows/
+  - ai/
+  - reports/
+  - employees/
+  - documents/
+  - portal/
+  - integrations/
+  - admin/
+  - loyalty/
+- services/
+  - api/
+  - auth/
+  - customers/
+  - notifications/
+  - ai/
+  - integrations/
+- hooks/
+- contexts/
+- types/
+- schemas/
+- utils/
+- constants/
+- styles/
+
+server/
+- routes/
+- controllers/
+- services/
+- middleware/
+- validators/
+- repositories/
+- integrations/
+- ai/
+- webhooks/
+- utils/
+
+firebase/
+- firestore.rules
+- indexes và các cấu hình cần thiết
+
+Đây là cấu trúc đề xuất. Hãy điều chỉnh theo cấu trúc thực tế mà AI Studio tạo, nhưng vẫn phải giữ nguyên tắc chia module và tách biệt trách nhiệm.
+
+Không tạo file quá lớn chứa toàn bộ nghiệp vụ.
+
+## 19. TRẢI NGHIỆM THỰC TẾ VÀ TIÊU CHUẨN TƯƠNG TÁC
+
+Tất cả các trang phải hỗ trợ các trạng thái:
+
+- Loading.
+- Success.
+- Empty.
+- Error.
+- Permission Denied.
+- Not Found.
+- Offline hoặc Connection Lost khi phù hợp.
+
+Mọi Form cần có:
+
+- Required Validation.
+- Error Message.
+- Success Message.
+- Cancel.
+- Save.
+- Save & Create Another khi phù hợp.
+
+Mọi bảng cần có:
+
+- Search.
+- Filter.
+- Sort.
+- Pagination.
+- Column Settings.
+- Row Actions.
+- Bulk Actions.
+- Empty State.
+- Export khi được cấp quyền.
+
+Mọi thao tác xóa dữ liệu cần xác nhận.
+
+Mọi thao tác giao dịch quan trọng cần Audit Log.
+
+Không dùng dữ liệu hard-code làm nguồn dữ liệu vận hành. Dữ liệu demo phải được phân biệt rõ.
+
+## 20. TIÊU CHUẨN NGHIỆM THU
+
+Hãy tự kiểm tra các yêu cầu sau trước khi đánh dấu hoàn thành.
+
+### A. Frontend
+
+- Tất cả menu điều hướng được.
+- Tất cả trang tải được.
+- Responsive hoạt động.
+- Không vỡ giao diện.
+- Không lỗi console nghiêm trọng.
+- Không có nút bấm vô tác dụng.
+
+### B. Database
+
+- Có thể tạo khách hàng.
+- Có thể sửa khách hàng.
+- Có thể lưu và đọc khách hàng.
+- Dữ liệu không mất khi refresh.
+- Có thể lọc và tìm kiếm.
+- Có thể tạo quan hệ giữa các bản ghi.
+- Không bị trùng dữ liệu khi chuyển đổi Lead.
+
+### C. Authentication
+
+- Đăng nhập.
+- Đăng xuất.
+- Bảo vệ trang riêng tư.
+- Tài khoản không có quyền không thể truy cập dữ liệu bị cấm.
+
+### D. CRM Workflows
+
+- Tạo Lead.
+- Phân công Lead.
+- Chuyển Lead thành Customer.
+- Tạo Opportunity.
+- Tạo Task.
+- Tạo Ticket.
+- Gán nhân viên xử lý.
+- Theo dõi SLA.
+- Ghi lịch sử hoạt động.
+
+### E. Reporting
+
+- Số liệu lấy từ nguồn dữ liệu thật của ứng dụng.
+- Bộ lọc ảnh hưởng đến kết quả.
+- Các phép tính có công thức rõ ràng.
+- Không hiển thị số liệu giả dưới dạng số liệu thực.
+
+### F. AI
+
+- AI gọi qua server-side.
+- Không lộ API Key.
+- Có xử lý lỗi và giới hạn sử dụng.
+- Không truy cập dữ liệu trái quyền.
+- Có nguồn ngữ cảnh khi phân tích dữ liệu.
+- Người dùng xác nhận trước khi AI thực hiện hành động quan trọng.
+
+### G. Security
+
+- Security Rules.
+- Organization Data Isolation.
+- Role Permissions.
+- Audit Logs.
+- Input Validation.
+- Kiểm tra lỗ hổng truy cập dữ liệu chéo.
+
+## 21. QUY TRÌNH TRIỂN KHAI
+
+Không xây dựng ứng dụng bằng cách tạo tất cả giao diện tách rời, thiếu liên kết dữ liệu.
+
+Triển khai theo các giai đoạn có kết quả sử dụng được.
+
+### PHASE 1 – FOUNDATION
+
+Xây dựng:
+
+- App Shell.
+- Sidebar.
+- Header.
+- Dashboard.
+- Design System.
+- Firebase Integration.
+- Authentication.
+- Organization.
+- User Management.
+- Role & Permission.
+- Database Schema.
+- Demo Data.
+
+### PHASE 2 – CORE CRM
+
+Hoàn thiện:
+
+- Customer 360.
+- Lead Management.
+- Sales CRM.
+- Tasks & Calendar.
+- Customer Activities.
+- Global Search.
+- Import/Export.
+- Basic Reports.
+
+### PHASE 3 – CUSTOMER SERVICE
+
+Hoàn thiện:
+
+- Ticket Management.
+- SLA.
+- Complaint.
+- Incident.
+- Omnichannel Inbox.
+- Call Logs.
+- Conversation Management.
+- Customer Feedback.
+
+### PHASE 4 – BUSINESS AUTOMATION
+
+Hoàn thiện:
+
+- Marketing CRM.
+- Product & Order.
+- Contract.
+- Workflow Builder.
+- Notification Center.
+- Approval.
+- Employee Management.
+
+### PHASE 5 – AI CRM
+
+Hoàn thiện:
+
+- AI Assistant.
+- AI Customer Summary.
+- AI Conversation Summary.
+- AI Lead Scoring.
+- AI Sentiment.
+- AI Knowledge Search.
+- AI Report.
+- AI Workflow Assistant.
+
+### PHASE 6 – ENTERPRISE
+
+Hoàn thiện:
+
+- BI & Analytics.
+- Customer Portal.
+- Loyalty.
+- Advanced Permission.
+- Audit.
+- Integration Center.
+- Advanced Security.
+- Backup & Restore.
+- Deployment Preparation.
+
+Các giai đoạn là thứ tự ưu tiên phát triển, không phải lý do để bỏ qua các module. Hãy xây dựng kiến trúc có khả năng hỗ trợ toàn bộ danh mục ngay từ đầu và hoàn thiện từng module theo chiều sâu.
+
+## 22. HƯỚNG DẪN THỰC THI CHO AI STUDIO
+
+Bắt đầu tạo ứng dụng thực tế ngay sau khi tiếp nhận yêu cầu.
+
+Không chỉ trả về bản kế hoạch hoặc giải thích cách xây dựng.
+
+Thứ tự thực hiện:
+
+1. Phân tích toàn bộ yêu cầu.
+2. Tạo cấu trúc dự án.
+3. Xây dựng giao diện nền tảng.
+4. Thiết kế database.
+5. Thiết lập Firebase Authentication và Firestore.
+6. Xây dựng Security Rules theo nguyên tắc mặc định từ chối.
+7. Xây dựng module cốt lõi.
+8. Kết nối các module bằng dữ liệu dùng chung.
+9. Tạo dữ liệu mẫu.
+10. Xây dựng AI Service Layer.
+11. Kiểm thử.
+12. Sửa lỗi.
+13. Hoàn thiện giao diện responsive.
+
+Khi cần Firebase, hãy kích hoạt Firebase integration và tạo cấu hình phù hợp. Không tự giả định Firebase đã kết nối nếu chưa được bật.
+
+Trước khi triển khai hoặc chia sẻ ứng dụng, phải kiểm tra Security Rules, cấu hình xác thực, bí mật và quyền truy cập.
+
+Khi cần thiếu API tích hợp bên ngoài, hãy tạo trang cấu hình và adapter với trạng thái Chưa kết nối.
+
+Nếu không thể triển khai toàn bộ module trong một lượt:
+
+- Ưu tiên hoàn thành Foundation và Core CRM.
+- Không thay thế chức năng bằng hình ảnh minh họa.
+- Không bỏ qua các module còn lại trong kiến trúc.
+- Ghi rõ phần nào đã hoạt động, phần nào còn chờ tích hợp hoặc triển khai.
+- Tiếp tục phát triển dựa trên code hiện có, không tạo ứng dụng thứ hai hoặc viết lại tùy tiện.
+- Giữ nguyên các dữ liệu, component và quy tắc nghiệp vụ đã hoàn thành.
+- Sau mỗi giai đoạn, chạy kiểm tra lỗi và xác minh các luồng nghiệp vụ.
+
+## 23. KẾT QUẢ CUỐI CÙNG
+
+Tạo ra một website app có tên:
+
+**ONECRM – ALL-IN-ONE AI CRM PLATFORM**
+
+Yêu cầu sản phẩm:
+
+- Có giao diện CRM doanh nghiệp hiện đại.
+- Có Sidebar và điều hướng đa phân hệ.
+- Có Dashboard trực quan.
+- Có Customer 360°.
+- Có Sales CRM.
+- Có Marketing CRM.
+- Có Customer Service.
+- Có Omnichannel.
+- Có Workflow Automation.
+- Có AI Assistant.
+- Có Reports & Analytics.
+- Có Employee Management.
+- Có Customer Portal.
+- Có Integration Center.
+- Có Admin & Security.
+- Có Database lưu trữ lâu dài.
+- Có Authentication.
+- Có RBAC.
+- Có Responsive.
+- Có Demo Mode.
+- Có kiến trúc mở rộng.
+- Có khả năng xuất và đồng bộ dữ liệu.
+- Có khả năng triển khai lên môi trường hosting phù hợp.
+
+**ƯU TIÊN CAO NHẤT: TÍNH HOÀN CHỈNH CỦA NGHIỆP VỤ, TÍNH NHẤT QUÁN DỮ LIỆU, BẢO MẬT VÀ TRẢI NGHIỆM NGƯỜI DÙNG.**
+
+Hãy bắt đầu xây dựng ứng dụng ONECRM ngay trong Google AI Studio Build mode. Không dừng lại ở việc tạo mockup hoặc trả về tài liệu đặc tả.

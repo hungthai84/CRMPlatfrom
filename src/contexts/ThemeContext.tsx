@@ -1,60 +1,55 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { LanguageCode } from '../types/crm';
 
-type Theme = 'light' | 'dark';
+type ThemeMode = 'light' | 'dark';
 
 interface ThemeContextType {
-  theme: Theme;
+  theme: ThemeMode;
   toggleTheme: () => void;
-  background: string;
-  setBackground: (bg: string) => void;
-  opacity: number;
-  setOpacity: (op: number) => void;
+  language: LanguageCode;
+  setLanguage: (lang: LanguageCode) => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext<ThemeContextType>({
+  theme: 'light',
+  toggleTheme: () => {},
+  language: 'vi',
+  setLanguage: () => {},
+});
+
+export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme');
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('onecrm_theme');
     if (saved === 'light' || saved === 'dark') return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
-  const [background, setBackground] = useState<string>(() => localStorage.getItem('background') || '#ffffff');
-  const [opacity, setOpacity] = useState<number>(() => parseFloat(localStorage.getItem('opacity') || '100'));
+  const [language, setLanguage] = useState<LanguageCode>(() => {
+    const saved = localStorage.getItem('onecrm_lang');
+    return saved === 'en' ? 'en' : 'vi';
+  });
 
   useEffect(() => {
-    localStorage.setItem('theme', theme);
+    localStorage.setItem('onecrm_theme', theme);
+    const root = document.documentElement;
     if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
     }
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem('background', background);
-  }, [background]);
+    localStorage.setItem('onecrm_lang', language);
+  }, [language]);
 
-  useEffect(() => {
-    localStorage.setItem('opacity', opacity.toString());
-  }, [opacity]);
-
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-  };
+  const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, background, setBackground, opacity, setOpacity }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, language, setLanguage }}>
       {children}
     </ThemeContext.Provider>
   );
-};
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
 };

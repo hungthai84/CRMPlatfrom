@@ -1,35 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>
-      // Temporary workaround for polyfills trying to overwrite window.fetch - modified to allow safe wrappers
-      try {
-        const originalFetch = window.fetch;
-        let currentFetch = window.fetch;
-        Object.defineProperty(window, 'fetch', {
-          configurable: true,
-          enumerable: true,
-          get() {
-            return currentFetch || originalFetch;
-          },
-          set(newFetch) {
-            console.warn('Detected attempt to overwrite window.fetch. Allowing wrapper.');
-            currentFetch = newFetch || originalFetch;
-          }
-        });
-      } catch (e) {
-        console.warn('Failed to define setter for fetch', e);
-      }
-    </script>
-    <link rel="icon" type="image/png" href="https://i.ibb.co/GvGt4nwZ/Logo-mau-vang-Ho-tro-Kha-ch-H-ng.png" />
-    <title>Power Service CRM Platfrom</title>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <title>ONECRM – Hệ thống Quản trị Quan hệ Khách hàng Thông minh</title>
+    <meta
+      name="description"
+      content="ONECRM – All-in-One AI Customer Relationship Management Enterprise Platform: Customer 360, Lead, Sales, Marketing, Omnichannel, Service, Automation & AI Copilot."
+    />
+    <meta property="og:title" content="ONECRM – All-in-One AI CRM Enterprise Platform" />
+    <meta
+      property="og:description"
+      content="Nền tảng quản trị quan hệ khách hàng toàn diện tích hợp AI dành cho doanh nghiệp."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

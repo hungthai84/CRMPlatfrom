@@ -2,18 +2,22 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 1. Global Safety Net
+    // Pillar 1: Global Default-Deny Safety Net
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // 3. Reusable Helpers
+    // Pillar 3: Global Primitives
     function isSignedIn() {
       return request.auth != null;
     }
 
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
     function incoming() {
@@ -24,185 +28,189 @@ service cloud.firestore {
       return resource.data;
     }
 
-    function isCustomerValid(data) {
-      return data.keys().hasAll(['name', 'email', 'createdAt', 'updatedAt', 'ownerId']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-             data.email is string && data.email.size() > 0 && data.email.size() <= 100 &&
-             data.ownerId == request.auth.uid &&
-             (!('phone' in data) || (data.phone is string && data.phone.size() <= 20)) &&
-             (!('segment' in data) || (data.segment is string && data.segment.size() <= 50)) &&
-             (!('tier' in data) || (data.tier is string && data.tier.size() <= 50)) &&
-             (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 500)) &&
-             (!('loyaltyPoints' in data) || data.loyaltyPoints is number) &&
-             (!('lifetimeValue' in data) || data.lifetimeValue is number) &&
-             (!('nextFollowUpDate' in data) || (data.nextFollowUpDate is string && data.nextFollowUpDate.size() <= 100)) &&
-             (!('followUpNotes' in data) || (data.followUpNotes is string && data.followUpNotes.size() <= 2000)) &&
-             (!('noteText' in data) || (data.noteText is string && data.noteText.size() <= 10000));
-    }
-
-    function isTicketValid(data) {
-      return data.keys().hasAll(['ticketId', 'title', 'category', 'priority', 'status', 'customerId', 'ownerId', 'createdAt', 'updatedAt']) &&
-             data.ticketId is string && data.ticketId.size() <= 64 &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 500 &&
-             (!('description' in data) || (data.description is string && data.description.size() <= 10000)) &&
-             data.category is string &&
-             data.priority in ['low', 'medium', 'high', 'urgent'] &&
-             data.status is string &&
-             data.customerId is string && data.customerId.size() <= 128 &&
-             data.ownerId == request.auth.uid;
-    }
-
-    function isCommentValid(data) {
-      return data.keys().hasAll(['ticketId', 'userId', 'content', 'ticketOwnerId', 'createdAt']) &&
-             data.ticketId is string && data.ticketId.size() <= 128 &&
-             data.userId == request.auth.uid &&
-             data.ticketOwnerId is string && data.ticketOwnerId.size() <= 128 &&
-             data.content is string && data.content.size() > 0 && data.content.size() <= 5000;
-    }
-
-    function isCampaignValid(data) {
-      return data.keys().hasAll(['name', 'type', 'status', 'startDate', 'ownerId']) &&
-             data.name is string && data.name.size() <= 200 &&
-             data.type is string &&
-             data.status is string &&
-             data.startDate is string &&
-             data.ownerId == request.auth.uid;
-    }
-
-    function isThreadValid(data) {
-      return data.keys().hasAll(['channel', 'customerName', 'timestamp', 'ownerId']) &&
-             data.channel is string &&
-             data.customerName is string &&
-             data.timestamp is number &&
-             data.ownerId == request.auth.uid;
-    }
-
-    function isNotificationValid(data) {
-      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'category', 'read', 'createdAt']) &&
-             data.userId == request.auth.uid &&
-             data.title is string &&
-             data.message is string &&
-             data.type in ['info', 'success', 'warning', 'error'] &&
-             data.category in ['crm', 'ticket', 'task', 'system'] &&
-             data.read is bool &&
-             data.createdAt is number;
-    }
-
-    function isAuditLogValid(data) {
-      return data.keys().hasAll(['userId', 'email', 'action', 'resource', 'timestamp']) &&
-             data.userId is string && data.userId.size() <= 128 &&
-             data.email is string && data.email.size() <= 128 &&
-             data.action is string && data.action.size() <= 100 &&
-             data.resource is string && data.resource.size() <= 100 &&
-             data.timestamp is number &&
-             (!('details' in data) || (data.details is string && data.details.size() <= 2000));
-    }
-
-    function isSalesVelocityValid(data) {
-      return data.keys().hasAll(['date', 'leadsCount', 'convertedCount', 'conversionRate', 'ownerId', 'timestamp']) &&
-             data.date is string && data.date.size() <= 20 &&
-             data.leadsCount is number &&
-             data.convertedCount is number &&
-             data.conversionRate is number &&
-             data.ownerId == request.auth.uid &&
-             data.timestamp is number;
-    }
-
     function isAdmin() {
-      return isSignedIn() && (
+      return isVerifiedUser() && (
         request.auth.token.email == 'hungthai84@gmail.com' ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
-    match /customers/{customerId} {
-      allow get: if (isSignedIn() && isValidId(customerId) && existing().ownerId == request.auth.uid) || isAdmin();
+    // Pillar 2: Entity Validation Helpers
+    function isValidUserAccount(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'organizationId', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['uid', 'email', 'displayName', 'role', 'organizationId', 'createdAt', 'updatedAt']) &&
+             data.uid == userId &&
+             data.email is string && data.email.size() > 0 && data.email.size() <= 150 &&
+             data.role is string && data.role.size() > 0 && data.role.size() <= 40 &&
+             data.organizationId is string && isValidId(data.organizationId) &&
+             data.createdAt is number &&
+             data.updatedAt is number &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 120));
+    }
+
+    function isValidOrganization(data, orgId) {
+      return data.keys().hasAll(['id', 'name', 'code', 'currency', 'language', 'ownerId', 'demoModeEnabled', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'name', 'code', 'industry', 'taxId', 'currency', 'timezone', 'language', 'ownerId', 'demoModeEnabled', 'createdAt', 'updatedAt']) &&
+             data.id == orgId &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 140 &&
+             data.code is string && data.code.size() > 0 && data.code.size() <= 40 &&
+             data.currency in ['VND', 'USD'] &&
+             data.language in ['vi', 'en'] &&
+             data.ownerId == request.auth.uid &&
+             data.demoModeEnabled is bool &&
+             data.createdAt is number &&
+             data.updatedAt is number &&
+             (!('industry' in data) || (data.industry is string && data.industry.size() <= 80)) &&
+             (!('taxId' in data) || (data.taxId is string && data.taxId.size() <= 40)) &&
+             (!('timezone' in data) || (data.timezone is string && data.timezone.size() <= 60));
+    }
+
+    function isValidTenantRecord(data, orgId, recordId) {
+      return data.keys().hasAll(['id', 'organizationId', 'ownerId', 'status', 'createdAt', 'updatedAt']) &&
+             data.id == recordId &&
+             data.organizationId == orgId &&
+             data.ownerId == request.auth.uid &&
+             data.status is string && data.status.size() > 0 && data.status.size() <= 60 &&
+             data.createdAt is number &&
+             data.updatedAt is number;
+    }
+
+    function isValidAuditLog(data, orgId, logId) {
+      return data.keys().hasAll(['id', 'organizationId', 'ownerId', 'userId', 'action', 'module', 'timestamp']) &&
+             data.keys().hasOnly(['id', 'organizationId', 'ownerId', 'userId', 'userEmail', 'action', 'module', 'recordId', 'details', 'timestamp']) &&
+             data.id == logId &&
+             data.organizationId == orgId &&
+             data.ownerId == request.auth.uid &&
+             data.userId == request.auth.uid &&
+             data.action is string && data.action.size() > 0 && data.action.size() <= 80 &&
+             data.module is string && data.module.size() > 0 && data.module.size() <= 60 &&
+             data.timestamp is number &&
+             (!('userEmail' in data) || (data.userEmail is string && data.userEmail.size() <= 150)) &&
+             (!('recordId' in data) || (data.recordId is string && data.recordId.size() <= 128)) &&
+             (!('details' in data) || (data.details is string && data.details.size() <= 2000));
+    }
+
+    function isValidNotification(data, orgId, notifId) {
+      return data.keys().hasAll(['id', 'organizationId', 'ownerId', 'userId', 'title', 'message', 'type', 'category', 'read', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'organizationId', 'ownerId', 'userId', 'title', 'message', 'type', 'category', 'read', 'linkModule', 'createdAt']) &&
+             data.id == notifId &&
+             data.organizationId == orgId &&
+             data.ownerId == request.auth.uid &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.message is string && data.message.size() <= 1000 &&
+             data.type in ['info', 'success', 'warning', 'error'] &&
+             data.category is string && data.category.size() <= 40 &&
+             data.read is bool &&
+             data.createdAt is number;
+    }
+
+    function isOrgOwner(orgId) {
+      return isVerifiedUser() &&
+             exists(/databases/$(database)/documents/organizations/$(orgId)) &&
+             get(/databases/$(database)/documents/organizations/$(orgId)).data.ownerId == request.auth.uid;
+    }
+
+    // Pillar 6: PII-Isolated User Profiles
+    match /users/{userId} {
+      allow get: if (isSignedIn() && isValidId(userId) && request.auth.uid == userId) || isAdmin();
+      allow list: if (isSignedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+      allow create: if isVerifiedUser() && isValidId(userId) &&
+                    request.auth.uid == userId &&
+                    isValidUserAccount(incoming(), userId) &&
+                    (incoming().role in ['org_owner', 'sales_staff', 'cs_agent', 'marketing_staff', 'read_only', 'customer_portal'] || isAdmin());
+      allow update: if (isVerifiedUser() && isValidId(userId) &&
+                    request.auth.uid == userId &&
+                    isValidUserAccount(incoming(), userId) &&
+                    incoming().uid == existing().uid &&
+                    incoming().createdAt == existing().createdAt &&
+                    incoming().role == existing().role &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'organizationId', 'updatedAt'])) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Connection test ping document (safe read-only denied check)
+    match /test/connection {
+      allow get: if isSignedIn();
+    }
+
+    // Multi-Tenant Organization Root & Isolated Subcollections
+    match /organizations/{orgId} {
+      allow get: if (isSignedIn() && isValidId(orgId) && existing().ownerId == request.auth.uid) || isAdmin();
       allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
-      allow create: if isSignedIn() && isValidId(customerId) && 
-                    isCustomerValid(incoming()) &&
-                    incoming().createdAt == request.time &&
-                    incoming().updatedAt == request.time;
-      allow update: if (isSignedIn() && isValidId(customerId) && 
+      allow create: if isVerifiedUser() && isValidId(orgId) && isValidOrganization(incoming(), orgId);
+      allow update: if (isVerifiedUser() && isValidId(orgId) &&
                     existing().ownerId == request.auth.uid &&
-                    isCustomerValid(incoming()) &&
+                    isValidOrganization(incoming(), orgId) &&
                     incoming().ownerId == existing().ownerId &&
                     incoming().createdAt == existing().createdAt &&
-                    incoming().updatedAt == request.time) || isAdmin();
-      allow delete: if (isSignedIn() && isValidId(customerId) && existing().ownerId == request.auth.uid) || isAdmin();
-    }
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'code', 'industry', 'taxId', 'currency', 'timezone', 'language', 'demoModeEnabled', 'updatedAt'])) || isAdmin();
+      allow delete: if (isVerifiedUser() && isValidId(orgId) && existing().ownerId == request.auth.uid) || isAdmin();
 
-    match /notifications/{notificationId} {
-      allow get: if isSignedIn() && existing().userId == request.auth.uid;
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && isNotificationValid(incoming());
-      allow update: if isSignedIn() && existing().userId == request.auth.uid && isNotificationValid(incoming());
-      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
-    }
-
-    match /audit_logs/{logId} {
-      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && isAuditLogValid(incoming());
-      allow update, delete: if isAdmin();
-    }
-
-    match /sales_velocity/{velocityId} {
-      allow get: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && isSalesVelocityValid(incoming());
-      allow update, delete: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
-    }
-
-    match /tickets/{ticketId} {
-      allow get: if (isSignedIn() && isValidId(ticketId) && existing().ownerId == request.auth.uid) || isAdmin();
-      allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
-      
-      allow create: if isSignedIn() && isValidId(ticketId) && 
-                    isTicketValid(incoming()) &&
-                    incoming().createdAt == request.time &&
-                    incoming().updatedAt == request.time;
-                    
-      allow update: if (isSignedIn() && isValidId(ticketId) && 
-                    isTicketValid(incoming()) &&
-                    (existing().ownerId == request.auth.uid || isAdmin()) &&
-                    incoming().ownerId == existing().ownerId &&
-                    incoming().customerId == existing().customerId &&
-                    incoming().createdAt == existing().createdAt &&
-                    incoming().updatedAt == request.time) || isAdmin();
-                    
-      allow delete: if (isSignedIn() && isValidId(ticketId) && (existing().ownerId == request.auth.uid)) || isAdmin();
-
-      match /comments/{commentId} {
-        allow get: if (isSignedIn() && isValidId(commentId) && existing().ticketOwnerId == request.auth.uid) || isAdmin();
-        allow list: if (isSignedIn() && resource.data.ticketOwnerId == request.auth.uid) || isAdmin();
-        
-        allow create: if isSignedIn() && isValidId(commentId) && 
-                      isCommentValid(incoming()) &&
-                      incoming().ticketId == ticketId &&
-                      incoming().ticketOwnerId == request.auth.uid &&
-                      incoming().createdAt == request.time;
+      // Audit Logs (Append-only for org owner; admin can manage)
+      match /audit_logs/{logId} {
+        allow get: if (isSignedIn() && isValidId(orgId) && isValidId(logId) && existing().ownerId == request.auth.uid) || isAdmin();
+        allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
+        allow create: if isVerifiedUser() && isValidId(orgId) && isValidId(logId) && isOrgOwner(orgId) && isValidAuditLog(incoming(), orgId, logId);
+        allow update, delete: if isAdmin();
       }
-    }
 
-    match /campaigns/{campaignId} {
-      allow get: if (isSignedIn() && (!('ownerId' in existing()) || existing().ownerId == request.auth.uid)) || isAdmin();
-      allow list: if (isSignedIn() && (!('ownerId' in resource.data) || resource.data.ownerId == request.auth.uid)) || isAdmin();
-      allow create: if isSignedIn() && isValidId(campaignId) && isCampaignValid(incoming());
-      allow update: if (isSignedIn() && isValidId(campaignId) && existing().ownerId == request.auth.uid && isCampaignValid(incoming())) || isAdmin();
-      allow delete: if (isSignedIn() && isValidId(campaignId) && existing().ownerId == request.auth.uid) || isAdmin();
-    }
+      // Notifications
+      match /notifications/{notifId} {
+        allow get: if (isSignedIn() && isValidId(orgId) && isValidId(notifId) && existing().ownerId == request.auth.uid) || isAdmin();
+        allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
+        allow create: if isVerifiedUser() && isValidId(orgId) && isValidId(notifId) && isOrgOwner(orgId) && isValidNotification(incoming(), orgId, notifId);
+        allow update: if isVerifiedUser() && isValidId(orgId) && isValidId(notifId) &&
+                      existing().ownerId == request.auth.uid &&
+                      isValidNotification(incoming(), orgId, notifId) &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+        allow delete: if (isSignedIn() && isValidId(orgId) && isValidId(notifId) && existing().ownerId == request.auth.uid) || isAdmin();
+      }
 
-    match /threads/{threadId} {
-      allow get: if (isSignedIn() && existing().ownerId == request.auth.uid) || isAdmin();
-      allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
-      allow create: if isSignedIn() && isThreadValid(incoming());
-      allow update: if (isSignedIn() && existing().ownerId == request.auth.uid && isThreadValid(incoming())) || isAdmin();
-      allow delete: if (isSignedIn() && existing().ownerId == request.auth.uid) || isAdmin();
-    }
+      // Standardized Multi-Tenant CRM Entity Collections
+      match /{subCol}/{recordId} {
+        allow get: if subCol in [
+          'customers', 'leads', 'deals', 'tasks', 'tickets',
+          'products', 'orders', 'contracts', 'campaigns',
+          'conversations', 'workflows', 'employees', 'departments',
+          'teams', 'documents', 'loyalty', 'activities'
+        ] && ((isSignedIn() && isValidId(orgId) && isValidId(recordId) && existing().ownerId == request.auth.uid) || isAdmin());
 
-    match /ai_insights/{insightId} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
+        allow list: if subCol in [
+          'customers', 'leads', 'deals', 'tasks', 'tickets',
+          'products', 'orders', 'contracts', 'campaigns',
+          'conversations', 'workflows', 'employees', 'departments',
+          'teams', 'documents', 'loyalty', 'activities'
+        ] && ((isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin());
+
+        allow create: if subCol in [
+          'customers', 'leads', 'deals', 'tasks', 'tickets',
+          'products', 'orders', 'contracts', 'campaigns',
+          'conversations', 'workflows', 'employees', 'departments',
+          'teams', 'documents', 'loyalty', 'activities'
+        ] && isVerifiedUser() && isValidId(orgId) && isValidId(recordId) &&
+          isOrgOwner(orgId) && isValidTenantRecord(incoming(), orgId, recordId);
+
+        allow update: if subCol in [
+          'customers', 'leads', 'deals', 'tasks', 'tickets',
+          'products', 'orders', 'contracts', 'campaigns',
+          'conversations', 'workflows', 'employees', 'departments',
+          'teams', 'documents', 'loyalty', 'activities'
+        ] && ((isVerifiedUser() && isValidId(orgId) && isValidId(recordId) &&
+          existing().ownerId == request.auth.uid &&
+          isValidTenantRecord(incoming(), orgId, recordId) &&
+          incoming().id == existing().id &&
+          incoming().organizationId == existing().organizationId &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().createdAt == existing().createdAt) || isAdmin());
+
+        allow delete: if subCol in [
+          'customers', 'leads', 'deals', 'tasks', 'tickets',
+          'products', 'orders', 'contracts', 'campaigns',
+          'conversations', 'workflows', 'employees', 'departments',
+          'teams', 'documents', 'loyalty', 'activities'
+        ] && ((isVerifiedUser() && isValidId(orgId) && isValidId(recordId) && existing().ownerId == request.auth.uid) || isAdmin());
+      }
     }
   }
 }

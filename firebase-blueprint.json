@@ -1,196 +1,175 @@
 {
   "entities": {
-    "Customer": {
-      "title": "Customer",
-      "description": "A customer profile in the CRM.",
+    "UserAccount": {
+      "title": "UserAccount",
+      "description": "Authenticated ONECRM user profile and active organization binding.",
       "type": "object",
       "properties": {
-        "name": { "type": "string", "description": "Customer name" },
-        "email": { "type": "string", "description": "Primary email" },
-        "phone": { "type": "string", "description": "Mobile phone" },
-        "segment": { "type": "string", "description": "Customer segment" },
-        "tier": { "type": "string", "description": "Loyalty tier" },
-        "loyaltyPoints": { "type": "number", "description": "Points" },
-        "lifetimeValue": { "type": "number", "description": "LTV in VND" },
-        "avatar": { "type": "string", "description": "Avatar URL" },
-        "nextFollowUpDate": { "type": "string", "description": "Date & time of the next scheduled follow-up" },
-        "followUpNotes": { "type": "string", "description": "Special reminder notes for next follow-up" },
-        "noteText": { "type": "string", "description": "Customer general notes / voice transcripts" },
-        "createdAt": { "type": "number", "description": "Timestamp" },
-        "updatedAt": { "type": "number", "description": "Timestamp" },
-        "ownerId": { "type": "string", "description": "ID of the user managing this" }
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 150 },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "maxLength": 40 },
+        "organizationId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
       },
-      "required": ["name", "email", "createdAt", "updatedAt", "ownerId"]
+      "required": ["uid", "email", "role", "organizationId", "createdAt", "updatedAt"]
     },
-    "Ticket": {
-      "title": "Support Ticket",
-      "description": "A support request from a customer.",
+    "Organization": {
+      "title": "Organization",
+      "description": "Multi-tenant organization workspace.",
       "type": "object",
       "properties": {
-        "ticketId": { "type": "string", "description": "Auto-generated ID (YT-2026-XXXXX)" },
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "category": { "type": "string", "enum": ["technical", "billing", "product", "complaint", "consultancy", "other"] },
-        "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
-        "status": { "type": "string", "enum": ["new", "processing", "pending", "resolved", "closed"] },
-        "customerId": { "type": "string" },
-        "customerName": { "type": "string" },
-        "agentId": { "type": "string" },
-        "agentName": { "type": "string" },
-        "source": { "type": "string", "enum": ["portal", "agent", "email", "chat", "zalo", "fanpage"] },
-        "slaDeadline": { "type": "number" },
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 140 },
+        "code": { "type": "string", "maxLength": 40 },
+        "industry": { "type": "string", "maxLength": 80 },
+        "currency": { "type": "string", "enum": ["VND", "USD"] },
+        "timezone": { "type": "string", "maxLength": 60 },
+        "language": { "type": "string", "enum": ["vi", "en"] },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "demoModeEnabled": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "name", "code", "currency", "language", "ownerId", "demoModeEnabled", "createdAt", "updatedAt"]
+    },
+    "CrmEntity": {
+      "title": "CrmEntity",
+      "description": "Tenant-isolated CRM entity record (Customer, Lead, Deal, Task, Ticket, Product, Order, Contract, Campaign, Conversation, Workflow, Employee, Document, Loyalty).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "organizationId": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "maxLength": 60 },
         "createdAt": { "type": "number" },
         "updatedAt": { "type": "number" },
-        "metadata": { "type": "object" }
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "updatedBy": { "type": "string", "maxLength": 128 }
       },
-      "required": ["ticketId", "title", "category", "priority", "status", "customerId", "createdAt", "updatedAt"]
+      "required": ["id", "organizationId", "ownerId", "status", "createdAt", "updatedAt"]
     },
-    "TicketComment": {
-      "title": "Ticket Comment",
-      "description": "A communication message within a ticket.",
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable security and operational audit trail.",
       "type": "object",
       "properties": {
-        "ticketId": { "type": "string" },
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "userRole": { "type": "string", "enum": ["customer", "agent"] },
-        "content": { "type": "string" },
-        "isPrivate": { "type": "boolean" },
-        "attachments": { "type": "array", "items": { "type": "string" } },
-        "createdAt": { "type": "number" }
+        "id": { "type": "string", "maxLength": 128 },
+        "organizationId": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userEmail": { "type": "string", "maxLength": 150 },
+        "action": { "type": "string", "maxLength": 80 },
+        "module": { "type": "string", "maxLength": 60 },
+        "details": { "type": "string", "maxLength": 2000 },
+        "timestamp": { "type": "number" }
       },
-      "required": ["ticketId", "userId", "content", "createdAt"]
-    },
-    "Campaign": {
-      "title": "Marketing Campaign",
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" },
-        "type": { "type": "string", "enum": ["Email", "Social", "SMS", "Call"] },
-        "status": { "type": "string", "enum": ["Draft", "Active", "Paused", "Completed"] },
-        "budget": { "type": "number" },
-        "spent": { "type": "number" },
-        "leads": { "type": "number" },
-        "conversion": { "type": "number" },
-        "startDate": { "type": "string" },
-        "endDate": { "type": "string" }
-      },
-      "required": ["name", "type", "status", "startDate"]
-    },
-    "AIInsight": {
-      "title": "AI Insight",
-      "type": "object",
-      "properties": {
-        "type": { "type": "string", "enum": ["churn_risk", "upsell_opportunity", "sentiment_alert", "revenue_forecast"] },
-        "severity": { "type": "string", "enum": ["low", "medium", "high"] },
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "targetId": { "type": "string" },
-        "targetName": { "type": "string" },
-        "recommendation": { "type": "string" },
-        "createdAt": { "type": "number" }
-      }
-    },
-    "Thread": {
-      "title": "Omnichannel Thread",
-      "description": "A conversation thread from various channels.",
-      "type": "object",
-      "properties": {
-        "channel": { "type": "string" },
-        "customerName": { "type": "string" },
-        "customerEmail": { "type": "string" },
-        "customerPhone": { "type": "string" },
-        "customerAvatar": { "type": "string" },
-        "lastMessage": { "type": "string" },
-        "timestamp": { "type": "number" },
-        "unread": { "type": "boolean" },
-        "status": { "type": "string" },
-        "sentiment": { "type": "string" },
-        "ownerId": { "type": "string" }
-      },
-      "required": ["channel", "customerName", "timestamp", "ownerId"]
+      "required": ["id", "organizationId", "ownerId", "userId", "action", "module", "timestamp"]
     },
     "Notification": {
       "title": "Notification",
-      "description": "A centralized notification for CRM updates, task deadlines, etc.",
+      "description": "In-app CRM alert or SLA warning.",
       "type": "object",
       "properties": {
-        "userId": { "type": "string" },
-        "title": { "type": "string" },
-        "message": { "type": "string" },
-        "type": { "enum": ["info", "success", "warning", "error"] },
-        "category": { "enum": ["crm", "ticket", "task", "system"] },
+        "id": { "type": "string", "maxLength": 128 },
+        "organizationId": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "message": { "type": "string", "maxLength": 1000 },
+        "type": { "type": "string", "enum": ["info", "success", "warning", "error"] },
+        "category": { "type": "string", "maxLength": 40 },
         "read": { "type": "boolean" },
-        "link": { "type": "string" },
         "createdAt": { "type": "number" }
       },
-      "required": ["userId", "title", "message", "type", "category", "read", "createdAt"]
-    },
-    "AuditLog": {
-      "title": "Audit Log",
-      "description": "An audit log record representing a user action in the system.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "email": { "type": "string" },
-        "action": { "type": "string" },
-        "resource": { "type": "string" },
-        "timestamp": { "type": "number" },
-        "details": { "type": "string" }
-      },
-      "required": ["userId", "email", "action", "resource", "timestamp"]
-    },
-    "SalesVelocity": {
-      "title": "Sales Velocity",
-      "description": "Daily lead conversion tracking over the last 30 days.",
-      "type": "object",
-      "properties": {
-        "date": { "type": "string" },
-        "leadsCount": { "type": "number" },
-        "convertedCount": { "type": "number" },
-        "conversionRate": { "type": "number" },
-        "ownerId": { "type": "string" },
-        "timestamp": { "type": "number" }
-      },
-      "required": ["date", "leadsCount", "convertedCount", "conversionRate", "ownerId", "timestamp"]
+      "required": ["id", "organizationId", "ownerId", "userId", "title", "message", "type", "read", "createdAt"]
     }
   },
   "firestore": {
-    "/notifications/{notificationId}": {
-      "schema": { "$ref": "#/entities/Notification" },
-      "description": "User notifications."
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserAccount" },
+      "description": "Private user account & role metadata (PII isolated to owner/admin)."
     },
-    "/audit_logs/{logId}": {
+    "/organizations/{orgId}": {
+      "schema": { "$ref": "#/entities/Organization" },
+      "description": "Multi-tenant organization root document."
+    },
+    "/organizations/{orgId}/customers/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Customer 360 records."
+    },
+    "/organizations/{orgId}/leads/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Lead management records."
+    },
+    "/organizations/{orgId}/deals/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Sales opportunities & deals."
+    },
+    "/organizations/{orgId}/tasks/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Tasks & calendar appointments."
+    },
+    "/organizations/{orgId}/tickets/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Customer service tickets & SLA."
+    },
+    "/organizations/{orgId}/products/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Product and service catalog."
+    },
+    "/organizations/{orgId}/orders/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Sales orders."
+    },
+    "/organizations/{orgId}/contracts/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Customer contracts."
+    },
+    "/organizations/{orgId}/campaigns/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Marketing campaigns."
+    },
+    "/organizations/{orgId}/conversations/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Omnichannel inbox threads."
+    },
+    "/organizations/{orgId}/workflows/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Automation workflow definitions."
+    },
+    "/organizations/{orgId}/employees/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Organization employees."
+    },
+    "/organizations/{orgId}/departments/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Organization departments."
+    },
+    "/organizations/{orgId}/teams/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Organization teams."
+    },
+    "/organizations/{orgId}/documents/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Documents & knowledge base articles."
+    },
+    "/organizations/{orgId}/loyalty/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Customer loyalty & retention records."
+    },
+    "/organizations/{orgId}/activities/{recordId}": {
+      "schema": { "$ref": "#/entities/CrmEntity" },
+      "description": "Cross-module customer timeline activities."
+    },
+    "/organizations/{orgId}/audit_logs/{logId}": {
       "schema": { "$ref": "#/entities/AuditLog" },
-      "description": "Audit log records."
+      "description": "Append-only operational audit logs."
     },
-    "/sales_velocity/{velocityId}": {
-      "schema": { "$ref": "#/entities/SalesVelocity" },
-      "description": "Sales velocity metrics."
-    },
-    "/customers/{customerId}": {
-      "schema": { "$ref": "#/entities/Customer" },
-      "description": "Collection of CRM customers."
-    },
-    "/tickets/{ticketId}": {
-      "schema": { "$ref": "#/entities/Ticket" },
-      "description": "Collection of support tickets."
-    },
-    "/tickets/{ticketId}/comments/{commentId}": {
-      "schema": { "$ref": "#/entities/TicketComment" },
-      "description": "Sub-collection of comments for a ticket."
-    },
-    "/campaigns/{campaignId}": {
-      "schema": { "$ref": "#/entities/Campaign" },
-      "description": "Collection of marketing campaigns."
-    },
-    "/ai_insights/{insightId}": {
-      "schema": { "$ref": "#/entities/AIInsight" },
-      "description": "Collection of AI-generated insights."
-    },
-    "/threads/{threadId}": {
-      "schema": { "$ref": "#/entities/Thread" },
-      "description": "Omnichannel conversation threads."
+    "/organizations/{orgId}/notifications/{notifId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "In-app notifications."
     }
   }
 }
